@@ -1,0 +1,5 @@
+Import('env')
+
+hFiles  = Glob('*.h')
+
+env.Install(env.installLocalInc,hFiles);

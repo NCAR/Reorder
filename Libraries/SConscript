@@ -1,0 +1,5 @@
+
+SConscript('publicIncludes/SConscript')
+SConscript('s2/SConscript')
+SConscript('dap/SConscript')
+SConscript('qreo/SConscript')

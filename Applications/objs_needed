@@ -1,0 +1,12 @@
+
+
+
+
+qreod:                                    
+
+
+qreou:  fofclibPlus.o qufap.o unixqufap.o 
+
+
+
+common:  xcedcio.o fofclib.o qreo1.o qreo2.o qreo3.o unixqreo.o foflib.o unixflib.o

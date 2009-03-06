@@ -1,0 +1,11 @@
+Import('env')
+
+sources = Glob('*.c')
+
+libNode = env.Library('s2',source = sources,
+                      CPPPATH = [env.installLocalInc],
+                      LIBS    = ['m','ncurses'],
+                      CPPDEFINES=['UNIX','LITTLENDIAN']);
+
+env.Install(env.installLocalLib,libNode);
+
