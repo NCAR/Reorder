@@ -12,7 +12,7 @@ void produce_uf();
 void dd_gecho();
 void dd_product_x();
 void produce_nssl_mrd();
-void produce_shanes_data();
+//void produce_shanes_data();  // Commented out; DFF Mar 15, 2009
 
 /* c------------------------------------------------------------------------ */
 
@@ -28,7 +28,7 @@ void by_products(dgi, ztime)
     dd_gecho(dgi);
     dd_product_x(dgi);
     produce_nssl_mrd(dgi, NO);
-    produce_shanes_data(dgi);
+    //produce_shanes_data(dgi);   // Commented out; DFF Mar 15, 2009
     produce_ncdf( dgi, NO );
 
 }
