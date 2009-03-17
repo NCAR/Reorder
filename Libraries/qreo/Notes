@@ -1,0 +1,13 @@
+DFF and LJM ; March 17, 2008
+
+- Replace common block defs, with include file that define common blocks.  
+Look syntax of include.  See reo and fields routines in qreo1.F
+
+- Internal to polar cordinate system looks like it is rotated 90 couterclockwise
+  (Line 620 in qreo1.F).  Most likely done for *only* co-plane collected data.
+
+- The routine inidat (input data) in qreo1.F is used to parse input parameters.
+
+
+
+

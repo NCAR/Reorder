@@ -96,13 +96,19 @@ c----------------------------------------------------------------------
 c===========================================================================
 c___qcommon.for
 c
+
+c       max cart output set to 4001, that is nx * ny * nz <= maxcart
     	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
+
+c       Max gates is 2048
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
+
+c       Max fields set to 16, max field for scratch is 20  -DFF 3/17
         parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
@@ -615,7 +621,7 @@ c   the following algorithm assumes that the orientation of the positive
 c   x-axis is north and the positive y-axis is west.  
 c
 c   this is corrected in the final subroutines dcopl or xyswap 
-c   to x being east any y north.
+c   to x being east and y north.
 
       call xyz( numgt, rg, fat(l4), fat(l5), fat(l6),
      a  cosel*cos( az ), -cosel*sin( az ), sin( el ),
@@ -1438,6 +1444,11 @@ c   what fields to output, and which output fields to BSCAN.
 c
 c   the routines incb and inca return the first argument before or after
 c   being incremented by the second argument
+
+c   Communicates parameters through common blocks named store,boxez and fldcom -DFF 3/17
+c   Block definitions could be replaced with an include (like)
+c
+C
 c
         implicit integer( a-y )
         implicit real( z )
