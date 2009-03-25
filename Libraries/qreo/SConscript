@@ -2,7 +2,8 @@ Import('env')
 
 sources = ['xcedcio.c','fofclib.c','qreo1.F','qreo2.F','qreo3.F','unixqreo.F','foflib.F','unixflib.F']
 
-libNode = env.Library('qreo',source = sources,CPPPATH = [env.installLocalInc]);
+env.AppendUnique(CPPPATH = [env.installLocalInc])
+libNode = env.Library('qreo',source = sources);
 
 env.Install(env.installLocalLib,libNode);
 
