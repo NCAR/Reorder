@@ -7,6 +7,7 @@ static char vcid[] = "$Id: product_x.c 244 2006-04-13 15:47:55Z dennisf $";
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 # include "dorade_headers.h"
 

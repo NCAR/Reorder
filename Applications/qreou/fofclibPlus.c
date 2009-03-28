@@ -5,6 +5,8 @@
 # include <stdio.h>
 # include <sys/stat.h>
 # include <fcntl.h>
+# include <string.h>
+# include <stdlib.h>
 
 # define NDRIVE 20	/* Must be bigger than 8 (to use device /dev/rmt8) */
 static int Fds[NDRIVE] = { 0 };
@@ -29,7 +31,7 @@ int mtfmnt_ (unit, file)
    * Mount a file "tape"
    */
 {
-   char *trans, *getenv (), *strchr (), *strrchr (), *slash;
+   char *trans, *slash;
    char *dest = last_name, *type = ".tape";
 # ifdef titan
     char *titan_string();
@@ -231,7 +233,7 @@ int fb_read( fin, buf, count )
 	  return(rlen1);
 
 # ifdef LITTLENDIAN
-    swack4(&nab, &size_rec);
+    swack4((char *)&nab,(char *)&size_rec);
 # else
     size_rec = nab;
 # endif
@@ -268,7 +270,7 @@ int fb_write( fout, buf, count )
     long int size_rec=count, rlen1, rlen2=0, blip;
 
 # ifdef LITTLENDIAN
-    swack4(&size_rec, &blip);
+    swack4((char *)&size_rec,(char *)&blip);
 # else
     blip = size_rec;
 # endif

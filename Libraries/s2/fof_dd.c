@@ -4,6 +4,7 @@
 static char vcid[] = "$Id: fof_dd.c 255 2007-01-29 22:23:24Z vanandel $";
 #endif /* lint */
 
+
 /*
  * These environment variables need to be set to run these routines
  * The paths should be changed to reflect your environment
@@ -3973,7 +3974,7 @@ C   CALCULATE PEAK POWER IN DBM
     gri->num_samples = rq->num_samples = hsk->samples_per_beam;
     gri->bin_spacing = rq->gs = hsk->gs;
 
-    rq->time = fof_time(hsk);
+    rq->time = fof_time((char *)hsk);
     if(rq->time != fui->trip_time) {
 	fui->trip_time = rq->time;
 	fui->count_since_trip = 0;

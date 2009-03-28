@@ -7,6 +7,7 @@
 
 
 # include <stdio.h>
+# include <string.h>
 # include <time.h>
 # ifdef NETCDF
 # include <netcdf.h>
@@ -110,7 +111,7 @@ typedef struct _mudras_header
 	short	mh_Month1;		/* 123 Month			*/
 	short	mh_Day1;		/* 124 Day			*/
 	short	mh_Hour1;		/* 125 Hour			*/
-	short	mh_Minute1;		/* 126 Minute			*/
+        short	mh_Minute1;		/* 126 Minute			*/
 	short	mh_Second1;		/* 127 Second			*/
 
 	short	mh_Fill128[32];
@@ -404,7 +405,7 @@ ced_netcdf(cedstrm, nfields, src_ids, dst_ids, file_name_prefix
 	    sptr = src_ids;
 	    dptr = dst_ids;
 	    for(ii=0; ii < nfields; ii++,sptr++,dptr++) {
-		if(strstr(end_string(mhc->mh_Fields[fld],8,str), *sptr)) {
+		if(strstr(end_string(mhc->mh_Fields[fld].fi_Name,8,str), *sptr)) {
 		    strcpy(cdf_names[fld], *dptr);
 		}
 	    }
@@ -563,7 +564,9 @@ cedopn_(name,n,isize)
   char *name;
   int *n, *isize;
 {
-    char *getenv(), *strchr(), real_name[222];
+    /*    char *getenv(), *strchr(), real_name[222];  DFF Mar 28, 2009
+     */ 
+    char real_name[222];
     int ii, jj, kk, rslt;
     size_t sof, offs;
     char *a=name;
@@ -629,7 +632,10 @@ cedopn_(name,n,isize)
 # endif
     ii = fseek(cedstrm, 0L, 0L);
     kk = sizeof( struct ced_file_head );
-    ii = cedwrt_((char *)cfhead, &kk);
+    /*    ii = cedwrt_((char *)cfhead, &kk);  DFF Mar 28, 2009
+     */
+    ii = cedwrt_((int *)cfhead, &kk);
+
     ii = fseek(cedstrm, offs, 0L);
     return(ii);
 }

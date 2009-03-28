@@ -2,7 +2,9 @@ Import('env')
 
 sources = ['dap_common.c','qdap.F']
 
-libNode = env.Library('dap',source = sources,CPPPATH = [env.installLocalInc]);
+env.AppendUnique(CPPPATH = [env.installLocalInc])
+
+libNode = env.Library('dap',source = sources);
 
 env.Install(env.installLocalLib,libNode);
 

@@ -755,7 +755,7 @@ void hrd_nab_data()
 	/* unpack and rescale the data */
 	k = hui->raw_field_position[i];
 	hrd_upk_data( k, hui->num_raw_fields
-		     , gri->num_bins, words, bins );
+		      , gri->num_bins, (unsigned char *)words, bins );
 	lut = hui->hrd_lut[i];
 	dst = gri->scaled_data[i];
 	if(hui->hrd_range_delay) {

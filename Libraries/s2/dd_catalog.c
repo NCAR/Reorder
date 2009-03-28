@@ -3,6 +3,8 @@
 static char vcid[] = "$Id: dd_catalog.c 244 2006-04-13 15:47:55Z dennisf $";
 #endif /* lint */
 
+
+
 # include <dorade_headers.h>
 # include "dd_stats.h"
 # include <time.h>
@@ -405,8 +407,8 @@ void cat_volume( dgi, cii, current_time, finish )
     
     if( finish == YES ) {
 	str[0] = '\0';
-	cat_cat_att( "Stop_date", 1, cat_date(cii->stop_time, arglist), str );
-	cat_cat_att( "Stop_time", 1, cat_time(cii->stop_time, arglist), str );
+	cat_cat_att( "Stop_date", 1, cat_date(cii->stop_time, (char *)arglist), str );
+	cat_cat_att( "Stop_time", 1, cat_time(cii->stop_time, (char *)arglist), str );
 	strncpy( cii->vol_stop_time, str, strlen(str));
 	ddcat_write(cii, cii->vol_txt_ptr, cii->vol_txt_size
 		     , DDCAT_NUVOL_REWRITE);
@@ -432,19 +434,19 @@ void cat_volume( dgi, cii, current_time, finish )
     sprintf(arg1, "%d", current_time );
     cat_cat_att( "Unix_time_stamp", 1, arglist, cat );
 
-    cat_cat_att( "Start_date", 1, cat_date(current_time, arglist), cat );
-    cat_cat_att( "Start_time", 1, cat_time(current_time, arglist), cat );
+    cat_cat_att( "Start_date", 1, cat_date(current_time, (char *)arglist), cat );
+    cat_cat_att( "Start_time", 1, cat_time(current_time, (char *)arglist), cat );
 
     cii->vol_stop_time = (cat += strlen(cat));
-    cat_cat_att( "Stop_date", 1, cat_date(current_time, arglist), cat );
-    cat_cat_att( "Stop_time", 1, cat_time(current_time, arglist), cat );
+    cat_cat_att( "Stop_date", 1, cat_date(current_time, (char *)arglist), cat );
+    cat_cat_att( "Stop_time", 1, cat_time(current_time, (char *)arglist), cat );
 
     t = todays_date(date_time);
-    cat_cat_att( "Production_date", 1, cat_date(t, arglist), cat );
-    cat_cat_att( "Production_time", 1, cat_time(t, arglist), cat );
+    cat_cat_att( "Production_date", 1, cat_date(t, (char *)arglist), cat );
+    cat_cat_att( "Production_time", 1, cat_time(t, (char *)arglist), cat );
     
 
-    c_deblank(vold->proj_name, 20, arglist);
+    c_deblank(vold->proj_name, 20, (char *)arglist);
     cat_cat_att( "Project", 1, arglist, cat );
 
     arg = "/RTF/ATD/NCAR/UCAR/NSF";
@@ -459,14 +461,14 @@ void cat_volume( dgi, cii, current_time, finish )
       cat_cat_att( "Piraq_clutter_filter", 1, arglist, cat );
     }
 
-    c_deblank(vold->flight_num, 8, arglist);
+    c_deblank(vold->flight_num, 8, (char *)arglist);
     cat_cat_att( "Flight/IOP_number", 1, arglist, cat );
 
     /* Begin sensor specific attributes
      */
     cat_cat_att( SENSOR, 0, arglist, cat );
 
-    c_deblank(dds->radd->radar_name, 8, arglist);
+    c_deblank(dds->radd->radar_name, 8, (char *)arglist);
     cat_cat_att( "Name", 1, arglist, cat );
 
     cii->radar_type = radd->radar_type;
@@ -624,7 +626,7 @@ void cat_volume( dgi, cii, current_time, finish )
 	sprintf( arglist[1], "%.1f", gate_spacing[i]);
 	cat_cat_att_args( "Segment_pair", 2, arg_ptr, cat );
     }
-    cat_cat_att(reverse_string( RANGE_INFO, arglist), 0, arglist, cat );
+    cat_cat_att(reverse_string( RANGE_INFO, (char *)arglist), 0, arglist, cat );
 
 
     /* create a list of the parameters present in this volume
@@ -639,13 +641,13 @@ void cat_volume( dgi, cii, current_time, finish )
     for(i=0; i < dgi->num_parms; i++ ) {
 	cat_cat_att( PARAMETER, 0, arglist, cat );
 
-	c_deblank( dds->parm[i]->parameter_name, 8, arglist);
+	c_deblank( dds->parm[i]->parameter_name, 8, (char *)arglist);
 	cat_cat_att( "Name", 1, arglist, cat );
 
-	c_deblank( dds->parm[i]->param_description, 39, arglist);
+	c_deblank( dds->parm[i]->param_description, 39, (char *)arglist);
 	cat_cat_att( "Description", 1, arglist, cat );
 
-	c_deblank( dds->parm[i]->param_units, 8, arglist);
+	c_deblank( dds->parm[i]->param_units, 8, (char *)arglist);
 	cat_cat_att( "Units", 1, arglist, cat );
 
 	sprintf(arg1, "%.3f", dds->parm[i]->recvr_bandwidth);
@@ -703,7 +705,7 @@ void cat_volume( dgi, cii, current_time, finish )
 	sprintf(arg1, "%.3e", dds->parm[i]->parameter_bias);
 	cat_cat_att( "Param_bias", 1, arglist, cat );
 
-	cat_cat_att(reverse_string( PARAMETER, arglist), 0, arglist, cat );
+	cat_cat_att(reverse_string( PARAMETER, (char *)arglist), 0, arglist, cat );
 	cat += strlen(cat);
     }
 
@@ -775,12 +777,12 @@ void cat_volume( dgi, cii, current_time, finish )
     cat_cat_att( "Unambiguous_range_(km)", 1, arglist, cat );
 
 
-    cat_cat_att(reverse_string(SENSOR,arglist), 0, arglist, cat );
+    cat_cat_att(reverse_string(SENSOR,(char *)arglist), 0, (char *)arglist, cat );
 
     /* End sensor specific attributes
      */
 
-    cat_cat_att(reverse_string(VOLUME,arglist), 0, arglist, cat );
+    cat_cat_att(reverse_string(VOLUME,(char *)arglist), 0, (char *)arglist, cat );
     cat += strlen(cat);
 
     cii->vol_txt_size = strlen(cii->vol_txt_ptr);
@@ -814,73 +816,73 @@ void cat_sweep( dgi, cii, current_time, finish )
 	mark_char = cat = cii->swp_txt_ptr +cii->swp_txt_size;
 
 	sprintf(arg1, "%.1f", cii->f_fixed_angle );
-	cat_cat_att( "Fixed_angle", 1, arglist, cat );
+	cat_cat_att( "Fixed_angle", 1, (char *)arglist, cat );
 
-	cat_cat_att( "Stop_date", 1, cat_date(cii->stop_time, arglist), cat );
-	cat_cat_att( "Stop_time", 1, cat_time(cii->stop_time, arglist), cat );
+	cat_cat_att( "Stop_date", 1, cat_date(cii->stop_time, (char *)arglist), cat );
+	cat_cat_att( "Stop_time", 1, cat_time(cii->stop_time, (char *)arglist), cat );
 
 	sprintf(arg1, "%.1f", cii->f_swp_stop_angle );
-	cat_cat_att( "Stop_angle", 1, arglist, cat );
+	cat_cat_att( "Stop_angle", 1, (char *)arglist, cat );
 
 	f = cii->avg_rota_count > 1
 	      ? cii->f_delta_angles/(float)(cii->avg_rota_count-1) : 0;
 	sprintf(arg1, "%.2f", f );
-	cat_cat_att( "Average_delta_rotation", 1, arglist, cat );
+	cat_cat_att( "Average_delta_rotation", 1, (char *)arglist, cat );
 
 	f = cii->tot_cells > 0 ? (float)cii->num_good_cells/cii->tot_cells : 0;
 	sprintf(arg1, "%.2f", f*100.);
-	cat_cat_att( "Percent_good_cells", 1, arglist, cat );
+	cat_cat_att( "Percent_good_cells", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%d", cii->rays_per_volume );
-	cat_cat_att( "Num_rays", 1, arglist, cat );
+	cat_cat_att( "Num_rays", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.2f", (float)cii->prev_MB_count);
-	cat_cat_att( "MB_sofar", 1, arglist, cat );
+	cat_cat_att( "MB_sofar", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%d", cii->prev_rec_count-cii->vol_rec_mark);
-	cat_cat_att( "Recs_sofar", 1, arglist, cat );
+	cat_cat_att( "Recs_sofar", 1, (char *)arglist, cat );
 
 	if( cii->radar_type != GROUND ) {
 	    cat += strlen(cat);
 
 	    sprintf(arg1, "%.3f", cii->f_stop_latitude );
-	    cat_cat_att( "Stop_latitude", 1, arglist, cat );
+	    cat_cat_att( "Stop_latitude", 1, (char *)arglist, cat );
 
 	    sprintf(arg1, "%.3f", cii->f_stop_longitude );
-	    cat_cat_att( "Stop_longitude", 1, arglist, cat );
+	    cat_cat_att( "Stop_longitude", 1, (char *)arglist, cat );
 
 	    sprintf(arg1, "%.3f", cii->f_stop_altitude);
-	    cat_cat_att( "Stop_altitude_(km)", 1, arglist, cat );
+	    cat_cat_att( "Stop_altitude_(km)", 1, (char *)arglist, cat );
 
 	    sprintf(arg1, "%.1f", cii->f_stop_EW_wind );
-	    cat_cat_att( "Stop_EW_wind_(m/s)", 1, arglist, cat );
+	    cat_cat_att( "Stop_EW_wind_(m/s)", 1, (char *)arglist, cat );
 
 	    sprintf(arg1, "%.1f", cii->f_stop_NS_wind );
-	    cat_cat_att( "Stop_NS_wind_(m/s)", 1, arglist, cat );
+	    cat_cat_att( "Stop_NS_wind_(m/s)", 1, (char *)arglist, cat );
 
 	    if(cii->num_rays > 0) {
 		
 		e = cii->f_ns_velocity/(float)cii->num_rays;
 		f = cii->f_ew_velocity/(float)cii->num_rays;
 		sprintf(arg1, "%.0f", sqrt((double)(e*e+f*f)));
-		cat_cat_att( "Average_ground_speed_(m/s)", 1, arglist, cat );
+		cat_cat_att( "Average_ground_speed_(m/s)", 1, (char *)arglist, cat );
 	    }
 	    d = 360.+90. -DEGREES(atan2(cii->d_sin_heading
 			      , cii->d_cos_heading));
 	    sprintf(arg1, "%.0f", fmod(d,(double)360.));
-	    cat_cat_att( "Average_heading_(deg)", 1, arglist, cat );
+	    cat_cat_att( "Average_heading_(deg)", 1, (char *)arglist, cat );
 	    
 	    d = DEGREES(atan2(cii->d_sin_drift, cii->d_cos_drift));
 	    sprintf(arg1, "%.1f", d );
-	    cat_cat_att( "Average_drift_(deg)", 1, arglist, cat );
+	    cat_cat_att( "Average_drift_(deg)", 1, (char *)arglist, cat );
 
 	    d = DEGREES(atan2(cii->d_sin_pitch, cii->d_cos_pitch));
 	    sprintf(arg1, "%.1f", d );
-	    cat_cat_att( "Average_pitch_(deg)", 1, arglist, cat );
+	    cat_cat_att( "Average_pitch_(deg)", 1, (char *)arglist, cat );
 
 	    d = DEGREES(atan2(cii->d_sin_roll, cii->d_cos_roll));
 	    sprintf(arg1, "%.1f", d);
-	    cat_cat_att( "Average_roll_(deg)", 1, arglist, cat );
+	    cat_cat_att( "Average_roll_(deg)", 1, (char *)arglist, cat );
 	}
 
 	if(cmt->sizeof_comments) { /* dump out the comments */
@@ -893,7 +895,7 @@ void cat_sweep( dgi, cii, current_time, finish )
 	    cmt->sizeof_comments = 0;
 	    cmt->at = cmt->buf;
 	}
-	cat_cat_att(reverse_string(SCAN,arglist), 0, arglist, cat );
+	cat_cat_att(reverse_string(SCAN,(char *)arglist), 0, (char *)arglist, cat );
 	n = strlen(mark_char);
 	cii->swp_txt_size += n;
 	mark_char = cat += strlen(cat);
@@ -907,58 +909,58 @@ void cat_sweep( dgi, cii, current_time, finish )
     mark_char = cat = cii->swp_txt_ptr;
     cii->swp_txt_size = 0;
     *cii->swp_txt_ptr = 0;
-    cat_cat_att(SCAN, 0, arglist, cat );
+    cat_cat_att(SCAN, 0, (char *)arglist, cat );
 
     sprintf(arg1, "%d", swib->sweep_num );
-    cat_cat_att( "Number", 1, arglist, cat );
+    cat_cat_att( "Number", 1, (char *)arglist, cat );
 
-    cat_cat_att( "Start_date", 1, cat_date(current_time, arglist), cat );
-    cat_cat_att( "Start_time", 1, cat_time(current_time, arglist), cat );
+    cat_cat_att( "Start_date", 1, cat_date(current_time, (char *)arglist), cat );
+    cat_cat_att( "Start_time", 1, cat_time(current_time, (char *)arglist), cat );
 # ifdef obsolete
     sprintf(arg1, "%.1f", swib->fixed_angle );
-    cat_cat_att( "Fixed_angle", 1, arglist, cat );
+    cat_cat_att( "Fixed_angle", 1, (char *)arglist, cat );
 # endif
     sprintf(arg1, "%.1f", swib->start_angle );
-    cat_cat_att( "Start_angle", 1, arglist, cat );
+    cat_cat_att( "Start_angle", 1, (char *)arglist, cat );
 
     sprintf(arg1, "%.2f", dds->radd->eff_unamb_vel );
-    cat_cat_att( "Unambiguous_velocity_(m/s)", 1, arglist, cat );
+    cat_cat_att( "Unambiguous_velocity_(m/s)", 1, (char *)arglist, cat );
 
     if( cii->radar_type != GROUND ) {
 	sprintf(arg1, "%.3f", dd_latitude(dgi));
-	cat_cat_att( "Start_latitude", 1, arglist, cat );
+	cat_cat_att( "Start_latitude", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.3f", dd_longitude(dgi));
-	cat_cat_att( "Start_longitude", 1, arglist, cat );
+	cat_cat_att( "Start_longitude", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.3f", dd_altitude(dgi));
-	cat_cat_att( "Start_altitude_(km)", 1, arglist, cat );
+	cat_cat_att( "Start_altitude_(km)", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.3f", dd_altitude_agl(dgi));
-	cat_cat_att( "Start_altitude_agl(km)", 1, arglist, cat );
+	cat_cat_att( "Start_altitude_agl(km)", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.1f", dd_heading(dgi));
-	cat_cat_att( "Start_heading_(deg)", 1, arglist, cat );
+	cat_cat_att( "Start_heading_(deg)", 1, (char *)arglist, cat );
 
 	e = asib->ew_velocity;
 	f = asib->ns_velocity;
 	sprintf(arg1, "%.0f", sqrt((double)(e*e+f*f)));
-	cat_cat_att( "Start_ground_speed_(m/s)", 1, arglist, cat );
+	cat_cat_att( "Start_ground_speed_(m/s)", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.1f", dd_roll(dgi) );
-	cat_cat_att( "Start_roll", 1, arglist, cat );
+	cat_cat_att( "Start_roll", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.1f", dd_pitch(dgi) );
-	cat_cat_att( "Start_pitch", 1, arglist, cat );
+	cat_cat_att( "Start_pitch", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.1f", dd_drift(dgi) );
-	cat_cat_att( "Start_drift", 1, arglist, cat );
+	cat_cat_att( "Start_drift", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.1f", asib->ew_horiz_wind );
-	cat_cat_att( "EW_horiz_wind_(m/s)", 1, arglist, cat );
+	cat_cat_att( "EW_horiz_wind_(m/s)", 1, (char *)arglist, cat );
 
 	sprintf(arg1, "%.1f", asib->ns_horiz_wind );
-	cat_cat_att( "NS_horiz_wind_(m/s)", 1, arglist, cat );
+	cat_cat_att( "NS_horiz_wind_(m/s)", 1, (char *)arglist, cat );
     }
     cat += strlen(cat);
     cii->swp_txt_size = strlen(cii->swp_txt_ptr);

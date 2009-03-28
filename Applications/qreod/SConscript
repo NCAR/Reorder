@@ -3,10 +3,11 @@ Import('env')
 sources = ['qreoroot.F']
 
 
-progNode = env.Program('qreod',
-                       source = sources,
-                       CPPPATH = [env.installLocalInc],
-                       LIBPATH = [env.installLocalLib],
-                       LIBS    = ['qreo','dap','s2'])
+env.AppendUnique(CPPDEFINES = ['UNIX','LITTLENDIAN'])
+env.AppendUnique(LIBPATH    = [env.installLocalLib])
+env.AppendUnique(CPPPATH    = [env.installLocalInc])
+env.PrependUnique(LIBS       = ['qreo','dap','s2'])
+
+progNode = env.Program('qreod', source = sources)
 
 env.Install(env.installLocalBin,progNode)
