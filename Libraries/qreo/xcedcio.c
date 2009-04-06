@@ -1,14 +1,18 @@
 /*
  * Author:  Oye  Date:  11/26/90
  * $Id: xcedcio.c,v 1.3 2003/01/22 16:54:15 oye Exp $
+ *
+ *
+ * Updated cvt_toLatLon with algorithm that will work better
+ * at higher latitudes.  DFF, April 1, 2009.
  */
 
 /* c------------------------------------------------------------------------ */
 
 
 # include <stdio.h>
-# include <string.h>
 # include <time.h>
+# include <math.h>
 # ifdef NETCDF
 # include <netcdf.h>
 # endif
@@ -111,7 +115,7 @@ typedef struct _mudras_header
 	short	mh_Month1;		/* 123 Month			*/
 	short	mh_Day1;		/* 124 Day			*/
 	short	mh_Hour1;		/* 125 Hour			*/
-        short	mh_Minute1;		/* 126 Minute			*/
+	short	mh_Minute1;		/* 126 Minute			*/
 	short	mh_Second1;		/* 127 Second			*/
 
 	short	mh_Fill128[32];
@@ -405,7 +409,7 @@ ced_netcdf(cedstrm, nfields, src_ids, dst_ids, file_name_prefix
 	    sptr = src_ids;
 	    dptr = dst_ids;
 	    for(ii=0; ii < nfields; ii++,sptr++,dptr++) {
-		if(strstr(end_string(mhc->mh_Fields[fld].fi_Name,8,str), *sptr)) {
+		if(strstr(end_string(mhc->mh_Fields[fld],8,str), *sptr)) {
 		    strcpy(cdf_names[fld], *dptr);
 		}
 	    }
@@ -564,9 +568,7 @@ cedopn_(name,n,isize)
   char *name;
   int *n, *isize;
 {
-    /*    char *getenv(), *strchr(), real_name[222];  DFF Mar 28, 2009
-     */ 
-    char real_name[222];
+    char *getenv(), *strchr(), real_name[222];
     int ii, jj, kk, rslt;
     size_t sof, offs;
     char *a=name;
@@ -632,10 +634,7 @@ cedopn_(name,n,isize)
 # endif
     ii = fseek(cedstrm, 0L, 0L);
     kk = sizeof( struct ced_file_head );
-    /*    ii = cedwrt_((char *)cfhead, &kk);  DFF Mar 28, 2009
-     */
-    ii = cedwrt_((int *)cfhead, &kk);
-
+    ii = cedwrt_((char *)cfhead, &kk);
     ii = fseek(cedstrm, offs, 0L);
     return(ii);
 }
@@ -857,6 +856,12 @@ cvt_Origin (lat, lon)
  */
 	Origin_lat = lat * PI / 180.0;
 	Origin_lon = lon * PI / 180.0;
+
+
+	printf("cvt_Origin:\n");
+	printf("\torigin lat: %8.4f\n",lat);
+	printf("\torigin lon: %8.4f\n",lon);
+
 }
 /* c------------------------------------------------------------------------ */
 
@@ -866,21 +871,55 @@ cvt_ToLatLon (x, y, lat, lon)
  * Convert x and y (km) to lat and lon (deg)
  */
 {
-    double asin(), cos();
-    double del_lat, del_lon;
-/*
- * Convert the x,y to lat,lon
- */
-	del_lat = asin ((double)y / r_earth);
-	*lat = Origin_lat + del_lat;
+    double range;
+    double angleRadians;
+    double alpha;
+    double latRadians;
+    double deltaPhi;
+    double deltaLat;
+    double deltaLon;
+    double lonRadians;
 
-	del_lon = asin ((double)x / (r_earth * cos ((double)(*lat))));
-	*lon = Origin_lon + del_lon;
-/*
- * Convert to degrees
- */
-	*lat *= 180.0 / PI;
-	*lon *= 180.0 / PI;
+    range = sqrt((x * x) + (y * y));
+    angleRadians = atan2(y,x);
+
+    alpha = range/r_earth;
+    
+    latRadians = Origin_lat + (alpha * cos(angleRadians));
+    
+    deltaPhi = log(tan((latRadians/2) + M_PI/4)/tan((Origin_lat/2) + M_PI/4));
+    deltaLat = latRadians - Origin_lat;
+
+    double q;
+    if(deltaPhi == 0.0){
+	q = cos(latRadians);
+    }else{
+	q = deltaLat / deltaPhi;
+    }
+
+    deltaLon = alpha * sin(angleRadians)/q;
+    
+    lonRadians = Origin_lon + deltaLon;
+    
+    *lat = latRadians * 180.0 / M_PI;
+    *lon = lonRadians * 180.0 / M_PI;
+
+    *lon = fmod(*lon,360.0);
+
+    if(*lon < -180.0){
+	*lon += 360.0;
+    }
+
+    if(*lon > 180.0){
+	*lon -= 360.0;
+    }
+
+    printf("cvt_ToLatLon:\n");
+    printf("\tx  : %8.4f\n",x);
+    printf("\ty  : %8.4f\n",y);
+    printf("\tlat: %8.4f\n",*lat);
+    printf("\tlon: %8.4f\n",*lon);
+
 }
 /* c----------------------------------------------------------------------- */
 

@@ -8,7 +8,7 @@ env = Environment(variables = vars, tools=['default'])
 
 Help(vars.GenerateHelpText(env))
 
-env.AppendUnique(CCFLAGS = ['-O3'])
+#env.AppendUnique(CCFLAGS = ['-O3'])
 
 env.netcdfBin  = os.path.join(env['ncdir'],'bin');
 env.netcdfLib  = os.path.join(env['ncdir'],'lib')
