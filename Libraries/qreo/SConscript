@@ -1,6 +1,15 @@
 Import('env')
 
-sources = ['xcedcio.c','fofclib.c','qreo1.F','qreo2.F','qreo3.F','unixqreo.F','foflib.F','unixflib.F']
+sources = Split("""
+xcedcio.c
+fofclib.c
+qreo1.F
+qreo2.F
+qreo3.F
+unixqreo.F
+foflib.F
+unixflib.F
+""")
 
 env.AppendUnique(CPPPATH = [env.installLocalInc])
 
