@@ -13,6 +13,7 @@
 # include <stdio.h>
 # include <time.h>
 # include <math.h>
+# include <string.h>
 # ifdef NETCDF
 # include <netcdf.h>
 # endif
