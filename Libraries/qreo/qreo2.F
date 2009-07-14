@@ -2071,6 +2071,7 @@ c
         integer wtfun, wtfptr, unfptr
         integer natfld, attyp, atptr, thrptr, hthptr, thrpt2
         real    thrval, zlard, atten
+        real    xmin, ymin, zmin
         logical dupfld, unfflg
 c
         real space
@@ -2246,6 +2247,7 @@ c
     	save ikount, first, tcount
      +, copln, nxval, nyval, nzval, rcpdx, rcpdy, rcpdz
      +, xrad, yrad, zrad, xval, yval, zval, dx, dy, dz
+     +, xmin, ymin, zmin
 c
       data first / .true. / 
 code
