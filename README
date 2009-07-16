@@ -1,0 +1,38 @@
+README for reorder 1.40
+
+BUILDING
+========
+
+Note that the SCons construction tool is now required for building reorder.
+Pre-built packages for SCons are available for most common operating systems;
+check the common repositories for your OS and/or the download site at 
+http://www.scons.org.
+
+Unpack the reorder tar file and move to the resulting directory:
+
+    $ tar xvzf reorder140.tar.gz
+    $ cd reorder-1.40
+
+To build reorder without netCDF support:
+
+    $ scons
+    
+Or, if you have netCDF libraries installed and want netCDF support in reorder:
+
+    $ scons useNetcdf=True
+    
+The two reorder programs qreod and qreou will be created in the 'bin' 
+directory below your current directory.
+
+NOTE: The build method assumes that GNU compilers (gcc, gfortran, and/or g77)
+will be used.  If you do not have GNU compilers, the build may still work,
+but you need to explicitly disable use of a GNU-specific compiler flag by adding
+'use_m32=False' to the appropriate scons command line above.
+
+
+CHANGE LOG
+==========
+
+1.40 - Reorder is now built with SCons rather than configure/make. DORADE
+  access utilities are included with the distribution, so reorder is now
+  independent of soloii.
