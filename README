@@ -35,4 +35,5 @@ CHANGE LOG
 
 1.40 - Reorder is now built with SCons rather than configure/make. DORADE
   access utilities are included with the distribution, so reorder is now
-  independent of soloii.
+  independent of soloii.  The code now also builds and executes on Mac 
+  OS X machines, although it has not been extensively tested.
