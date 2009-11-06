@@ -64,8 +64,8 @@ static char vcid[] = "$Id: dd_io_mgmt.c 246 2006-06-19 22:36:09Z dennisf $";
 # include <sys/ioccom.h>
 # endif
 
-# ifdef osx
-# include <sys/ioccom.h>
+# if (defined(osx) || defined(__APPLE__))
+#   include <sys/ioccom.h>
 # endif
 
 # ifdef SVR4
