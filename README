@@ -1,4 +1,4 @@
-README for reorder 1.40
+README for reorder 1.40a
 
 BUILDING
 ========
@@ -10,8 +10,8 @@ http://www.scons.org.
 
 Unpack the reorder tar file and move to the resulting directory:
 
-    $ tar xvzf reorder140.tar.gz
-    $ cd reorder-1.40
+    $ tar xvzf reorder140a.tar.gz
+    $ cd reorder-1.40a
 
 To build reorder without netCDF support:
 
@@ -32,8 +32,11 @@ but you need to explicitly disable use of a GNU-specific compiler flag by adding
 
 CHANGE LOG
 ==========
+1.40a  Fixed a bug in Libraries/qreo/qreo1.F that was counting on implicit
+       initialization of a variable to zero. The bug shows up when compiled
+       under gfortran.
 
-1.40 - Reorder is now built with SCons rather than configure/make. DORADE
-  access utilities are included with the distribution, so reorder is now
-  independent of soloii.  The code now also builds and executes on Mac 
-  OS X machines, although it has not been extensively tested.
+1.40   Reorder is now built with SCons rather than configure/make. DORADE
+       access utilities are included with the distribution, so reorder is now
+       independent of soloii.  The code now also builds and executes on Mac 
+       OS X machines, although it has not been extensively tested.
