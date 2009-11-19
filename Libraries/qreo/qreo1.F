@@ -252,6 +252,7 @@ c
      +,         hedrec(512),    advect
      +,         ttm(6),         exct1(maxxcl), 	exct2(maxxcl),	excnt
      +,		swpskp,		swpcnt,		bmskp,		bmcnt
+     +,         ltp
 c
 c
         real    aaz(maxval),    advec(maxval),  advhgt(maxval)
@@ -292,7 +293,7 @@ c
         data gnyqv, grc, gbmwid / 3*znull /
     	data span, multiv, final, fixflt / 4*.false. /
     	data igskip / 1 /
-	data swpskp, swpcnt, bmskp, bmcnt / 4*0 /
+	data swpskp, swpcnt, bmskp, bmcnt, ltp / 5*0 /
     	data azrad, elrad, rgrad / znull, znull, 0 /
     	data grnd_out / .false. /
         data iadjust_z / .false. /
