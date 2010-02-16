@@ -1,0 +1,408 @@
+%!PS-Adobe-1.0
+%%Creator: dunkel:case (Michele Case)
+%%Title: reotest.list
+%%CreationDate: Thu Aug 27 16:19:04 1992
+%%DocumentFonts: Courier-Bold Courier-Bold
+% Start of enscript.pro -- prolog for text file translator
+% Copyright (c) 1984,1985,1987 Adobe Systems Incorporated. All Rights Reserved. 
+% GOVERNMENT END USERS: See Notice file in TranScript library directory
+% -- probably /usr/lib/ps/Notice
+% RCSID: $Header: enscript.pro,v 2.2 87/11/17 16:39:56 byron Rel $
+save/EnscriptJob exch def
+/StartEnscriptDoc{$enscript begin}def
+/$enscript 50 dict def $enscript begin
+/EndEnscriptDoc{end}def
+/S/show load def
+/X{exch 0 rmoveto S}def
+/Y{exch 0 exch rmoveto S}def
+/B{3 1 roll moveto S}def
+/F{$fd exch get setfont}def
+/StartPage{/svpg save def .05 dup scale}def
+/EndPage{svpg restore showpage}def
+/DoPreFeed{/statusdict where{pop
+ statusdict/prefeed known{statusdict exch/prefeed exch put 0}if}if pop}def
+/Landscape{90 rotate 0 -15840 translate}def
+/SetUpFonts
+ {dup/$fd exch array def{findfont exch scalefont $fd 3 1 roll put}repeat}def
+/InitGaudy{/TwoColumn exch def /BarLength exch def
+ /ftD /Times-Bold findfont 12 UP scalefont def
+ /ftF /Times-Roman findfont 14 UP scalefont def
+ /ftP /Helvetica-Bold findfont 30 UP scalefont def}def
+/U{1440 mul}def
+/UP{U 72 div}def
+/LB{/pts exch UP def /charcolor exch def /boxcolor exch def /font exch def
+ /label exch def /dy exch def /dx exch def /lly exch def /llx exch def
+ gsave boxcolor setgray
+ llx lly moveto dx 0 rlineto 0 dy rlineto dx neg 0 rlineto closepath fill
+ /lines label length def
+ /yp lly dy add dy lines pts mul sub 2 div sub pts .85 mul sub def
+ font setfont charcolor setgray
+ label {dup stringwidth pop 2 div llx dx 2 div add exch sub yp moveto show
+   /yp yp pts sub def}forall grestore}def
+/Gaudy{/Page exch def /Date exch def /File exch def /Comment exch def
+ .25 U 10.2 U BarLength .1 sub U .25 U [File] ftF .97 0 14 LB
+ .25 U 10.45 U BarLength .1 sub U .25 U [Comment] ftF 1 0 14 LB
+ .25 U 10.2 U 1 U .5 U Date ftD .7 0 12 LB
+ BarLength .75 sub U 10.2 U 1 U .5 U [Page] ftP .7 1 30 LB
+ TwoColumn{BarLength 2 div .19 add U 10.2 U moveto 0 -10 U rlineto stroke}if
+}def
+end
+StartEnscriptDoc % end fixed prolog
+1 200 /Courier-Bold
+0 140 /Courier-Bold
+2 SetUpFonts
+%%EndProlog
+%%Page: ? 1
+StartPage
+EndPage
+StartPage
+Landscape
+0 F
+444 14790(QREO--Version 1.002      ! )B
+696 14470(This version of REORDER produces the PURE cedric format)B
+696 14150(The sign of the advection vector is rotated 90 degrees)B
+696 13990(from the previous version)B
+696 13830(and will now for a positive elapsed time,)B
+696 13670(move the data in the direction of the azimuth)B
+696 13510(angle instead of the opposite direction.)B
+444 13190(REORDER INPUT FILE=stdin                                                                                                                                                          )B
+360 13030(                                                               )B
+444 12870(---------------------- input -----------------------)B
+444 12710(INPUT: "mist1.uf";)B
+444 12550(OUTPUT:"mist_grid";)B
+444 12390(RLONGITUDE:-86.8325;    RLATITUDE:34.8486;  RALTITUDE:0.264;)B
+444 12230(GLONGITUDE:-86.8325;    GLATITUDE:34.8486;  GALTITUDE:0.264;)B
+444 12070(;)B
+444 11910(XMIN:0;      XMAX:32;     XSPACING:0.4;    XRADIUS:.4;)B
+444 11750(YMIN:0;      YMAX:18;     YSPACING:0.4;    YRADIUS:.4;)B
+444 11590(ZMIN:.2;     ZMAX:7.2;    ZSPACING:1.0;    ZRADIUS:.6;)B
+444 11430(WEIGHTING FUNCTION: CRESSMAN;   ^THE DEFAULT;)B
+444 11270(;)B
+444 11110(DBZFIELD:DZ;    FIELD:VR,VELOC;     FIELD:TI,TIME;)B
+444 10950(COUNT:VR,VRCOUNT;)B
+444 10790(;)B
+444 10630(DISPLAY:DZ,0,2.5;       DISPLAY:VELOC,0,1;    DISPLAY:TIME,80,3.5;)B
+444 10470(LEVELS:0.3;)B
+444 10310(;)B
+444 10150(EXPERIMENT:MIST;    INSTRUMENT:CP4;)B
+444 9990(START:20-JUL-86,14:20:26;)B
+444 9830(STOP:20-JUL-86,14:22:44;)B
+444 9670(quit;)B
+444 9510(+++++++++++++++++ input attributes +++++++++++++++++)B
+444 9350(INPUT:mist1.uf;)B
+444 9190(OUTPUT:mist_grid;)B
+444 9030(RLONGITUDE:-86.8325;)B
+444 8870(RLATITUDE:34.8486;)B
+444 8710(RALTITUDE:0.264;)B
+444 8550(GLONGITUDE:-86.8325;)B
+444 8390(GLATITUDE:34.8486;)B
+444 8230(GALTITUDE:0.264;)B
+444 8070(XMIN:0;)B
+444 7910(XMAX:32;)B
+444 7750(XSPACING:0.4;)B
+444 7590(XRADIUS:.4;)B
+444 7430(YMIN:0;)B
+444 7270(YMAX:18;)B
+444 7110(YSPACING:0.4;)B
+444 6950(YRADIUS:.4;)B
+444 6790(ZMIN:.2;)B
+444 6630(ZMAX:7.2;)B
+444 6470(ZSPACING:1.0;)B
+444 6310(ZRADIUS:.6;)B
+444 6150(WEIGHTINGFUNCTION:CRESSMAN;)B
+444 5990(DBZFIELD:DZ;)B
+444 5830(FIELD:VR,VELOC;)B
+444 5670(FIELD:TI,TIME;)B
+444 5510(COUNT:VR,VRCOUNT;)B
+444 5350(DISPLAY:DZ,0,2.5;)B
+444 5190(DISPLAY:VELOC,0,1;)B
+444 5030(DISPLAY:TIME,80,3.5;)B
+444 4870(LEVELS:0.3;)B
+444 4710(EXPERIMENT:MIST;)B
+444 4550(INSTRUMENT:CP4;)B
+444 4390(START:20-JUL-86,14:20:26;)B
+444 4230(STOP:20-JUL-86,14:22:44;)B
+EndPage
+%%Page: ? 2
+StartPage
+Landscape
+0 F
+444 14790(QUIT;)B
+444 14630(====================================================)B
+444 14470(**fields** wtf=1 atn=-.230259e1 nflds=3 wtf=-32768 mnr=-32768 lenbox=7)B
+444 14310(DZVRTI)B
+444 14150(DZ      VELOC   TIME    VRCOUNT )B
+444 13990(ngpps=0 noutf=4 fieldsx )B
+444 13830(igs=1 qUFAP--true unix VERSION 13-AUG-90 11:00)B
+444 13670(Real file is '/dt/case/mist1.uf' unit 0)B
+444 13510(slat=34.849 slon=-86.833 salt=0.264 dlat=34.849 dlon=-86.833 dalt=0.264)B
+444 13350(dbas=90.000 earthr=.636681e4 srad=.636707e4 drad=.636707e4)B
+444 13190(i=1 DZ t=2)B
+444 13030(i=2 VR t=1)B
+444 12870(i=3 TI t=3)B
+444 12710(nyq=17.16 rc=73.43 x0=.454747e-12 y0=.320625e-19 z0=0 c...mark loop)B
+444 12230(SCAN INFO                       FIXED ANGLE INFO                VARYING ANGLE   SPACING INFO          BEAM  )B
+528 12070(NO. TYPE   TIMES               FIXED     CCW     CW   MEAN      CCW     CW      MIN.  MAX.   MEAN    COUNT )B
+444 11910(tot=38016 mxcart=797 ncarts=528 mxshlf=528)B
+696 11750(1  RHI   14:20:26 14:20:33    44.0    44.08  44.42  44.10      1.0   49.3     0.00  0.92   0.34     144  )B
+696 11590(2 -RHI   14:20:33 14:20:41    45.9    45.58  45.91  45.89      0.4   47.8     0.00  0.97  -0.31     155  )B
+696 11430(3  RHI   14:20:41 14:20:49    47.8    46.17  48.20  47.78      0.3   49.2     0.00  0.48   0.31     156  )B
+696 11270(4 -RHI   14:20:50 14:20:58    49.7    49.33  49.70  49.67      0.4   47.8     0.00  1.02  -0.31     156  )B
+696 11110(5  RHI   14:20:58 14:21:06    51.6    49.98  52.08  51.52      0.3   49.2     0.00  0.63   0.31     158  )B
+696 10950(6 -RHI   14:21:06 14:21:14    53.5    53.16  53.48  53.47      0.4   47.8     0.00  0.75  -0.31     155  )B
+696 10790(7  RHI   14:21:14 14:21:22    55.4    53.83  55.34  55.31      0.3   48.8     0.00  0.53   0.31     155  )B
+696 10630(8 -RHI   14:21:22 14:21:30    57.3    56.83  57.27  57.22      0.4   48.2     0.00  1.02  -0.31     156  )B
+696 10470(9  RHI   14:21:31 14:21:39    59.2    57.59  59.66  59.10      0.3   49.2     0.00  0.53   0.31     157  )B
+612 10310(10 -RHI   14:21:39 14:21:47    61.1    60.73  61.34  61.05      0.3   47.9     0.00  1.06  -0.31     155  )B
+612 10150(11  RHI   14:21:47 14:21:55    63.0    61.89  63.02  62.98      0.3   49.0     0.00  0.66   0.32     154  )B
+612 9990(12 -RHI   14:21:55 14:22:03    64.9    64.16  65.17  64.87      0.3   48.6     0.00  1.02  -0.31     158  )B
+612 9830(13  RHI   14:22:03 14:22:12    66.8    65.72  67.56  66.79      0.3   49.2     0.00  0.48   0.31     158  )B
+612 9670(14 -RHI   14:22:12 14:22:20    68.7    68.37  68.64  68.64      0.3   47.3     0.00  1.09  -0.31     154  )B
+612 9510(15  RHI   14:22:20 14:22:28    70.6    69.02  71.03  70.49      0.3   49.3     0.00  0.58   0.31     158  )B
+612 9350(16 -RHI   14:22:28 14:22:36    72.5    72.11  72.80  72.43      0.4   47.9     0.00  0.70  -0.31     156  )B
+612 9190(17  RHI   14:22:36 14:22:44    74.4    73.33  74.37  74.33      0.3   49.3     0.00  0.53   0.31     158  )B
+444 9030(total beams input=2643)B
+444 8870(total beams excluded=0)B
+444 8710(total gates after exclusions=2024538)B
+444 8550(total gates thresholded out=0)B
+444 8390(c...mark)B
+444 8230(Real cedric file name is /dt/case/mist_grid.ced)B
+612 7910(Level   1  0.20 KM.  3726 Grid Points)B
+444 7750(DZ       Min -.121E+02 Max  .494E+02 Av -.633E-01 Sd  .130E+02  1850 Empty)B
+444 7590(VELOC    Min -.127E+02 Max  .709E+01 Av  .111E+00 Sd  .174E+01  1806 Empty)B
+444 7430(TIME     Min  .000E+00 Max  .132E+03 Av  .748E+02 Sd  .844E+02  1806 Empty)B
+444 7270(VRCOUNT  Min  .100E+01 Max  .158E+05 Av  .220E+03 Sd  .805E+03  1806 Empty)B
+612 6950(Level   2  1.20 KM.  3726 Grid Points)B
+444 6790(DZ       Min -.156E+02 Max  .579E+02 Av  .153E+01 Sd  .135E+02  1828 Empty)B
+444 6630(VELOC    Min -.636E+01 Max  .529E+01 Av  .465E+00 Sd  .119E+01  1797 Empty)B
+444 6470(TIME     Min  .000E+00 Max  .135E+03 Av  .742E+02 Sd  .840E+02  1797 Empty)B
+444 6310(VRCOUNT  Min  .100E+01 Max  .744E+04 Av  .167E+03 Sd  .488E+03  1797 Empty)B
+612 5990(Level   3  2.20 KM.  3726 Grid Points)B
+444 5830(DZ       Min -.218E+02 Max  .563E+02 Av -.649E+00 Sd  .152E+02  1896 Empty)B
+444 5670(VELOC    Min -.109E+02 Max  .107E+02 Av  .438E+00 Sd  .145E+01  1804 Empty)B
+444 5510(TIME     Min  .000E+00 Max  .138E+03 Av  .745E+02 Sd  .842E+02  1804 Empty)B
+444 5350(VRCOUNT  Min  .100E+01 Max  .280E+04 Av  .127E+03 Sd  .289E+03  1804 Empty)B
+612 5030(Level   4  3.20 KM.  3726 Grid Points)B
+444 4870(DZ       Min -.248E+02 Max  .550E+02 Av -.116E+01 Sd  .156E+02  1972 Empty)B
+444 4710(VELOC    Min -.110E+02 Max  .723E+01 Av -.909E+00 Sd  .204E+01  1816 Empty)B
+444 4550(TIME     Min  .706E+00 Max  .138E+03 Av  .746E+02 Sd  .843E+02  1816 Empty)B
+444 4390(VRCOUNT  Min  .100E+01 Max  .142E+04 Av  .107E+03 Sd  .205E+03  1816 Empty)B
+EndPage
+%%Page: ? 3
+StartPage
+Landscape
+0 F
+612 14790(Level   5  4.20 KM.  3726 Grid Points)B
+444 14630(DZ       Min -.208E+02 Max  .537E+02 Av -.147E+01 Sd  .147E+02  1919 Empty)B
+444 14470(VELOC    Min -.170E+02 Max  .118E+02 Av -.288E+01 Sd  .325E+01  1829 Empty)B
+444 14310(TIME     Min  .100E+01 Max  .138E+03 Av  .746E+02 Sd  .842E+02  1829 Empty)B
+444 14150(VRCOUNT  Min  .100E+01 Max  .840E+03 Av  .944E+02 Sd  .159E+03  1829 Empty)B
+612 13830(Level   6  5.20 KM.  3726 Grid Points)B
+444 13670(DZ       Min -.211E+02 Max  .481E+02 Av -.115E+01 Sd  .169E+02  2428 Empty)B
+444 13510(VELOC    Min -.855E+01 Max  .137E+02 Av -.733E+00 Sd  .208E+01  1843 Empty)B
+444 13350(TIME     Min  .100E+01 Max  .138E+03 Av  .748E+02 Sd  .843E+02  1843 Empty)B
+444 13190(VRCOUNT  Min  .100E+01 Max  .579E+03 Av  .849E+02 Sd  .130E+03  1843 Empty)B
+612 12870(Level   7  6.20 KM.  3726 Grid Points)B
+444 12710(DZ       Min -.193E+02 Max  .464E+02 Av -.741E+00 Sd  .172E+02  2485 Empty)B
+444 12550(VELOC    Min -.145E+02 Max  .898E+01 Av -.248E+00 Sd  .205E+01  1858 Empty)B
+444 12390(TIME     Min  .109E+01 Max  .138E+03 Av  .749E+02 Sd  .844E+02  1858 Empty)B
+444 12230(VRCOUNT  Min  .100E+01 Max  .407E+03 Av  .772E+02 Sd  .109E+03  1858 Empty)B
+612 11910(Level   8  7.20 KM.  3726 Grid Points)B
+444 11750(DZ       Min -.180E+02 Max  .442E+02 Av -.119E+01 Sd  .164E+02  2504 Empty)B
+444 11590(VELOC    Min -.106E+02 Max  .103E+02 Av  .911E-02 Sd  .209E+01  1878 Empty)B
+444 11430(TIME     Min  .199E+01 Max  .138E+03 Av  .750E+02 Sd  .845E+02  1878 Empty)B
+444 11270(VRCOUNT  Min  .100E+01 Max  .308E+03 Av  .709E+02 Sd  .947E+02  1878 Empty)B
+444 11110(c...mark)B
+EndPage
+%%Page: ? 4
+StartPage
+Landscape
+0 F
+360 14790(1)B
+-160(FIELD: DZ          INTERVAL BETWEEN SYMBOLS =   2.50)Y
+528 14470(-62.50    -50.00    -37.50    -25.00    -12.50      0.00     12.50     25.00     37.50     50.00                              )B
+780 14310(|         |         |         |         |         |         |         |         |         |                                )B
+780 14150(y x w v u t s r q p o n m l k j i h g f e d c b a 0 A B C D E F G H I J K L M N O P Q R S T U V W X Y                      )B
+444 13830(DATA FROM  20-JUL-86 14:20:26  TO  20-JUL-86 14:22:44    MIST    CP4/RP    BURGRE)B
+444 13670(LEVEL:  1     0.20 KM.)B
+948 13510(0.0       4.0       8.0      12.0      16.0      20.0      24.0      28.0      32.0 )B
+1032 13350(|         |         |         |         |         |         |         |         | )B
+612 13190(18.0                                           0aabcdddddbcbb00accbbcccbbcccccccccc bc)B
+4476 13030(00acccdddcbbccbbacccccccc ccccccccc cccc)B
+4392 12870(0A0bbcccddcbaccbbcccccccccccc  cc  cccccc)B
+4308 12710(aa00cccccccddcccdccccccccbccc cccc ccccccc)B
+4224 12550(AA0bcccccaabcbccddcccdccccbbcc cc  cccc ccc)B
+612 12390(16.0                                      a0Aabbcccbaabbbbccdcccddccccccc   cccccc ccc)B
+4056 12230(0aaabbcccaab0aabbccccccdcccccccc cccccccc    )B
+3972 12070(baaaabbcaaaaa00bbbccccccccccccc ccccc ccc   cc)B
+3972 11910(babaacc0aaaaabaabbbcdccccddccccccccc  cc ccccc)B
+3888 11750(cbabcccbaaba0acbaabbcbcccdddddccccccc    cccccb)B
+612 11590(14.0                                 B0ccbbcdaaaaaaabcbbaabcbbdccdcccccccccc cccccccbc)B
+3720 11430(00bddccba0a0aaabbbbcccccddccdcccddcc   ccccccbccc)B
+3636 11270(00abcedcba0abbbbcbbcccccccddddcddddd cccccccccbcc )B
+3552 11110(caEEbdedcc00bbbddcabcdcccccddddcddd dccccccbbbcc cc)B
+3468 10950(aa0EE0dddddccccddcdbbccccdddcddddd cddccccbbbbacbccc)B
+612 10790(12.0                             ab0AAA0ccddcccdddccddcbbcddddddddddddcdcbbcbb bbccccc)B
+3300 10630(dbcaa0abcbcddbbdddccbbccdddddddddddddccccbac cbbbccccc)B
+3216 10470(edccdddbbcbbbdbbccdcaaadddddddddddddcccccd cccccbc cccc)B
+3132 10310(acedcccddddecbddaaccdbCDCddddddddddccbbccdccccccccc ccc )B
+3048 10150(dcceeddcdddeeeeddbaccddBCCddddddddccbbbbbcccccccccc    cc)B
+612 9990(10.0                        abdddbbddddddcddededcdddda0ddddddcbbcbcccccccccccc  cccccc)B
+2880 9830(cbbcccbbbbeeedcccddecceeeeabddddcbbbbdddccccccccc cc ccccc )B
+2796 9670(dcbbbcccbbcddeecccdddddeeeeedddccba0acddddcdccccdcccc ccccbb)B
+2712 9510(babbccccbbbbcdeeeeeed00cebcddbbcccdbaacdccccdcdccccccccccccbb)B
+2628 9350(cbaabbbbba0A00bdeeeda0BBAbccdbbbddcccbcccccccccdcccdcccccccc  )B
+696 9190(8.0                   Aaba0bbbaa0BCCCCacdddaDFFDCCadbbbcddccdcbccccdccdccccccccc     )B
+2460 9030(caabaabcba0BDFHLMIa0AcBEGIIEDacbbbcccccdccccccdddcccccc         )B
+2376 8870(aabbbbbbcc0BEFNPONKHCB0GJKKIDcccbbbcbccccccdccbcddccc            )B
+2292 8710(AAabbabcccbBJLPSSQOLIDCHJKKJHCcccbbbbcddccbbcccbbc                )B
+2208 8550(DB0acbCCbbbaCMQQRSROMIFFJLLKJHDabccccbccccbbbccb                   )B
+696 8390(6.0              bBAb0abCDabb0CNQRRQPOOLHHJKLKIFDacdcccbbbbbba                       )B
+2040 8230(A00BB0ab00bcbaCMQQQRRQOMKHIKLJHCbdcdcbbbbba                          )B
+1956 8070(a00ACBabb00bbb0CMRRRRRPONKHIIHFEAcddccbb                              )B
+1872 7910(da0ABBAabb0AA0aDFOSSRRQQQQQPKGFEbcddd                                  )B
+1788 7750(baaaABBAaaa0BBA0EHNRRRRQQPQRPKJGAab                                     )B
+696 7590(4.0         0ba00a0A000aaABBBCGLQRQPPQPPQPKK                                         )B
+1620 7430(CBBA0abaaaaa0ABBBCBDJOQQPQQQQR                                            )B
+1536 7270(aACCAbbbaa000AABEFDBBEMOQQQ                                                )B
+1452 7110(HECBCCCbbba0A0AAAHJHBCDIL                                                   )B
+1368 6950(eJGC0ACB0aaa00000AIKJ0                                                       )B
+696 6790(2.0    eOPPK0aBCBa0aaa00000                                                          )B
+1200 6630(IGPPOK00CCAaaaaaa                                                              )B
+1116 6470(GHINNHHAaABabdd                                                                 )B
+1032 6310(eCIJOPIHBcAD                                                                     )B
+1032 6150(LKKKPQFDD                                                                        )B
+696 5990(0.0 KLKMM                                                                            )B
+1032 5830(|         |         |         |         |         |         |         |         | )B
+948 5670(0.0       4.0       8.0      12.0      16.0      20.0      24.0      28.0      32.0 )B
+EndPage
+%%Page: ? 5
+StartPage
+Landscape
+0 F
+360 14790(1)B
+-160(FIELD: VELOC       INTERVAL BETWEEN SYMBOLS =   1.00)Y
+528 14470(-25.00    -20.00    -15.00    -10.00     -5.00      0.00      5.00     10.00     15.00     20.00                              )B
+780 14310(|         |         |         |         |         |         |         |         |         |                                )B
+780 14150(y x w v u t s r q p o n m l k j i h g f e d c b a 0 A B C D E F G H I J K L M N O P Q R S T U V W X Y                      )B
+444 13830(DATA FROM  20-JUL-86 14:20:26  TO  20-JUL-86 14:22:44    MIST    CP4/RP    BURGRE)B
+444 13670(LEVEL:  1     0.20 KM.)B
+948 13510(0.0       4.0       8.0      12.0      16.0      20.0      24.0      28.0      32.0 )B
+1032 13350(|         |         |         |         |         |         |         |         | )B
+612 13190(18.0                                           aa0ba0BA0A00a0ab0aA0aa00abaa0AA00AAa ca)B
+4476 13030(AaaAabACBaa000AA0a0AAbbbA AA0abAacaGB0aa)B
+4392 12870(AaaA00a0B00aaa0A0aa0acba0000ABBa00ib0A0a0)B
+4308 12710(0A0a00AA0caAAaaaAaba0cc00CA0ab0BB0 00000BA)B
+4224 12550(A00A0aABAbcb0aaaa00a00afb0CBAbaA0 a000abaaa)B
+612 12390(16.0                                      A00000aAB0abbbbda00B0aaB0a0D00bcDBBA00AA0acg)B
+4056 12230(b00A000aAA000abaaaaa00adbaa0CC00ab0BBca0AAA  )B
+3972 12070(aaa000a0ab0AAA00aa0bba0Aacaab0DFbbbaCCaa0d  bb)B
+3972 11910(aaAAaaa0A00BAA00aa000a0AA000chca0b00ACA0 b00ab)B
+3888 11750(0adbA0aBA000A0000ab00A00a00a0CAba0cbba0 B000AaA)B
+612 11590(14.0                                 000Abc0A0BB000000A000B000abb0aa0AadbcdbmaAA000A00)B
+3720 11430(a0000aa00AA000000A0aAA0bb0aaA0aaabbb0BA0a0ABBa0A0)B
+3636 11270(aa000aaa000AA00AA0AA0Aab00BB00AAAAbabA0a000aBBa0C )B
+3552 11110(aa000000aa00000a0Aa0A00baB0aA0aAA0BAAA0aabBCaaBb a0)B
+3468 10950(baaa000a00a00000000a0Aab0BA0ababaag0000aba0BDAAa0B0a)B
+612 10790(12.0                             0aaaa0aaa00a00ab0000aaA0ca0A00abbb0a00AA0AAB0 cb00A0b)B
+3300 10630(aaaaa00aab00a0abb0000aaCaa00baAAABbba0BBA0ACB00bb00c0A)B
+3216 10470(bbaaaaaaa0a00aaa0000aAAAAaa000aAaaAbc00AAB ABA0abc00a0C)B
+3132 10310(ecbaa0aaaa0aa0aaaa00aa0AA00abaAaa0aabaAAB0aaAAAB0caA00b )B
+3048 10150(abbaaaaaaaaaaa000bca00000000a0000bABA00C000aa0BB00a0CA cb)B
+612 9990(10.0                        0aaaaabbabbaaa0a00bcaAA00abAB0aaa00ABCbb0A0aaa0BBa0A000bcb)B
+2880 9830(baaaaaaaabbbbbAAa00aA00ABB0abaaaaa0B0abba0AB00aAB00ABA0Aaba)B
+2796 9670(cbaaaaaaaabbbbb00a000000ACAaabaA000ABB0baAbbAA0b00aaABA0aba0)B
+2712 9510(bbbaabbaaaaaabcbaba000aa0aa00a0ABAAAaABA0AAcc0aaba0aaBB00acaB)B
+2628 9350(ccbaabbbaaa00abbaaaa0a0000ab0AA000ABAab000A0A0bcbaaa0ACBaabb  )B
+696 9190(8.0                   cbcbabccbaaaaaaaabbaa000000aba0acbaa000a00BAAAAacc0A00ABCa     )B
+2460 9030(dcbbbbccbbaaaaaa00bba0000AAA00baacbA0baA000AA000BAaaAB0         )B
+2376 8870(gdcbabbbcbbaaabbb000a0000AAAAA0baA0aBC0a0000Aaba0BA00            )B
+2292 8710(dddccccccbccbaabcba0000000AAAAAA0aAAAAA000A00A0aA0                )B
+2208 8550(ccccccccccccdcbabbbaAAAAAAAAAAAAB0000A00A0ACA0AB                   )B
+696 8390(6.0              bcccbcdcccccdedcbaaa0BBBBAAAAAA00AAA00AAAA0aB                       )B
+2040 8230(Babcccddcddbbceeddcb0CEDBBAAAAAA00ABBBBBBBA                          )B
+1956 8070(00aaabcddcdcbbcefgeeb0CEDCAAAAAAA00aABBB                              )B
+1872 7910(BA00aaabcdbbbabdfhihgc0BDDDCA0AA00A0a0                                 )B
+1788 7750(AAAA00a0accaaa0bdghihgdaABDDCBA000A                                     )B
+696 7590(4.0         0AAAAAA0A0abba00bdeggffecb0BCCBB                                         )B
+1620 7430(CAAABAAAAA0A00ABAbcdefggfedb0A                                            )B
+1536 7270(BAAAAAAA0ABBAAABBA0adeefggf                                                )B
+1452 7110(0AAAAAAAAAACBAAAA0000bdcc                                                   )B
+1368 6950(A0AABBAAAAABBBBBBA00AA                                                       )B
+696 6790(2.0    BAAAAAAAAABBBBBCCCBA                                                          )B
+1200 6630(AAAAAABBAAABCBBBB                                                              )B
+1116 6470(000AABBBBBBABBC                                                                 )B
+1032 6310(0000AABBBBBC                                                                     )B
+1032 6150(0000AAABB                                                                        )B
+696 5990(0.0 0000A                                                                            )B
+1032 5830(|         |         |         |         |         |         |         |         | )B
+948 5670(0.0       4.0       8.0      12.0      16.0      20.0      24.0      28.0      32.0 )B
+EndPage
+%%Page: ? 6
+StartPage
+Landscape
+0 F
+360 14790(1)B
+-160(FIELD: TIME        INTERVAL BETWEEN SYMBOLS =   3.50)Y
+612 14470(-7.50     10.00     27.50     45.00     62.50     80.00     97.50    115.00    132.50    150.00                              )B
+780 14310(|         |         |         |         |         |         |         |         |         |                                )B
+780 14150(y x w v u t s r q p o n m l k j i h g f e d c b a 0 A B C D E F G H I J K L M N O P Q R S T U V W X Y                      )B
+444 13830(DATA FROM  20-JUL-86 14:20:26  TO  20-JUL-86 14:22:44    MIST    CP4/RP    BURGRE)B
+444 13670(LEVEL:  1     0.20 KM.)B
+948 13510(0.0       4.0       8.0      12.0      16.0      20.0      24.0      28.0      32.0 )B
+1032 13350(|         |         |         |         |         |         |         |         | )B
+612 13190(18.0                                           wwwtssssspnnnnnnnjjjjjjjjjeeeeeeeeee 00)B
+4476 13030(wwwtssssspnnnnnnnjjjjjjjj eeeeeeeeee0000)B
+4392 12870(wwwtsssssonnnnnnkjjjjjjjieeeeeeeeee000000)B
+4308 12710(wwwtsssssonnnnnnjjjjjjjjeeeeeeeeee 0000000)B
+4224 12550(wwwtsssssonnnnnnjjjjjjjieeeeeeeee 000000000)B
+612 12390(16.0                                      wwwtsssssonnnnnkjjjjjjjeeeeeeeeee00000000000)B
+4056 12230(wwwtsssssnnnnnnjjjjjjjjeeeeeeeee00000000000  )B
+3972 12070(wwwtssssqnnnnnnjjjjjjjeeeeeeeeee0000000000  DD)B
+3972 11910(wwtsssspnnnnnljjjjjjieeeeeeeee0000000000 DDDDD)B
+3888 11750(wwtsssspnnnnnkjjjjjjfeeeeeeee0000000000 DDDDDDE)B
+612 11590(14.0                                 wwwtssssonnnnmjjjjjjieeeeeeeea0000000000DDDDDDEEE)B
+3720 11430(wwtssssonnnnmjjjjjjfeeeeeeeb0000000000DDDDDDEEEEE)B
+3636 11270(wwtsssronnnnkjjjjjheeeeeeec0000000000DDDDDDEEEEEE )B
+3552 11110(wwtsssronnnnjjjjjifeeeeeee0000000000DDDDDDEEEEEE II)B
+3468 10950(wwtsssqonnnljjjjjheeeeeeea000000000DDDDDEEEEEEEIIIII)B
+612 10790(12.0                             wwtsssqnnnnkjjjjjfeeeeeeb00000000CDDDDDEEEEEE IIIIIII)B
+3300 10630(wwtssspnnnnkjjjjheeeeeeca0000000CDDDDDEEEEEEIIIIIIIIII)B
+3216 10470(wwtssrpnnnmjjjjifeeeeeea0000000CDDDDDEEEEE IIIIIIIIIIII)B
+3132 10310(wwtssronnnljjjjheeeeeea0000000CDDDDDEEEEEIIIIIIIIIIIIII )B
+3048 10150(wwtssronnnkjjjifeeeeeb0000000CDDDDEEEEEEIIIIIIIIIIIIII NN)B
+612 9990(10.0                        wwtssqonnmjjjjheeeeeca000000CDDDDEEEEEIIIIIIIIIIIIIINNNNNN)B
+2880 9830(wwtssqonnljjjifeeeeda000000CDDDDEEEEGIIIIIIIIIIIIINNNNNNNNN)B
+2796 9670(wwtssqonnkjjjhfeeedb000000CDDDDEEEEHIIIIIIIIIIIINNNNNNNNNNNN)B
+2712 9510(wvtssponmkjjigeeeeba0000ACDDDDEEEFIIIIIIIIIIIINNNNNNNNNNNNNNN)B
+2628 9350(wwtsrpnnljjjhfeeeca0000ACDDDDEEEHIIIIIIIIIIINNNNNNNNNNNNNNNN  )B
+696 9190(8.0                   wwtsrpnnkjjigeeeda0000ACDDDEEEFIIIIIIIIIIINNNNNNNNNNNNNNNN     )B
+2460 9030(wvtsronmkjjhfeedba000ACDDDEEEGIIIIIIIIIIMNNNNNNNNNNNNNN         )B
+2376 8870(wvtsqonlkjigeeeba000ACDDDEEFHIIIIIIIIJMNNNNNNNNNNNNNN            )B
+2292 8710(wvtsqonljjhfeeca000ACDDDEEGIIIIIIIIKMNNNNNNNNNNNNN                )B
+2208 8550(wvtsqomkjigeedba00BCDDDEFHIIIIIIIJMNNNNNNNNNNNNN                   )B
+696 8390(6.0              wvtsqomkjhfedba00BCDDDEGHIIIIIIKMNNNNNNNNNNNN                       )B
+2040 8230(wvtspnljigeeca00BCDDEFGIIIIIIKMNNNNNNNNNNNN                          )B
+1956 8070(wvtrpnljhfecb00BCDDEGHIIIIIKMMNNNNNNNNNN                              )B
+1872 7910(wutrpmkigfdba0BCDDEGHIIIJKLMNNNNNNNNNN                                 )B
+1788 7750(wutromjhfdca0BCDEFHHIIJKLMNNNNNNNNN                                     )B
+696 7590(4.0         wvtroligeca0BCDEGHIIJKLMNNNNNNNN                                         )B
+1620 7430(wvtqnkhfdb0BCDFGHIJKLMNNNNNNNN                                            )B
+1536 7270(wusqmjgdb0BCEFHIJKLMNNNNNNN                                                )B
+1452 7110(wusplifcaBDEGHJKLMMNNNNNN                                                   )B
+1368 6950(wusokgdaBDFGIKLMMNNNNN                                                       )B
+696 6790(2.0    wtrnjeaBDFHJLLMNNNNN                                                          )B
+1200 6630(wtqmgbBEGJKLMNNNN                                                              )B
+1116 6470(wrojdBFIKLMNNNN                                                                 )B
+1032 6310(vplfAFIKLNNN                                                                     )B
+1032 6150(febCHKMNN                                                                        )B
+696 5990(0.0 ebELN                                                                            )B
+1032 5830(|         |         |         |         |         |         |         |         | )B
+948 5670(0.0       4.0       8.0      12.0      16.0      20.0      24.0      28.0      32.0 )B
+360 5510(1)B
+-160(processing finished)Y
+444 5190(stop)B
+EndPage
+%%Trailer
+EndEnscriptDoc
+EnscriptJob restore
