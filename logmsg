@@ -1,0 +1,45 @@
+REORDER VERSION 2.00
+
+1. Applications/qreod & qreou/qreoroot.F - Added write statement to distinguish
+             whether Dorade sweep files (qreod) or Universal format files (qreou)
+
+2. Applications/qreou/qufap.F & unixqufap - minor comment change & updated
+             dmplin to LINUX VERSION 2.00 March 2010
+	
+3. Libraries/qreo/unixflib.F - added some comment lines
+
+4. Libraries/qreo/foflib.F - added some comment lines
+
+5. Libraries/qreo/qreo1.F - updated dmplin to LINUX VERSION 2.00 March 2010
+
+6. Libraries/qreo/qreo1.F - added some comment lines and the logical variable 
+             diag_ljm to turn on (.true.) or off (.false.) diagnostic print.
+             The diag_ljm variable is set in qreo1.F and passed around from
+             there. 
+
+7. Libraries/qreo/qreo1.F - changed signs of slong and dlong from (-) to (+)
+             since the NCAR/MMM ll2xy and xy2ll routines are no longer being
+             called.  NCAR/MMM used the convention of west longitude is (+)
+             rather than the standard west longitude is (-).
+
+8. Libraries/qreo/qreo1.F - added a new user-specified input variable "BOX
+             DIMENSIONS" that has values of CARTESIAN, SPHERICAL, or HYBRID.
+             This allows the user to leave both the XYZ and RAE radii intact
+             in the run_reorder script.  HYBRID uses the CARTESIAN near the
+             radar and the SPHERICAL once the range-dependent box radii are
+             exceeded.
+
+9. Libraries/qreo/qreo2.F - added some comment lines and changed default grid
+             to a larger one with a coarser grid spacing.
+
+10. Libraries/qreo/qreo2.F - fixed how region of influence (box dimensions) are
+             calculated: XRADIUS=YRADIUS when XRADIUS is set to zero.  When
+             RGRADIUS=0, RGRADIUS=AZRADIUS.  When SPHERICAL radii are used, 
+             they are converted to arc lengths (Range*AngularRadius) so that
+             the region of influence increases with range.
+11. Libraries/qreo/qreo2.F - commented out "call radinf" which was a feeble
+             attempt to rotate the box to be aligned with the local beam
+             direction.  The subroutine radinf in qreo3.F was producing an
+             odd-looking "clover-leaf" pattern in the CNT field that had
+             minima at 0, 90, 180, 270, and 360 deg. 
+12. Libraries/qreo/qreo3.F - added improved comment lines
