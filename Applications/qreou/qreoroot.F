@@ -5,6 +5,10 @@ c----------------------------------------------------------------------
         program root
     	parameter( lenbuf=17000 )
     	integer tbuf( lenbuf )
+    	write(*,*) ' '
+    	write(*,*)
+     +' qreou - REORDER executable for reading Universal format files'
+    	write(*,*) ' '
         call reo( tbuf, lenbuf )
         stop00
         end

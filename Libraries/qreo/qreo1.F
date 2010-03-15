@@ -117,6 +117,12 @@ c
         real    thrval, zlard, atten
         logical dupfld, unfflg
 c
+c     Diagnostic switch for large amounts of diagnostic printout
+c     Change diag_ljm to .true. when printout desired.
+c
+        logical diag_ljm
+        data diag_ljm/.false./
+c
         real space
         common  / store /   space(maxspc)
 c
@@ -140,6 +146,10 @@ c
      +,     zlard(50)
 c
 c
+c   acs     =   user-specified input "attribute:parameter;" stream
+c               compressed into a large, continuous, without spaces
+c               stream starting with ";"
+c   ncas    =   the length of acs (~600-800 characters)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
 c                   1 = normal data
@@ -302,7 +312,7 @@ c
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'QREO--Version 1.2 NOVEMBER 1997           ', 33 )
+      call dmplin( 'QREO--LINUX VERSION 2.00 March 2010 ', 0 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -319,7 +329,8 @@ c  get the input control string
      a, exct1, exct2, nxcl, multiv, prf1, prf2, fixflt, igskip
      a, flee, azrad, elrad, rgrad, earthr, gnyqv, grc, gbmwid
      a, grnd_out, range1, range2, swpskp, bmskp, iadjust_z
-     a, sprint_xlt, twiddle )
+     a, sprint_xlt, twiddle, iradfun, diag_ljm)
+      if(diag_ljm)print *,'After inidat iradfun=',iradfun
 c
 c      sprint_xlt = .true.
 c      sprint_xlt = .false.
@@ -387,8 +398,12 @@ c  destination baseline
       cosbas = cos( dbase*torad )
       cosbsq = cosbas*cosbas
       sinbas = sin( dbase*torad )
-
-c  source radar lat., lon., and radius
+c
+c  source radar lat., lon., and altitude
+c     slati - latitude of the radar
+c     slong - longitude of the radar
+c     salti - altitude of the radar
+c
       sinrla = sin( slati*torad )
       cosrla = cos( slati*torad )
       sinrlo = sin( slong*torad )
@@ -398,11 +413,14 @@ c  source radar lat., lon., and radius
 c
       s1 = sinrla*cosrlo
       s2 = cosrla*cosrlo
-c
       s3 = sinrla*sinrlo
       s4 = cosrla*sinrlo
 c
-c  landmark or destination lat. and lon. info
+c  landmark or destination latitude, latitude, and altitude
+c     dlati - latitude of grid origin
+c     dlong - longitude of grid origin
+c     dalti - altitude of grid origin
+c
       sindla = sin( dlati*torad )
       cosdla = cos( dlati*torad )
       sindlo = sin( dlong*torad )
@@ -412,7 +430,6 @@ c  landmark or destination lat. and lon. info
 c
       d1 = sindla*cosdlo
       d2 = sindla*sindlo
-c
       d3 = cosdla*cosdlo
       d4 = cosdla*sindlo
 c 
@@ -505,8 +522,16 @@ c
   24	continue
 c
 c  generate the mudras tape file header
-      call genhed( butter, hedrec, fldnam, gnyqv, grc, acs, nacs
-     +       , sprint_xlt, iadjust_z )
+        if(diag_ljm)then
+           print *,' '
+           print *,'Before call genhead: sprint_xlt=',sprint_xlt
+        endif
+        call genhed( butter, hedrec, fldnam, gnyqv, grc, acs, nacs
+     +       , sprint_xlt, iadjust_z, diag_ljm )
+        if(diag_ljm)then
+           print *,"After call genhead"
+           print *,' '
+        endif
 c
 c   set the end of volume flag
         call seteov( .false. )
@@ -524,12 +549,31 @@ c
 c
 c
 c
-        call dmplin( 'c...mark loop   ', 13 )
+        print *,' '
+        print *,' '
+        call dmplin( 'c...top of loop through input data', 34 )
+        call flush(6)
+
 c  loop thru the input data 
 c
   44  continue
-c  for each ray
-c 
+
+c     For each ray get (azz,ell,fx,zprf) from functions in
+c     either
+c        UF: qufap.F (compiled and linked for qreou)
+c     or
+c        DORADE: qdfap.F (compiled and linked for qreod)
+c
+c     These functions are called here for both UF and DORADE formats.
+c     These housekeeping words are inside the kbuf integer array.
+c     The extraction of specific words from kbuf is done in functions
+c     such as kintgd which are "called" from functions like uelev.
+c
+ 
+c     LJM (04/29/09) - diagnostic print
+c
+      if(diag_ljm)print *,'Before uelev,uazim:',bmcnt,azz,ell,fx
+c
       ell=uelev( butter )
 c      call f9( 'el', 2, ell )
       el = ell*torad
@@ -538,6 +582,10 @@ c      call f9( 'el', 2, ell )
       fx = ufixed( butter )
       zprf = udmprf(butter, mne1 )
       bmcnt = bmcnt +1
+
+c     LJM (04/29/09) - diagnostic print
+c
+      if(diag_ljm)print *,'After uelev,uazim:',bmcnt,azz,ell,fx
 c
       if( kswepn(butter).ne.kscan ) then
 c        call f5( 'fixed', 5, ufixed(butter))
@@ -624,9 +672,15 @@ c
 c   this is corrected in the final subroutines dcopl or xyswap 
 c   to x being east and y north.
 
+c     (LJM 5/27/09) - diagnostic print
+c
+        if(diag_ljm)then
+           print *,'Just before call xyz, salti,dalti=',salti,dalti
+        endif
+
       call xyz( numgt, rg, fat(l4), fat(l5), fat(l6),
      a  cosel*cos( az ), -cosel*sin( az ), sin( el ),
-     a  cosel, earthr)
+     a  cosel, earthr, salti)
 c     interesting values now in l4, l5, l6
 
       if( .false. .and. zok ) then
@@ -643,26 +697,26 @@ c      if( zok ) then
          call typefe( fat(l6), 101, 115 )
       endif
 
-        if( airpln ) then
+      if( airpln ) then
 c  corrections for airborn doppler
-          call insoff( xoff, yoff, zoff,
-     +      numgt, fat(l4), fat(l5), fat(l6))
-          slong = ulongt( butter )
-          slati = ulatit( butter )
-          salti = uhight( butter )
-          sinrla = sin( slati*torad )
-          cosrla = cos( slati*torad )
-          sinrlo = sin( slong*torad )
-          cosrlo = cos( slong*torad )
-          srad = earthr+salti
-          s1 = sinrla*cosrlo
-          s2 = cosrla*cosrlo
-          s3 = sinrla*sinrlo
-          s4 = cosrla*sinrlo
+         call insoff( xoff, yoff, zoff,
+     +        numgt, fat(l4), fat(l5), fat(l6))
+         slong = ulongt( butter )
+         slati = ulatit( butter )
+         salti = uhight( butter )
+         sinrla = sin( slati*torad )
+         cosrla = cos( slati*torad )
+         sinrlo = sin( slong*torad )
+         cosrlo = cos( slong*torad )
+         srad = earthr+salti
+         s1 = sinrla*cosrlo
+         s2 = cosrla*cosrlo
+         s3 = sinrla*sinrlo
+         s4 = cosrla*sinrlo
 c      call f9( 'slat', 4, slati )
 c      call f9( 'slon', 4, slong )
 c      call f9( 'salt', 4, salti )
-        endif
+      endif
 c
 c  advection
         if( advect .eq. 1 ) then
@@ -679,7 +733,27 @@ c  convert xyz values to earth surface coordinates.
 c  ie. km. relative to 0 deg. lat., km. relative to 0 deg. lon., and
 c  km. relative to earth center
 c
+
+c     (LJM 5/26/09) - diagnostic print
+c
+        if(diag_ljm)then
+           print *,'sprint_xlt & .not. (sprint_xlt)=',sprint_xlt,
+     +          .not.(sprint_xlt)
+        endif
+
+c     The default value of sprint_xlt is .false. so that routines
+c     esurf and dxyz are called when SPRINT_XYZ is not included
+c     in the user-specified input.
+c
+c     If this diag_ljm is included there is no error
+c
         if( .not. sprint_xlt ) then
+           if(diag_ljm)then
+              print *,' '
+              print *,'SPRINT_XYZ attribute WAS NOT included'
+              print *,' '
+              print *,'Before esurf: s1,s2,s3,s4=',s1,s2,s3,s4
+           endif
            call esurf( numgt, fat(l4), fat(l5), fat(l6), srad,
      a          cosrlo, s1, s2, sinrlo, s3, s4, cosrla, sinrla,
      a          fat( l1 ), fat( l2 ), fat( l3 ))
@@ -689,7 +763,12 @@ c
 c     translate to the destination landmark and convert back to xyz
            call dxyz( numgt, fat(l1), fat(l2), fat(l3), drad,
      a          d1, d2, sindla, cosdlo, sindlo, d3, d4, cosdla,
-     a          fat(l4), fat(l5), fat(l6), iadjust_z, salti, dalti)
+     a          fat(l4), fat(l5), fat(l6), iadjust_z, salti, dalti,
+     a          diag_ljm )
+           if(diag_ljm)then
+              print *,'  After dxyz: d1,d2,d3,d4=',d1,d2,d3,d4
+           endif
+c
 c     values now in l4, l5, l6 again
 c     
 c     
@@ -705,13 +784,25 @@ c
 c     values back to l1, l2, l3
 
         else
+           if(diag_ljm)then
+              print *,' '
+              print *,'SPRINT_XYZ attribute WAS included'
+              print *,' '
+           endif
 c     use the SPRINT translation calculations
 c     for now we won't do coplane data with this option
 
            call xyswap_ljm( numgt, fat(l4), fat(l5) )
 c
+c     
+c     (LJM 6/3/09) - Bug fix when SPRINT_XYZ is specified by the user.
+c     Changed -slong to +slong and -dlong to +dlong since MMM xy2lldrv and
+c     ll2xydrv routines are no longer being called.  The usual convention
+c     is to have East longitude be (+) whereas MMM routines used the
+c     convention of West longitude as (+).
+c
            call sprint_xyz( numgt, fat(l4), fat(l5), fat(l6)
-     a          , slati, -slong, salti, dlati, -dlong, dalti
+     a          , slati, +slong, salti, dlati, +dlong, dalti
      a          , fat(l1), fat(l2), fat(l3), dbase )
 
         endif
@@ -844,7 +935,8 @@ c
 c   now filter it to the grid
 c
       call filter( fat(l1), fat(l2), fat(l3), fat, numgt,
-     a  zok, azz, ell, itm, newvol, igskip, azrad, elrad, rgrad )
+     a  zok, azz, ell, itm, newvol, igskip, azrad, elrad, rgrad,
+     a  iradfun, diag_ljm )
 c
 c 
   77  continue
@@ -858,7 +950,7 @@ c   next ray
 c
       if(error.gt.900)then
     	 final = .true.
-    	 write(*,*) 'final:', error, numbm
+c    	 write(*,*) 'final:', error, numbm
          goto 900
       elseif(error.ne.0)then
          knterr=knterr+1
@@ -887,6 +979,7 @@ c
         call scanfo( kswepn(butter), kswepm(butter), ttm, azz, ell, 
      +      ufixed(butter), .true., newvol, fcount )
 c
+        write(*,*) 'final error:', error, numbm
         call i8( 'total beams input', 0, numbm )
         call dmplnb
         call i8( 'total beams excluded', 0, excnt )
@@ -927,12 +1020,15 @@ c-----------------------------------------------------------------------
      a      , exct1, exct2, nxcl, multiv, prf1, prf2, fixflt
      a	    , igskip, flee, azrad, elrad, rgrad, earthr
      a	    , gnyqv, grc, gbmwid, grnd_out, range1, range2
-     a      , swpskp, bmskp, iadjust_z, sprint_xlt, twiddle )
+     a      , swpskp, bmskp, iadjust_z, sprint_xlt, twiddle
+     a      , iradfun, diag_ljm)
 c  obtain reo specifiec parameters from input file
 c
         character acs*(*), syms*(*)
         dimension aaz(*), advec(*), advhgt(*)
         logical iadjust_z, sprint_xlt
+        logical same
+        logical diag_ljm
 c
     	parameter( znull=-32768.)
         parameter( maxval=500, maxfld=7, maxf32=maxfld*8 )
@@ -959,14 +1055,38 @@ c
 c
 c
 c
-c       read in input string
+c       Read in all user-specified input line-by-line.  This
+c       includes all comments, semicolon lines, and attributes
+c       along with their parameters.  This input stream is
+c       listed like the input followed by each input attribute
+c       and its parameters, leaving out all semicolon and
+c       comment (^) lines.
+c     
         call idset( acs, nacs, flee )
+
+c       LJM (6/15/09 diagnostic prints)
+        if(diag_ljm)then
+           print *,'After call idset: acs=attribute:parameter; stream'
+           print *,'After call idset nacs=',nacs
+           print *,'After call idset acs=',acs
+           print *,' '
+        endif
+c
 c       call insl( '*inidat*', 8 )
 c       call i8( 'nacs', 4, nacs )
 c       
         twiddle = 3
         c1 = c
-        call fields( acs, c1, nacs, flee )
+
+        call fields( acs, c1, nacs, flee, diag_ljm )
+c
+c     subroutine fields( acs, a1, a2, flee, diag_ljm )
+c     This routine extracts information from the attribute-parameter
+c     input stream.  This includes the attribute (FIELDS:), followed 
+c     the special mnemonic (designates the input field such as TI, AZ,
+c     EL, ...) and output field name.
+c
+        call flush(6)
         if( flee ) then
             go to 90
         endif
@@ -1113,7 +1233,11 @@ c
 	    call putfx(i, 1)
     	endif
 c       
-c       radar coordinates
+c       Get user-specified latitude, longitude, and altitude
+c       of the radar.
+c          slati - latitude of the radar (North is +, South is -)
+c          slong - longitude of the radar (East is +. West is -)
+c          salti - altitude (km MSL) of the radar
 c
     	a1 = indexa( acs, 1, nacs, 4, 'RLONGITUDE' )
     	if( a1 .gt. 0 ) then
@@ -1136,7 +1260,16 @@ c
             call rargs( acs, a1, nacs, salti, rum, dum )
     	endif
 c       
-c       grid coordinates
+c       Get user-specified longitude, latitude, and altitude of the
+c       grid origin along with the baseline azimuth (normally 90 deg).
+c
+c          dlati - latitude of grid origin (North is +, South is -)
+c          dlong - longitude of grid origin (East is +, West is -)
+c          dalti - altitude (km MSL) of the grid origin
+c          dbase - azimuth of the baseline (+X direction)
+c
+c       Note:  If the z output coordinate output is to be MSL, set
+c       dalti to zero and salti for the radar to its MSL height.
 c
     	a1 = indexa( acs, 1, nacs, 4, 'GLONGITUDE' )
     	if( a1 .gt. 0 ) then
@@ -1238,6 +1371,63 @@ c
     	if( a1 .gt. 0 ) then
             call rargs( acs, a1, nacs, rgrad, rum, dum )
     	endif
+
+c***************************************************************
+c     Determine the type of box dimensions to use
+c        iradfun = 1 (Cartesian - Use fixed XYZ radii)
+c        iradfun = 2 (Spherical - Use range-dependent RAE radii)
+c        iradfun = 3 [Hybrid    - Use AMAX1(XYZ,RAE) radii]
+c
+        call flush(6)
+
+c     Set the default BOX DIMENSION specification
+c
+        iradfun = 0
+        print *,' '
+        print *,'BOX DIMENSIONS: default iradfun=',iradfun
+        call flush(6)
+c     
+c       function indexa( a, ith, jth, n, p )
+        if(diag_ljm)then
+           print *,'BOX DIM before indexa:  acs=',acs
+           print *,'BOX DIM before indexa: nacs=',nacs
+        endif
+        a1 = indexa( acs, 1, nacs, 6, 'BOXDIM' ) 
+        print *,'BOX DIM after indexa: a1=',a1
+        call flush(6)
+        if( a1 .gt. 0 ) then
+            call attarg( acs, a1, nacs, 1, aa1, n )
+            print *,'BOX DIM: pointer to begin attribute  aa1=',aa1
+            print *,'BOX DIM: length of parameter           n=',n
+            call flush(6)
+
+c     Set the value of iradfun according to which weighting function
+c     (parameter = CARTESIAN, SPHERICAL, or HYBRID) was
+c     selected.  The logical function (foflib.F:same) does a comparison
+c     between the parameter following the BOX DIM attribute and the 
+c     character string in single quotes.
+c
+c     logical function same( a, i, n, b, j )
+c
+            if( same( acs, aa1, 6, 'CARTESIAN', 1 )) then
+               iradfun = 1
+            elseif( same( acs, aa1, 6, 'SPHERICAL', 1 )) then
+               iradfun = 2
+            elseif( same( acs, aa1, 6, 'HYBRID', 1 )) then
+               iradfun = 3
+            endif
+         else
+            print *,'***** BOX DIMENSIONS MUST BE SPECIFIED *****'
+            print *,'** EITHER CARTESIAN, SPHERICAL, OR HYBRID **'
+    	    call panic( '*********' )
+         endif
+         print *,'BOX DIMENSIONS: iradfun=',iradfun        
+         call flush(6)
+         call i8( 'box dim=',8,iradfun )
+         print *,' '
+         call flush(6)
+c*******************************************************
+
 c       
     	a1 = indexa( acs, 1, nacs, 4, 'XOFFSET' )
     	if( a1 .gt. 0 ) then
@@ -1438,7 +1628,9 @@ c
         return
         end
 c-----------------------------------------------------------------------
-        subroutine fields( acs, a1, a2, flee )
+        subroutine fields( acs, a1, a2, flee, diag_ljm )
+
+c   qreo1.F:call fields( acs, c1, nacs, flee )
 c   this routine analyses and accumulates the information about what
 c   fields to interpolate and how to interpolate them, information about
 c   what fields to output, and which output fields to BSCAN.
@@ -1451,11 +1643,15 @@ c   Block definitions could be replaced with an include (like)
 c
 C
 c
+c   Input: acs - the compressed attribute-parameter stream
+c          a2  - length of acs (nacs elsewhere in calls)
+c
         implicit integer( a-y )
         implicit real( z )
     	parameter( YES=1, NO=0 )
         character acs*(*)
         logical same, anumbr, flee
+        logical diag_ljm
 c
 c===========================================================================
 c___qcommon.for
@@ -1595,6 +1791,13 @@ c   initialize source field offset pointer
         data fo / mxg3 /
 c
 c
+c     (LJM 6/15/09 - diagnostic prints)
+c
+        if(diag_ljm)then
+           print *,'Fields has been called'
+           print *,'FIELDS:   acs=',acs
+           print *,'FIELDS: a1,a2=',a1,a2
+        endif
 
         call insl( '**fields**  ', 10 )
         flee = .false.
@@ -1603,9 +1806,24 @@ c   determine the weighting function (default is CRESSMAN)
 c
         f1 = indexa( acs, a1, a2, 5, 'WEIGHTING' ) 
         if( f1 .gt. 0 ) then
-            call attarg( acs, f1, a2, 1, aa, na )
-            if( same( acs, aa, 5, 'CLOSEST', 1 )) then
-c   closest point
+            call attarg( acs, f1, a2, 1, aa, na)
+            
+            if(diag_ljm)then
+               print *,'WEIGHTS: pointer to begin attribute f1=',f1
+               print *,'WEIGHTS: pointer to begin parameter aa=',aa
+               print *,'WEIGHTS: length of parameter        na=',na
+            endif
+            call flush(6)
+
+c     Set the value of wtfun according to which weighting function
+c     (parameter = CRESSMAN, EXPONENTIAL, CLOSEST, or UNIFORM) was
+c     selected.  The logical function (foflib.F:same) does a comparison
+c     between the parameter following the WEIGHTING attribute and the 
+c     character string in single quotes.
+c
+c     logical function same( a, i, n, b, j )
+c
+           if( same( acs, aa, 5, 'CLOSEST', 1 )) then
                 wtfun = 3
             elseif( same( acs, aa, 5, 'EXPONENTIAL', 1 )) then
                 wtfun = 2
@@ -1626,7 +1844,23 @@ c   loop through the input fields that are also to be output
         if( ae+1 .ge. a2 ) then
             go to 44
         endif
+
+c     subroutine nxtatt( ab, ith, jth, a1, nch, ae )
+c     Examines the ith-jth characters of ab to fi
+c     the first non-blank character (a1)
+
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
+
+c     (LJM 06/15/09 diagnostic prints)
+c
+        if(diag_ljm)then
+           print *,'qreo1.F:fields first call nxtatt'
+           print *,'After call nxtatt:   ae,ae+1,a2=',ae,ae+1,a2
+           print *,'After call nxtatt:       f1,nch=',f1,nch
+           print *,'After call nxtatt: acs(ae,ae+1)=',acs(ae:ae+nch)
+           print *,' '
+        endif
+
 c   get first argument info if there is one
         call attarg( acs, f1, ae, 1, aa, na )
         ff = nflds+1
@@ -1796,6 +2030,17 @@ c
             go to 66
         endif
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
+
+c     (LJM 06/15/09 diagnostic prints)
+c
+        if(diag_ljm)then
+           print *,'qreo1.F:fields second call nxtatt'
+           print *,'After call nxtatt:   ae,ae+1,a2=',ae,ae+1,a2
+           print *,'After call nxtatt:       f1,nch=',f1,nch
+           print *,'After call nxtatt: acs(ae,ae+1)=',acs(ae:ae+nch)
+           print *,' '
+        endif
+
 c   first argument
         call attarg( acs, f1, ae, 1, aa, na )
 c   second argument

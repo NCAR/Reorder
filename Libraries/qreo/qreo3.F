@@ -89,6 +89,10 @@ c
      +,     zlard(50)
 c
 c
+c   acs     =   user-specified input "attribute:parameter;" stream
+c               compressed into a large, continuous, without spaces
+c               stream starting with ";"
+c   ncas    =   the length of acs (~600-800 characters)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
 c                   1 = normal data
@@ -644,7 +648,7 @@ c
         call zipstr( ' KM. ^', ll, c )
       endif
         call zncode( ll, c, 5, 1, numval(1)*numval(2), x, 0 )
-    	call zipstr( ' Grid Points^', ll, c )
+    	call zipstr( ' XY Grid Points^', ll, c )
       call putc( ll, c, '^' )
       call typstg( lunout(), ll, 1, 0 )
 c
@@ -1161,6 +1165,7 @@ c   set up display parameters by looping thru input control string
             go to 44
         endif
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
+
         call attarg( acs, f1, ae, 1, aa, na )
 c
         if( same( acs, f1, 3, 'DISPLAY', 1 )) then

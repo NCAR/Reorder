@@ -53,9 +53,16 @@ c
       end
 c----------------------------------------------------------------------
       subroutine readcd( lun, card, n, zend, zerr )
-c  this routine reads a card/line from an input file
+c
+c  this routine is called for every single card/line from an input file.
+c     Appears to never be called, instead foflib.F:subroutine readln
+c     is called.  Card is dimensioned char*132 in gnxatt and char*256 in
+c     subroutine hgnxatt.
+c  
         character card*(*)
       logical zend, zerr
+c
+c     print *,'unixflib.F:subroutine readcd has been called'
 c
       nc = 0
       zend = .false.

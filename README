@@ -1,4 +1,4 @@
-README for reorder 1.40a
+README for reorder 1.38-2.00
 
 BUILDING
 ========
@@ -32,11 +32,76 @@ but you need to explicitly disable use of a GNU-specific compiler flag by adding
 
 CHANGE LOG
 ==========
-1.40a  Fixed a bug in Libraries/qreo/qreo1.F that was counting on implicit
-       initialization of a variable to zero. The bug shows up when compiled
-       under gfortran.
 
-1.40   Reorder is now built with SCons rather than configure/make. DORADE
+2.00   LJay Miller: 
+       Updated README in Feb-Mar, 2010 to elaborate on changes (1.38-1.40)
+       made prior to my changes listed here for 1.41 that were done inside 
+       Reorder/original138/reorder138 rather than inside Reorder/trunk.
+
+       With Chris' help, copied my modifications in ./Reorder/*138/*138/*.F
+       to ./Reorder/trunk which is now the proper working directory.  Built
+       with scons instead of make as was being done in ./Reorder/*138/*138.
+
+       I had spent considerable time in 2009 going through key portions of
+       the Fortran code to understand those details that relate to the actual
+       interpolation algorithm, particularly the interplay between the region
+       of influence and weighting functions in mapping measurements from 
+       the radar range-azimuth-elevation space to the final Cartesian (xyz)
+       grid.
+
+       1. Cosmetic changes: added some comments for clarification of code 
+          along with diagnostic print statements that mostly have been 
+          commented out now. Added a logical variable (diag_ljm) to turn
+          on (.true.) or off (.false.) some key diagnostic print statements.
+       2. Uncovered a handful of user-specified variables (attributes) that
+          were not documented.  Some of these are corrections to navigating
+          airborne data that are most often taken care of in soloii.  However,
+          as near as I can tell, adding ADJUST_Z is important so as to include
+          a 4/3 earth correction to radar heights. 
+       3. Bug-fix: Changed signs of slong and dlong from (-) to (+) when the
+          user includes SPRINT_XLT (forces call to routine sprint_xyz).  See
+          explanations in qreo1.F and qreo2.F where it is noted that the MMM
+          routines xy2lldrv and ll2xydrv are no longer being called.
+       4. Added a new user-specified variable "BOX DIMENSIONS" to explicitly
+          specify which radii to use: CARTESIAN, SPHERICAL, or HYBRID, where
+          HYBRID uses CARTESIAN close to the radar and shifts smoothly over
+          to SPHERICAL (range-dependent) dimensions to increase the size of
+          the region of influence as range from the radar increases.
+       5. Improved calculations of box dimensions so that when XRADIUS=0,
+          the program sets XRADIUS=YRADIUS.  Likewise, when RGRADIUS=0,
+          RGRADIUS=AZRADIUS converted to arc length.  The intent is to 
+          equalize the scales within each plane scanned (PPI or RHI) passed
+          by the Reorder weighting function
+ 
+1.40a  Chris Burghart:
+       Added old_docs with reoexample.ps, unixqreola.ps, and unixreorder.ps
+       documentation files copied from 
+
+1.40a  Chris Burghart:
+       Fixed a bug in Libraries/qreo/qreo2.F that shows up when compiled
+       under gfortran and involves xmin, ymin, and zmin inside the filter 
+       subroutine contained in qreo2.F (Tues 14 Jul 2009 email).  These
+       variables need to be "saved" or else the grid will be empty.  Another 
+       variable (ltp) must also be initialized to 0 (see qcommon.reo;10 in 
+       qreo1.F and ludat in subroutine setcat in qufap.F) for the gfortran 
+       compiler (19 or 20 Nov 2009 email).
+
+1.40   Chris Burghart:
+       Reorder is now built with SCons rather than configure/make. DORADE
        access utilities are included with the distribution, so reorder is now
        independent of soloii.  The code now also builds and executes on Mac 
        OS X machines, although it has not been extensively tested.
+
+1.39   Dennis Flanigan:
+       It's not clear what if any changes were made in going from 1.38-->1.39,
+       except that soloii is not inside original139. Email from Burghart on
+       10 Jul 2009 suggests that Chris had started working on adding explicit
+       building of a 32-bit binary on 64-bit systems.  I suspect this is 
+       now in the trunk directory inside the scons stuff.
+
+1.38   Dennis Flanigan:
+       Added cvt_toLatLon code to ./Reorder/trunk/Libraries/qreo/xcedcio.c
+       in response to Sandra Yuter's concerns about the conversions to lat/lon
+       at latitudes furhter from the equator.  Her shipboard dataset is actually
+       from the southern hemisphere.  This change was done in going from 1.37 to
+       1.38

@@ -13,14 +13,45 @@ c   getnam
 c   getproj
 c
 c----------------------------------------------------------------------
-        FUNCTION RANF()
-        DATA ISEED / -32767 /
+c        FUNCTION RANF()
+c        DATA ISEED / -32767 /
 c        RANF = RAN(ISEED)
-        RANF = 0
-        RETURN
-        END
+c        RANF = 0
+c        RETURN
+c        END
 c----------------------------------------------------------------------
-        subroutine opnics( par )
+      FUNCTION RANF()
+      PARAMETER (IA=16807,IM=2147483647,AM=1./IM,IQ=127773,IR=2836,
+     +   NTAB=32,NDIV=1+(IM-1)/NTAB,EPS=1.2E-7,RNMX=1.-EPS)
+
+C  RANDOM NUMBER GENERATOR OF PARK AND MILLER WITH BAYS-DURHAM SHUFFLE
+C  AND ADDED SAFEGUARDS.  TAKEN FROM "NUMERICAL RECIPES IN FORTRAN".
+      DIMENSION IV(NTAB)
+      DATA ISEED/-5/
+      SAVE IV,IY
+      DATA IY,IV /0,NTAB*0/
+
+      IF(ISEED.LE.0.OR.IY.EQ.0)THEN
+         ISEED=MAX(-ISEED,1)
+         DO 20 J=NTAB+8,1,-1
+            K=ISEED/IQ
+            ISEED=IA*(ISEED-K*IQ)-IR*K
+            IF(ISEED.LT.0)ISEED=ISEED+IM
+            IF(J.LE.NTAB)IV(J)=ISEED
+ 20      CONTINUE
+         IY=IV(1)
+      END IF
+      K=ISEED/IQ
+      ISEED=IA*(ISEED-K*IQ)-IR*K
+      IF(ISEED.LT.0)ISEED=ISEED+IM
+      J=1+IY/NDIV
+      IY=IV(J)
+      IV(J)=ISEED
+      RANF=MIN(AM*IY,RNMX)
+      RETURN
+      END
+c----------------------------------------------------------------------
+      subroutine opnics( par )
 c  this routine assigns the l.u. no. and opens the input control file
     	character*222 name
         integer par

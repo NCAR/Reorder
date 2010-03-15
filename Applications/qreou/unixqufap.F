@@ -4,7 +4,7 @@ C           Unix DEPENDENT CODE
 c-----------------------------------------------------------------------
     	subroutine accver()
 c   dump out the current access version date
-        call dmplin( 'qUFAP--true unix VERSION NOV-1997' , 0 )
+        call dmplin( 'qUFAP--LINUX VERSION 2.00 March 2010 ' ,0)
     	return
     	end
 c-----------------------------------------------------------------------
@@ -30,7 +30,7 @@ c
 c  get the tape label
         call attarg( ufcs, intpt, ncs, intno, arg, na )
         if( na .le. 0 ) then
-          call typstg( 6, 'no more tapes      ^', 1, -1 )
+c---------call typstg( 6, 'no more tapes      ^', 1, -1 )
           ierr = 999
           go to 90
         endif

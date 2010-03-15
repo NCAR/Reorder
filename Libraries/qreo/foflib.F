@@ -171,9 +171,18 @@ c
         end
 c---------------------------------------------------------------------
       subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
-c   this routine returns a pointer to the first character of the nth
-c   argument and the length of the argument in nchar.
-c   c1 = 0 if the nth argument cannot be located
+c   this routine returns a pointer (ith) to the first character of 
+c   the nth argument and the length of the argument in nchar.
+c   The pointer c1 = 0 if the nth argument cannot be located.
+c
+c   Input: ibuf - the compressed attribute-parameter stream
+c           acs - usual name elsewhere in the call attarg statements
+c 
+c   Returns ith - pointer within input attribute-parameter stream
+c                 to the beginning character of the attribute
+c           c1  - pointer to the beginning character of the 
+c                 parameter associated with the attribute
+c         nchar - character length of the attribute
 c
       implicit integer( a-z )
         character ibuf*(*)
@@ -1440,14 +1449,24 @@ c
         end
 c----------------------------------------------------------------------
         subroutine idset( instr, nchar, flee )
+c
 c   the purpose of this routine is to compress all the input
-c   into a compact string and list the input attributes
+c   attributes and their parameters into a single compact string
+c   and list all input attributes and their parameters as well as
+c   any comment (^) lines.  The input is listed line-by-line then
+c   one line per attribute followed by its parameters.
+c
+c   Returns the compressed input stream (instr) and the number
+c   of characters (nchar) in it.
 c   
         implicit integer( a-z )
         logical flee, eof, same
         character instr*(*)
         data lsem / 0 /
-c   
+c
+c       LJM (6/15/09 diagnostic prints)   
+c       print *,' '
+c       print *,'Idset has been called instr=',instr
         lui = namefx( 'IDSET', i )
         if( lui .eq. 0 ) then
             lui = 5
@@ -1458,7 +1477,7 @@ c   put a semicolon in the first character
         nchar = 1
         ith = nchar+1
         write( luo, 988 )
-     a          '---------------------- input -----------------------'
+     a       '------------ user-specified input stream ------------'
 c   
   11    continue
 c   get the next attribute
@@ -1489,7 +1508,7 @@ c
 c   
   66    continue
         write( luo, 988 ) 
-     a          '+++++++++++++++++ input attributes +++++++++++++++++'
+     a       '+++++++ input attributes and their parameters +++++++'
 c   
         if( instr(nchar:nchar) .ne. ';' ) then
             nchar = nchar +1
@@ -1505,9 +1524,10 @@ c   print the whole input set attribute by attribute
         endif
 c   
         write( luo, 988 ) 
-     a          '===================================================='
+     a          '===== end input attributes and their parameters ====='
 c   
   90    continue
+        print *,'Idset - return nchar=',nchar
         return
 c   
   988   format( ' ', a )
@@ -1515,7 +1535,10 @@ c
 c---------------------------------------------------------------------
       function indexa( a, ith, jth, n, p )
 c   this routine insures that the string found is indeed at the
-c   beginning of an attribute
+c   beginning of an attribute (p).
+c    
+c   Input: a - the compressed attribute-parameter stream
+c        acs - usual name elsewhere in the call attarg statements
 c
         character a*(*), p*(*)
 c
@@ -2384,6 +2407,7 @@ c  count trailing blanks
  23     continue
 c
  90     continue
+        
         return
         end
 c---------------------------------------------------------------------
@@ -2689,9 +2713,18 @@ c
         end
 c----------------------------------------------------------------------
       subroutine readln( lun, line, n, zend, zerr )
-c  this routine reads a card/line from an input file
+c
+c  this routine is called for every single card/line from an input file.
+c     Appears to always be called, never unixflib.F:subroutine readcd.
+c     Line (card) is dimensioned char*132 in gnxatt and char*256 in
+c     subroutine hgnxatt.
+c
         character line*(*)
       logical zend, zerr
+c
+c     print *,'foflib.F:subroutine readln has been called'
+c     Appears to always be called rather than calling
+c     unixflib.F:subroutine readcd
 c
       nc = 0
       zend = .false.
@@ -2825,7 +2858,18 @@ c
         end
 c---------------------------------------------------------------------
       logical function same( a, i, n, b, j )
-c   this routine compares two n-character strings
+c   this routine compares two n-character strings (a and b)
+c
+c   Input: a - attribute-parameter input character stream 
+c              (acs elsewhere)
+c          n - length of the input character string
+c          b - input character string for comparison
+c          i - pointer to starting character of acs stream
+c          j - pointer to starting character of string (b)
+c   Output: (.true.) if match between b and paramter part
+c                    of attribute-parameter input stream
+c          (.false.) if no match
+c
       character a*(*), b*(*)
 c
       if( n .gt. 0 ) then
