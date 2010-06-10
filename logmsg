@@ -26,7 +26,7 @@ REORDER VERSION 2.00
              DIMENSIONS" that has values of CARTESIAN, SPHERICAL, or HYBRID.
              This allows the user to leave both the XYZ and RAE radii intact
              in the run_reorder script.  HYBRID uses the CARTESIAN near the
-             radar and the SPHERICAL once the range-dependent box radii are
+             radar and the SPHERICAL once the Cartesian box radii are
              exceeded.
 
 9. Libraries/qreo/qreo2.F - added some comment lines and changed default grid

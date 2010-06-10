@@ -330,6 +330,7 @@ c
 c       
   11    continue
     	state = dap_next_ray( lundat, kbuf )
+c        print *,'qdap: in setray: state=',state,END_OF_TIME_SPAN
 c       
     	if(state .eq. END_OF_TIME_SPAN ) then
     	    ierr = 999
@@ -351,7 +352,7 @@ C           Unix DEPENDENT CODE
 c-----------------------------------------------------------------------
     	subroutine accver()
 c   dump out the current access version date
-        call dmplin( 'qDAP unix VERSION Novermber 1997' , 0 )
+        call dmplin( 'qDAP unix VERSION November 1997' , 0 )
     	return
     	end
 c-----------------------------------------------------------------------

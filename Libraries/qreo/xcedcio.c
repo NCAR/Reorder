@@ -592,7 +592,7 @@ cedopn_(name,n,isize)
 	    strcat( a, ".ced" );
 	}
     
-	printf(" Real cedric file name is %s\n", a );
+	/*printf(" Real cedric file name is %s\n", a );*/
 	cedstrm = fopen( a, "w+" );
 	
 	strncpy(cfhead->descriptor_name, "CED1", 4 );

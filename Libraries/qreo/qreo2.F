@@ -267,7 +267,7 @@ c
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=16, mxsfld=20  )
+        parameter( mxfld=30, mxsfld=60  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -356,14 +356,19 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*256 mnames
-        character*32 fldmne
+        character*512 mnames
+        character*64 fldmne
         common / fldcomc /  fldmne,     mnames
-c   fldmne  =   the original 2 character source field mnemonic
-c   mnames  =   character data--8 character names of the output fields
 c
+c   fldmne  =   the original 2-character source field mnemonic
+c   mnames  =   8-character names of the output fields
 c
-        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
+c   Note: mnames and fldmne must be increased to allow for mxfld=30 
+c         names of 2-character source and 8-character output field names
+c         Increased the size of fldmne from 32 to 64 and the size of 
+c         mnames from 256 to 512 - LJM 06/09/2010
+c
+        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -2161,7 +2166,7 @@ c
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=16, mxsfld=20  )
+        parameter( mxfld=30, mxsfld=60  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -2248,14 +2253,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*256 mnames
-        character*32 fldmne
+        character*512 mnames
+        character*64 fldmne
         common / fldcomc /  fldmne,     mnames
 c   fldmne  =   the original 2 character source field mnemonic
 c   mnames  =   character data--8 character names of the output fields
 c
 c
-        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr

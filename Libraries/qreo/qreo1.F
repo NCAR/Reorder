@@ -3,8 +3,8 @@ c-------------------------------------------------------------------------
 c
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( inull=-32768 )
-        parameter( mxfld=16, mxsfld=20  )
-        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
+        parameter( mxfld=30, mxsfld=60  )
+        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
         parameter( maxval=500 )
 c
         integer tref
@@ -109,7 +109,9 @@ c       Max gates is 2048
         parameter( mxg3=3*maxgt )
 
 c       Max fields set to 16, max field for scratch is 20  -DFF 3/17
-        parameter( mxfld=16, mxsfld=20  )
+c       Max fields increased to 30 - LJM 06/09/2010
+c
+        parameter( mxfld=30, mxsfld=60  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -152,8 +154,10 @@ c               stream starting with ";"
 c   ncas    =   the length of acs (~600-800 characters)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data
-c                   2 = dbz field
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
@@ -166,7 +170,7 @@ c
 c   fldoff  =   offset to first gate in data buffer
 c   dupfld  =   duplicate field flag 
 c   nyqptr  =   pointer to the Nyquist velocity associated with this field
-c   wtfun   =   weighting function
+c   wtfun   =   weighting function (default is Cressman)
 c                   1 = Cressman
 c                   2 = Exponential
 c                   3 = closest point
@@ -204,14 +208,19 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*256 mnames
-        character*32 fldmne
+        character*512 mnames
+        character*64 fldmne
         common / fldcomc /  fldmne,     mnames
-c   fldmne  =   the original 2 character source field mnemonic
-c   mnames  =   character data--8 character names of the output fields
 c
+c   fldmne  =   the original 2-character source field mnemonic
+c   mnames  =   8-character names of the output fields
 c
-        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
+c   Note: mnames and fldmne must be increased to allow for mxfld=30 
+c         names of 2-character source and 8-character output field names
+c         Increased the size of fldmne from 32 to 64 and the size of 
+c         mnames from 256 to 512 - LJM 06/09/2010
+c
+        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -312,7 +321,7 @@ c
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'QREO--LINUX VERSION 2.00 March 2010 ', 0 )
+      call dmplin( 'QREO--LINUX VERSION 2.10 June 2010 ', 0 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -360,6 +369,7 @@ c
 c  initialize the access package and position to first record
       call setcat( butter, lenbuf,
      1   7, 8, ltp, acs, nacs, error)
+      print *,'qreo1-reo: after setcat: error=',error
 c 
       if(error.ne.0)then
         call typstg( lunout()
@@ -373,6 +383,7 @@ c
 c  set up reorder parameters
       call inireo( butter, advect, aaz, advec
      +,         advhgt, advx, advy, azrad, elrad, rgrad, rg )
+      print *,'qreo1-reo: after inireo'
 c
 c   this is all the stuff that used to be in equivalence statements
         zmin = values(1,3)
@@ -474,10 +485,15 @@ c
             endif
          endif
 c
-        call inslc( mne(1:2))
-        call i8( 'i', 1, i )
-        call i8( 't', 1, fldtyp(i))
-        call dmplnb
+         if(i.eq.1)then
+            print *,' '
+            print *,'Routine reo in module qreo1.F'
+            print *,'List field name, number, and type'
+         endif
+         call inslc( mne(1:2))
+         call i8( 'i', 1, i )
+         call i8( 't', 1, fldtyp(i))
+         call dmplnb
 c
          if( nyqptr(i) .ne. inull ) then
 c   get the nyquist velocity for this field
@@ -947,6 +963,7 @@ c
 c
 c   next ray
       call setray(butter,1,error)
+c      print *,'After setray: error=',error
 c
       if(error.gt.900)then
     	 final = .true.
@@ -979,7 +996,7 @@ c
         call scanfo( kswepn(butter), kswepm(butter), ttm, azz, ell, 
      +      ufixed(butter), .true., newvol, fcount )
 c
-        write(*,*) 'final error:', error, numbm
+        write(*,*) 'final error:', error, numbm,fcount
         call i8( 'total beams input', 0, numbm )
         call dmplnb
         call i8( 'total beams excluded', 0, excnt )
@@ -1009,7 +1026,7 @@ c
 c                    
  909  continue
     	call clsscr()
-        call dmplin( 'stop ', 4 )
+        call dmplin( 'stop', 4 )
 c        call histit
         return
         end
@@ -1663,7 +1680,7 @@ c
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=16, mxsfld=20  )
+        parameter( mxfld=30, mxsfld=60  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -1748,14 +1765,19 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*256 mnames
-        character*32 fldmne
+        character*512 mnames
+        character*64 fldmne
         common / fldcomc /  fldmne,     mnames
-c   fldmne  =   the original 2 character source field mnemonic
-c   mnames  =   character data--8 character names of the output fields
 c
+c   fldmne  =   the original 2-character source field mnemonic
+c   mnames  =   8-character names of the output fields
 c
-        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
+c   Note: mnames and fldmne must be increased to allow for mxfld=30 
+c         names of 2-character source and 8-character output field names
+c         Increased the size of fldmne from 32 to 64 and the size of 
+c         mnames from 256 to 512 - LJM 06/09/2010
+c
+        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -1865,7 +1887,6 @@ c   get first argument info if there is one
         call attarg( acs, f1, ae, 1, aa, na )
         ff = nflds+1
 c
-c
         if( same( acs, f1, 5, 'FIELD', 1 )) then
             if( na .le. 0 ) then
                 flee = .true.
@@ -1961,6 +1982,26 @@ c
 c   set up the rest of the info and pointers
 c
         nflds = nflds + 1
+
+c     Check that the user is not asking for more fields
+c     than allowed - LJM (06/09/2010)
+c
+        print *,'Routine fields in qreo1.F: mxfld,nflds=',mxfld,nflds
+        if(nflds .gt. mxfld)then
+           write(6,1770)nflds,mxfld
+ 1770      format(' Number of fields requested ',i3,
+     +            ' exceeds the number allowed ',i3)
+           print *,'**** Change mxfld dimension in qreo1-3.F ****'
+           call flush
+
+c     Force program exit with "Floating exception"
+c
+           ityp=1
+           ibomb=1/(1-ityp)
+           write(*,*)'****IBOMB=',ibomb,'****'
+           STOP
+        end if
+c
 c   get the input field mnemonic
         call copyc( acs, aa, 2, fldmne, ff*2-1 )
 c   bump output field count
@@ -2052,15 +2093,18 @@ c
     	    	go to 60
     	    endif
 c   locate the source field
-            call mnesrc( fldmne, nflds, acs, aa, 2, ith,
+            call mnesrc( fldmne, nflds, acs, aa, 2,ith,
      +	    	f1,nch,flee,YES)
     	    if( flee ) then
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating components of COUNT & QUALITY fields,',
+     +           ' nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
-c   need to create an sum field if it's not already there
+c   need to create a sum field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 2, ith, 2, 0 )
 c   need to create a sum of the squares field if not there
    	    call crefld( attyp(1,ith), natfld(ith), 3, ith, 3, 0 )
@@ -2091,6 +2135,8 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating COUNT field, nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   put away the name of the output field
@@ -2112,6 +2158,8 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating MINBIGR field, nx=',nx
 c   need to create a min big R field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 15, ith, 1, wmax )
 c   put away the name of the output field
@@ -2132,6 +2180,8 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating MAXBIGR field, nx=',nx
 c   need to create a max big R field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 16, ith, 1, 0 )
 c   put away the name of the output field
@@ -2153,9 +2203,11 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating components of AVERAGE field, nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
-c   need to create an sum field if it's not already there
+c   need to create a sum field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 2, ith, 2, 0 )
 c   put away the name of the output field
             call bfill( mnames, mnptr(nx), 8 )
@@ -2176,6 +2228,8 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating components of SDEVIATION field, nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   need to create an sum field if it's not already there
@@ -2203,6 +2257,8 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating components of WFACTOR field, nx=',nx
 c   need to create a weight field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 11, ith, 1, 0 )
 c   need to create a weights squared field if it's not already there
@@ -2226,6 +2282,8 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating RADIUS field, nx=',nx
 c   need to create a min radius field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 5, ith, 1, wmax )
 c   put away the name of the output field
@@ -2272,6 +2330,8 @@ c   locate the source field
     	    	go to 45
     	    endif
     	    nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating OCTANT field, nx=',nx
 c   need to create an octant field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 13, ith, 1, 0 )
 c   put away the name of the output field
@@ -2297,18 +2357,31 @@ c
   88    continue
 c
   90    continue
+
+c     LJM 06/10/10:  As near as I can tell all source and output
+c                    fields have been specified by the user and
+c                    various arrays have been set up for the 
+c                    storing the results of computations.
+c     nflds - number of source fields
+c     noutf - number of output fields (noutf can be .gt. nflds)
+c             For example, a velocity field might be interpolated
+c             as well as be used for COUNT, OCTANT, ..., fields.
+c             
 c
         call i8( 'nflds', 5, nflds )
+        call i8( 'noutf', 5, noutf )
         call i8( 'wtf', 3, wtfptr )
         call i8( 'mnr', 3, mnrptr )
         call i8( 'lenbox', 6, lenbox )
         call dmplnb
+        print *,'Routine fields in qreo1.F: fldmne=',fldmne,'|'
         call typstg( lunout(), fldmne, 1, nflds*2 )
 c        call typefx( fldtyp, 1, nflds )
 c        call typefx( fldoff, 1, nflds )
 c        call typefe( thrval, 1, nflds )
 c        call typefx( nyqptr, 1, nflds )
 c        call typefx( natfld, 1, nflds )
+        print *,'Routine fields in qreo1.F: ngpps=',ngpps
         call i8( 'ngpps', 5, ngpps )
 c        call dmplnb
 c        call typefx( gpptyp, 1, ngpps )
@@ -2415,8 +2488,13 @@ c
         end
 c-------------------------------------------------------------------------
         subroutine crefld( a, n, ityp, ith, cpn, def )
-c   this routine searches "n" elements of array "a" for the number "ityp"
-c
+
+c   This routine searches "n" elements of array "a" for the number "ityp"
+c   It is called for all user-requested output fields that are special
+c   such as COUNT, OCTANT, WFACTOR,..., that require a source field such
+c   as the velocity.  Source field names are 2-character mnemonics that
+c   must coincide with names within the input data stream.
+c  
         implicit integer( a-z )
         integer a(*)
     	real def
@@ -2431,7 +2509,7 @@ c
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=16, mxsfld=20  )
+        parameter( mxfld=30, mxsfld=60  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -2516,14 +2594,19 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*256 mnames
-        character*32 fldmne
+        character*512 mnames
+        character*64 fldmne
         common / fldcomc /  fldmne,     mnames
-c   fldmne  =   the original 2 character source field mnemonic
-c   mnames  =   character data--8 character names of the output fields
 c
+c   fldmne  =   the original 2-character source field mnemonic
+c   mnames  =   8-character names of the output fields
 c
-        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
+c   Note: mnames and fldmne must be increased to allow for mxfld=30 
+c         names of 2-character source and 8-character output field names
+c         Increased the size of fldmne from 32 to 64 and the size of 
+c         mnames from 256 to 512 - LJM 06/09/2010
+c
+        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -2560,13 +2643,22 @@ c
   22	continue
 c
     	if( jth .gt. 0 ) then
-                comptr(cpn,noutf) = atptr( jth, ith )
+           print *,'Routine crefld in qreo1.F:               ith,jth=',
+     +          ith,jth
+           comptr(cpn,noutf) = atptr( jth, ith )
+           print *,'Routine crefld qreo1.F:  cpn, noutf,comptr,atptr=',
+     +     cpn, noutf, comptr(cpn,noutf),atptr(jth,ith)
     	else
-                at = incb( natfld(ith), 1 )
-                attyp( at, ith ) = ityp
-                atptr( at, ith ) = incb( lenbox, 1 )
-                space( atptr(at,ith)) = def
-                comptr(cpn,noutf) = atptr( at, ith )
+           at = incb( natfld(ith), 1 )
+           attyp( at, ith ) = ityp
+           atptr( at, ith ) = incb( lenbox, 1 )
+           space( atptr(at,ith)) = def
+           comptr(cpn,noutf) = atptr( at, ith )
+           print *,'Routine crefld in qreo1.F:                at,ith=',
+     +          at,ith
+           print *,'Routine crefld qreo1.F: attyp,atptr,space,comptr=',
+     +     attyp(at,ith),atptr(at,ith),space(atptr(at,ith)),
+     +     comptr(cpn,noutf)		
     	endif
 c
   90    continue

@@ -4,7 +4,7 @@ C           Unix DEPENDENT CODE
 c-----------------------------------------------------------------------
     	subroutine accver()
 c   dump out the current access version date
-        call dmplin( 'qUFAP--LINUX VERSION 2.00 March 2010 ' ,0)
+        call dmplin( 'qUFAP--LINUX VERSION 2.10 June 2010 ' ,0)
     	return
     	end
 c-----------------------------------------------------------------------
