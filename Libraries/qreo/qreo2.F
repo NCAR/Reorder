@@ -1,6 +1,6 @@
 c--------------------------------------------------------------------------
         block data qreo2
-        parameter( maxcart=4001, sizcart=1024 )
+        parameter( maxcart=4001, sizcart=2048 )
         common  / storef /      drecln,         lencar,         mxshlf
      +,         carnum(maxcart), shelf(maxcart),  usage(maxcart)
         integer drecln, lencar, mxshlf, carnum, shelf, usage
@@ -31,7 +31,9 @@ c--------------------------------------------------------------------------
      +,         advhgt, advx, advy, azrad, elrad, rgrad, rg )
 c  this routine defaults all parameters that have not been input
 c
-        parameter(      maxval=500,     maxfld=7,       maxf32=maxfld*8
+c       Increased maxfld from 7 to 30 - LJM 06/14/2010
+c
+        parameter(      maxval=500,     maxfld=30,       maxf32=maxfld*8
      +,                 par=22,         list=4,         infil=11
      +,                 outfil=12,      maxgt=2048,     mxtfld=maxfld+3
      +,                 range1=0.0,     range2=10000.0, zap=-32768.
@@ -260,14 +262,18 @@ c
 c===========================================================================
 c___qcommon.for
 c
-    	parameter( maxcart=4001, sizcart=1024 )
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c
+    	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=60  )
+        parameter( mxfld=30, mxsfld=120  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -368,7 +374,7 @@ c         names of 2-character source and 8-character output field names
 c         Increased the size of fldmne from 32 to 64 and the size of 
 c         mnames from 256 to 512 - LJM 06/09/2010
 c
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -2159,14 +2165,18 @@ c----------------------------------------------------------------------
 c===========================================================================
 c___qcommon.for
 c
-    	parameter( maxcart=4001, sizcart=1024 )
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c
+    	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=60  )
+        parameter( mxfld=30, mxsfld=120  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -2260,7 +2270,7 @@ c   fldmne  =   the original 2 character source field mnemonic
 c   mnames  =   character data--8 character names of the output fields
 c
 c
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -2292,8 +2302,9 @@ c
 c
 c
 c
-
-        parameter(      maxfld=7,       maxf32=maxfld*8
+c       Increased maxfld from 7 to 30 - LJM 06/14/2010
+c
+        parameter(      maxfld=30,       maxf32=maxfld*8
      +,                 maxrec=40000
      +,                 input=5
      +,                 list=6,         infile=12

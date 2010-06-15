@@ -438,8 +438,8 @@ c  read in the first record
     	endif
 c
     	if(ierr .ne. 0 ) then
-    	    write(*,*) 'Missing directory or input attribute!'
-    	    return
+    	    write(*,*) 'Missing directory or input attribute!',ierr
+            go to 90
     	endif
 c
 c

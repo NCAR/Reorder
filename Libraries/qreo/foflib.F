@@ -1465,8 +1465,8 @@ c
         data lsem / 0 /
 c
 c       LJM (6/15/09 diagnostic prints)   
-c       print *,' '
-c       print *,'Idset has been called instr=',instr
+c        print *,' '
+c        print *,'Idset has been called instr=',instr
         lui = namefx( 'IDSET', i )
         if( lui .eq. 0 ) then
             lui = 5

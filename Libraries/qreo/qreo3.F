@@ -51,14 +51,18 @@ c
 c===========================================================================
 c___qcommon.for
 c
-    	parameter( maxcart=4001, sizcart=1024 )
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c
+    	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=60  )
+        parameter( mxfld=30, mxsfld=120  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -159,7 +163,7 @@ c         names of 2-character source and 8-character output field names
 c         Increased the size of fldmne from 32 to 64 and the size of 
 c         mnames from 256 to 512 - LJM 06/09/2010
 c
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -392,14 +396,18 @@ c
 c===========================================================================
 c___qcommon.for
 c
-    	parameter( maxcart=4001, sizcart=1024 )
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c
+    	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=60  )
+        parameter( mxfld=30, mxsfld=120  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -496,7 +504,7 @@ c         names of 2-character source and 8-character output field names
 c         Increased the size of fldmne from 32 to 64 and the size of 
 c         mnames from 256 to 512 - LJM 06/09/2010
 c
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -539,8 +547,8 @@ c
 c
 c  workspace and workspace management
 c
-      real scrx(1)
-      integer iscrx(1)
+      real scrx(*)
+      integer iscrx(*)
       parameter( radian=57.29578 )
 c
 c

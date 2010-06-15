@@ -13,6 +13,8 @@ Help(vars.GenerateHelpText(env))
 if env['useNetcdf']:
     env.Tool('netcdf')
     env.AppendUnique(CPPDEFINES = ['NETCDF'])
+
+env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
     
 if env['use_m32']:
     if (env['CC'] == 'gcc'):

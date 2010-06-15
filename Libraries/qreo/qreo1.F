@@ -1,10 +1,14 @@
 c-------------------------------------------------------------------------
     	block data qreo1
 c
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( inull=-32768 )
-        parameter( mxfld=30, mxsfld=60  )
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter( mxfld=30, mxsfld=120  )
+        parameter( mxcomp=50, mxtot=mxfld+mxsfld  )
         parameter( maxval=500 )
 c
         integer tref
@@ -97,8 +101,8 @@ c===========================================================================
 c___qcommon.for
 c
 
-c       max cart output set to 4001, that is nx * ny * nz <= maxcart
-    	parameter( maxcart=4001, sizcart=1024 )
+c       maxcart output set to 4001, that is nx * ny * nz <= maxcart
+    	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
@@ -109,9 +113,10 @@ c       Max gates is 2048
         parameter( mxg3=3*maxgt )
 
 c       Max fields set to 16, max field for scratch is 20  -DFF 3/17
-c       Max fields increased to 30 - LJM 06/09/2010
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c
-        parameter( mxfld=30, mxsfld=60  )
+        parameter( mxfld=30, mxsfld=120  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -151,7 +156,8 @@ c
 c   acs     =   user-specified input "attribute:parameter;" stream
 c               compressed into a large, continuous, without spaces
 c               stream starting with ";"
-c   ncas    =   the length of acs (~600-800 characters)
+c   ncas    =   the length of acs is typically ~600-800 characters, but
+c               cannot exceed 2222
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
 c                   1 = normal data (no conversion before interpolate)
@@ -220,7 +226,7 @@ c         names of 2-character source and 8-character output field names
 c         Increased the size of fldmne from 32 to 64 and the size of 
 c         mnames from 256 to 512 - LJM 06/09/2010
 c
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -251,7 +257,9 @@ c
 c
 c
 c
-        parameter(      maxfld=7,       maxf32=maxfld*8
+c     Increased maxfld from 7 to 30 - LJM (06/14/2010)
+c
+        parameter(      maxfld=30,      maxf32=maxfld*8
      +,                 list=4,         infil=11
      +,                 outfil=12,      mxtfld=maxfld+3
      +,                 mmm=mxtfld*maxgt
@@ -1047,8 +1055,10 @@ c
         logical same
         logical diag_ljm
 c
+c       Increased maxfld from 7 to 30 - LJM 06/14/2010
+c
     	parameter( znull=-32768.)
-        parameter( maxval=500, maxfld=7, maxf32=maxfld*8 )
+        parameter( maxval=500, maxfld=30, maxf32=maxfld*8 )
     	parameter( maxxcl=132 )
 c
         common  / datset /      slong,          slati,          salti
@@ -1080,13 +1090,18 @@ c       and its parameters, leaving out all semicolon and
 c       comment (^) lines.
 c     
         call idset( acs, nacs, flee )
-
 c       LJM (6/15/09 diagnostic prints)
-        if(diag_ljm)then
-           print *,'After call idset: acs=attribute:parameter; stream'
+c        if(diag_ljm)then
+           print *,'After call idset: acs=attribute+parameter stream'
            print *,'After call idset nacs=',nacs
-           print *,'After call idset acs=',acs
+           print *,'After call idset acs=',acs(1:nacs)
            print *,' '
+c        endif
+        if(nacs.gt.2222)then
+           print *,'*** Routine inidat in qreo1.F: nacs .gt. 2222 ***'
+           print *,'***   Increase size of character string acs   ***'
+           call flush
+           STOP
         endif
 c
 c       call insl( '*inidat*', 8 )
@@ -1673,14 +1688,19 @@ c
 c===========================================================================
 c___qcommon.for
 c
-    	parameter( maxcart=4001, sizcart=1024 )
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c       Made sizcart=2048 consistent throughout - LJM 06/14/2010
+c
+    	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=60  )
+        parameter( mxfld=30, mxsfld=120  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -1777,7 +1797,7 @@ c         names of 2-character source and 8-character output field names
 c         Increased the size of fldmne from 32 to 64 and the size of 
 c         mnames from 256 to 512 - LJM 06/09/2010
 c
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -1868,24 +1888,32 @@ c   loop through the input fields that are also to be output
         endif
 
 c     subroutine nxtatt( ab, ith, jth, a1, nch, ae )
-c     Examines the ith-jth characters of ab to fi
+c     Examines the ith-jth characters of ab to find
 c     the first non-blank character (a1)
 
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
+        print *,'Routine fields in qreo1.F - call nxtatt: ith,jth=',
+     +       ae+1,a2
 
 c     (LJM 06/15/09 diagnostic prints)
 c
-        if(diag_ljm)then
+c        if(diag_ljm)then
            print *,'qreo1.F:fields first call nxtatt'
            print *,'After call nxtatt:   ae,ae+1,a2=',ae,ae+1,a2
            print *,'After call nxtatt:       f1,nch=',f1,nch
            print *,'After call nxtatt: acs(ae,ae+1)=',acs(ae:ae+nch)
            print *,' '
-        endif
+c        endif
 
 c   get first argument info if there is one
         call attarg( acs, f1, ae, 1, aa, na )
         ff = nflds+1
+        print *,'Routine fields in qreo1.F: mxfld,ff=',mxfld,ff
+        if(ff.gt.mxfld)then
+           print *,'Routine fields in qreo1.F (ff .gt. mxfld)'
+           call flush
+           STOP
+        endif
 c
         if( same( acs, f1, 5, 'FIELD', 1 )) then
             if( na .le. 0 ) then
@@ -1916,16 +1944,26 @@ c       field produced by routine FSPECL
 c       this is a real data field!
                 fldtyp(ff) = 1
             endif
-            call mnesrc( fldmne, nflds, acs, aa, 2, ith
-     +              ,f1,nch,flee,NO)
-            if( ith .gt. 0 .and. fldtyp(ith) .ne. 2 ) then
-c       this source field already exists and is useable
-                fldoff(ff) = fldoff(ith)
-                dupfld(ff) = .true.
+            call mnesrc( fldmne, nflds, acs, aa, 2, ith,
+     +           f1,nch,flee,NO)
+            if( ith .gt. 0) then
+               if (fldtyp(ith) .ne. 2) then
+                  fldoff(ff) = fldoff(ith)
+                  dupfld(ff) = .true.
+               else
+                  fldoff(ff) = inca( fo, maxgt )
+               endif
             else
-c       offset to this field in the source field buffer
-                fldoff(ff) = inca( fo, maxgt )
+               fldoff(ff) = inca( fo, maxgt )
             endif
+c            if( ith .gt. 0 .and. fldtyp(ith) .ne. 2 ) then
+cc       this source field already exists and is useable
+c                fldoff(ff) = fldoff(ith)
+c                dupfld(ff) = .true.
+c            else
+cc       offset to this field in the source field buffer
+c                fldoff(ff) = inca( fo, maxgt )
+c            endif
 c
 c
         elseif( same( acs, f1, 5, 'DBZFIELD', 1 )) then
@@ -1959,7 +1997,8 @@ c
                 fldtyp(ff) = 1
             endif
 c
-            call mnesrc( fldmne, nflds, acs, aa, 2, ith,f1,nch,flee,NO)
+            call mnesrc( fldmne, nflds, acs, aa, 2, ith,
+     +           1,nch,flee,NO)
             if( ith .gt. 0 ) then
                 fldoff(ff) = fldoff(ith)
                 dupfld(ff) = .true.
@@ -1972,12 +2011,13 @@ c
 c   reserve a spot for the reference velocity
 c   set nyquist velocity pointer
             nyqptr(ff) = incb( nlards, 1 )
+            print *,'Routine fields in qreo1.F: ff,nlards,nyqptr(ff)=',
+     +           ff,nlards,nyqptr(ff)
             zlard(nyqptr(ff)) = znull
 c
         else           
             go to 22
         endif
-c
 c
 c   set up the rest of the info and pointers
 c
@@ -1986,7 +2026,8 @@ c
 c     Check that the user is not asking for more fields
 c     than allowed - LJM (06/09/2010)
 c
-        print *,'Routine fields in qreo1.F: mxfld,nflds=',mxfld,nflds
+        print *,'Routine fields in qreo1.F: mxfld,nflds,ff=',
+     +       mxfld,nflds,ff
         if(nflds .gt. mxfld)then
            write(6,1770)nflds,mxfld
  1770      format(' Number of fields requested ',i3,
@@ -2093,7 +2134,7 @@ c
     	    	go to 60
     	    endif
 c   locate the source field
-            call mnesrc( fldmne, nflds, acs, aa, 2,ith,
+            call mnesrc( fldmne, nflds, acs, aa, 2, ith,
      +	    	f1,nch,flee,YES)
     	    if( flee ) then
     	    	go to 45
@@ -2428,8 +2469,8 @@ c
         return
         end
 c-------------------------------------------------------------------------
-        subroutine mnesrc( mne, nf, s, i, n, ith
-     +	    , f1, nch, flee, verify )
+        subroutine mnesrc( mne, nf, s, i, n, ith,
+     +     f1, nch, flee, verify )
 c   this routine seaches an array of mnemonics "mne" for the "n" character
 c   string beginning at character "i" of string "s" and returns the location
 c   if found in "ith"
@@ -2502,14 +2543,19 @@ c
 c===========================================================================
 c___qcommon.for
 c
-    	parameter( maxcart=4001, sizcart=1024 )
+c       Increased mxfld from 16 to 30 - LJM 06/09/2010
+c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c       Made sizcart=2048 consistent throughout - LJM 06/14/2010
+c
+    	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=60  )
+        parameter( mxfld=30, mxsfld=120  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -2606,7 +2652,7 @@ c         names of 2-character source and 8-character output field names
 c         Increased the size of fldmne from 32 to 64 and the size of 
 c         mnames from 256 to 512 - LJM 06/09/2010
 c
-        parameter(  mxcomp=16, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
