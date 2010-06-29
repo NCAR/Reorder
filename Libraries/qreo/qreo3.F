@@ -1,25 +1,40 @@
 c--------------------------------------------------------------------------
 c--------------------------------------------------------------------------
 c..file:reo3.for
-c
-c  this file contains
-c       mximyz
-c	locarx
-c       unfold
-c       octant
-c       radinf
-c	wrimud
-c       mudfil
-c       bsmud
-c       codeit
-c       bsym
-c       bsit
-c       inisym
-c	histit
-c	bars
-c	hrng
-c	ze9
-c       
+c  this file contains the following routines
+c     mximyz-----Determines "a" and "b" such that the product is
+c                closest to "n".  Used to determine the number of x- 
+c                and y-boxes or dimensions of a carton.  Called from
+c                inside qreo2:subroutine filter.
+c     locarx-----Returns an offset to the desired carton in storage shelves 
+c     unfold-----Performs local unfolding of radial velocities before they
+c                are gridded.  This action preserves the discontinuity that
+c                occurs when neighboring radial velocities are folded or
+c                aliased.  Global unfolding can then be performed in Cedric.
+c     octant-----Determines the octant in which a range gate (rae-->xyz) lies
+c                with respect to the output grid location. 
+c     radinf-----Converts radii of influence specified in radar (rae) space 
+c                into radii in Cartesian (xyz) space.
+c     wrimud-----Finishes up the calculations of weighted-sums to produce
+c                final values at the user-specified output grid points. 
+c     nocts------Integer function that counts the number of octants that
+c                have been turned on.
+c     octfch-----Returns octant pattern as an integer.
+c     mudfil-----Routine does not exist.  What this something that was to be
+c                added?
+c     bsmud------Creates an ascii coded display of the Cedric (mudras) data as
+c                part of the output (stdout) data stream.
+c     codeit-----Converts the values to ascii symbols, one per field per grid
+c                point.
+c     bsym-------Outputs a table of alphanumeric symbols vs. numeric values.
+c     bsit-------Does the printing of the alpahnumeric display for this field. 
+c     inisym-----Initializes the display symbol table when it has not yet done.
+c     histit-----Call bars to produce a simple printed histogram for fields. 
+c     bars-------Constructs the printer bar chart for each field. 
+c     hrngc------Determines the range of values in an array.
+c     ze9--------Encodes a real number into an e9.3 format into string l at
+c                a specified location.
+c     typlong----Prints an arbittrary one-line character string. 
 c
 c--------------------------------------------------------------------
         subroutine mximyz( n, a, b )
@@ -54,11 +69,12 @@ c
 c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
@@ -399,11 +415,12 @@ c
 c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
@@ -588,8 +605,10 @@ c
 c 
       logical flash, dbz
 c
-    	integer iname(66)
-    	integer name_netcdf(66)
+c     Increased iname and name_netcdf from 66 to 256 - LJM 06/28/2010
+c
+    	integer iname(256)
+    	integer name_netcdf(256)
         character*222 tname
         character*128 ll
         character tmp*8
@@ -644,6 +663,7 @@ c  finish volume header
       call putasc( hedrec, 1, tmp, 8 )
 c
     	i = cedwrt( hedrec, HEADER_LEN*2 )
+
 c
 c 
 c 
@@ -763,7 +783,8 @@ c_______________________________________________________________________
             vstd = 0.0
             vsqr = ( nq*sumsq - sum*sum ) / (nq*(nq-1))
             if( vsqr .gt. 0.0 ) vstd =  sqrt( vsqr )
-            zval = 1. - vstd / (znyqve/1.73205808)
+            zval = 1. - vstd / (znyqve/1.732050808)
+            zval = 100.0*zval
             iscrx(l1)=nint(scale*zval)
         else
             zval = znull
@@ -1001,12 +1022,13 @@ c----------------------------------------------------------------------
         subroutine bsmud( lun, kbuf, scr, acs, a1, a2,
      +      syms, nsym )
 c  this routine does a display of the mudras data volume on "lun".
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
         implicit integer( a-z )
     	parameter(HEADER_LEN=510)
       	parameter(LEVEL_LEN=10)
         character   acs*(*), syms*(*)
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxcf=25*8 )
         character*444 flist
         character*8 ll

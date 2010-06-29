@@ -4,12 +4,13 @@ c
 c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( inull=-32768 )
         parameter( mxfld=30, mxsfld=120  )
         parameter( mxcomp=50, mxtot=mxfld+mxsfld  )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
 c
         integer tref
         common  / datset /      slong,          slati,          salti
@@ -84,16 +85,39 @@ c
 c-------------------------------------------------------------------------
 c..file:qreo1.for                                
 c  contains routines
-c	reo
-c	inidat
-c       fields
-c       typsrc
-c       mnesrc
-c       unfsrc
-c   	crefld
-c       scanfo
-c       fspecl
-c   	setced
+c     reo--------Overall driver that calls several other routines to obtain
+c                user-specified parameters needed within the program. 
+c     inidat-----Reads user-specified input line-by-line, accumulating
+c                these results into a compressed character stream (acs)
+c                for later parsing.
+c     fields-----Parses input data stream to obtain information on what
+c                fields to grid (interpolate) and how to grid them.
+c     typsrc-----cannot find where or if this subroutine is ever called
+c     mnesrc-----Used to locate the source field for the user-requested 
+c                (FIELDTYPE:Input,Output;) such as (DBZFIELD:DZ,DZ;)
+c                Searches an array of mnemonics "mne" for the "n" character 
+c                string beginning at character "i" of string "s" and returns 
+c                the location if found in "ith"
+c     unfsrc-----Searches for the source of unfolding information.
+c                Searches the array of unfolding flag "unff" and the array
+c                of mnemonics "mne" for the "n" character string beginning 
+c                at character "i" of string "s" and returns the location
+c                if found in "ith"
+c     crefld-----Searches "n" elements of array "a" for the number "ityp" 
+c                It is called for all user-requested output fields that are 
+c                special such as COUNT, OCTANT, WFACTOR,..., that require a 
+c                source field such as the velocity.  Source field names are 
+c                2-character mnemonics that must coincide with names within 
+c                the input data stream.
+c     scanfo-----Accumulates and prints information about the input scan such
+c                as type, times, fixed angle, varying angle, spacing, ...
+c     fspecl-----Creates the special field "XX" of radar data where a
+c                user-specified analytic function can be generated for
+c                each RAE radar sampling location (currently is ranf)
+c     setced-----Grabs and stores the current output volume path name
+c
+c     out_ground-Tries to remove gates from an airborne platform that
+c                are contaminated by seeing the ground along with weather.
 c
 c----------------------------------------------------------------------
       subroutine reo( butter, lenbuf )
@@ -105,7 +129,7 @@ c       maxcart output set to 4001, that is nx * ny * nz <= maxcart
     	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxspc=maxcart*sizcart )
 
 c       Max gates is 2048
@@ -115,6 +139,7 @@ c       Max gates is 2048
 c       Max fields set to 16, max field for scratch is 20  -DFF 3/17
 c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
         parameter( mxfld=30, mxsfld=120  )
 c           
@@ -1056,9 +1081,10 @@ c
         logical diag_ljm
 c
 c       Increased maxfld from 7 to 30 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( znull=-32768.)
-        parameter( maxval=500, maxfld=30, maxf32=maxfld*8 )
+        parameter( maxval=2000, maxfld=30, maxf32=maxfld*8 )
     	parameter( maxxcl=132 )
 c
         common  / datset /      slong,          slati,          salti
@@ -1115,8 +1141,8 @@ c
 c     subroutine fields( acs, a1, a2, flee, diag_ljm )
 c     This routine extracts information from the attribute-parameter
 c     input stream.  This includes the attribute (FIELDS:), followed 
-c     the special mnemonic (designates the input field such as TI, AZ,
-c     EL, ...) and output field name.
+c     by the special 2-char mnemonic (designates the input field such
+c     as TI, AZ, EL, ...) and output field name.
 c
         call flush(6)
         if( flee ) then
@@ -1692,15 +1718,22 @@ c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
 c       Made sizcart=2048 consistent throughout - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
         parameter( mxfld=30, mxsfld=120  )
+
+c       Added parameter mxced=25 for testing against maximum
+c       number of fields that Cedric allows.  Leave mxfld=30
+c       for Reorder - LJM 06/21/2010
+c
+        parameter( mxced=25)
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -1892,23 +1925,26 @@ c     Examines the ith-jth characters of ab to find
 c     the first non-blank character (a1)
 
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
-        print *,'Routine fields in qreo1.F - call nxtatt: ith,jth=',
-     +       ae+1,a2
+c        print *,'Routine fields in qreo1.F - call nxtatt: ith,jth=',
+c     +       ae+1,a2
 
 c     (LJM 06/15/09 diagnostic prints)
 c
-c        if(diag_ljm)then
+        if(diag_ljm)then
            print *,'qreo1.F:fields first call nxtatt'
            print *,'After call nxtatt:   ae,ae+1,a2=',ae,ae+1,a2
            print *,'After call nxtatt:       f1,nch=',f1,nch
            print *,'After call nxtatt: acs(ae,ae+1)=',acs(ae:ae+nch)
            print *,' '
-c        endif
+        endif
 
-c   get first argument info if there is one
+c   get first argument info if there is one with call to attarg
+c   in file foflib.F (essentially a parser of the user-specified
+c   input data stream).  The variable ff is used as an index to
+c   the number of the field that has been requested.
+c
         call attarg( acs, f1, ae, 1, aa, na )
         ff = nflds+1
-        print *,'Routine fields in qreo1.F: mxfld,ff=',mxfld,ff
         if(ff.gt.mxfld)then
            print *,'Routine fields in qreo1.F (ff .gt. mxfld)'
            call flush
@@ -1922,28 +1958,40 @@ c
      +                  'No source field name for ^', 1, 0 )
                 call typstg( lunout(), acs, f1, nch )
             endif
-c       determine the field type
+
+c     Check for user-requested two-character mnemonic fields, including
+c     TI, AZ, EL, RG, and special field XX.  Pass through all user-requested
+c     fields (FIELD:) and assign the field type (set fldtyp=3-6, 10, 1).
+c     Reserve spot (space) and unfold (unfptr) parameters as needed.
+c
+c     Check for TIME (sec) from the beginning of the scan
             if( same( acs, aa, 2, 'TIME', 1 )) then
                 fldtyp(ff) = 3
+c     Check for AZ and reserve a spot for the azimuth angle
             elseif( same( acs, aa, 2, 'AZ', 1 )) then
                 fldtyp(ff) = 4
             	unfptr(ff) = incb( lenbox, 1 )
             	space( unfptr(ff)) = znull
-c   reserve a spot for the reference angle
+c     Check for EL and reserve a spot for the elevation angle
             elseif( same( acs, aa, 2, 'EL', 1 )) then
                 fldtyp(ff) = 5
             	unfptr(ff) = incb( lenbox, 1 )
             	space( unfptr(ff)) = znull
-c   reserve a spot for the reference angle
+c     Check for RG (slant range)
             elseif( same( acs, aa, 2, 'RG', 1 )) then
                 fldtyp(ff) = 6
+c     Check for XX (field produced by routine FSPECL)
             elseif( same( acs, aa, 2, 'XX', 1 )) then
-c       field produced by routine FSPECL
                 fldtyp(ff) = 10
             else
-c       this is a real data field!
+c     This is a normal input data field that requires no
+c     conversion (dB --> linear --> interpolate --> dB)
+c     before interpolation!
                 fldtyp(ff) = 1
             endif
+c
+c     End of checking for field types 3-6, 10, and 1.
+c    
             call mnesrc( fldmne, nflds, acs, aa, 2, ith,
      +           f1,nch,flee,NO)
             if( ith .gt. 0) then
@@ -1966,6 +2014,10 @@ c                fldoff(ff) = inca( fo, maxgt )
 c            endif
 c
 c
+c     Check for input data fields requiring special handling
+c     before interpolation such as dB --> linear, or unfolding.
+c
+c     Check for DBZFIELD (dB --> Linear conversion)
         elseif( same( acs, f1, 5, 'DBZFIELD', 1 )) then
             if( na .le. 0 ) then
                 flee = .true.
@@ -1979,8 +2031,9 @@ c
                 fldtyp(ff) = 2
             endif
             fldoff(ff) = inca( fo, maxgt )
-c
-c
+c     Check for UNFOLD or velocity-related treatments
+c     such as storing the reference velocity to be used
+c     in the local-unfolding algorithm.
         elseif( same( acs, f1, 5, 'UNFOLD', 1 ) .or. 
      +	    	same( acs, f1, 5, 'KFIELD', 1 )) then
             if( na .le. 0 ) then
@@ -2008,13 +2061,13 @@ c
             unfflg(ff) = .true.
             unfptr(ff) = incb( lenbox, 1 )
             space( unfptr(ff)) = znull
-c   reserve a spot for the reference velocity
-c   set nyquist velocity pointer
+c     Set nyqptr, the nyquist velocity pointer or index for this
+c     user-requested field.  Reserve a spot for the reference velocity
+c     to be stored in zlard.  Initialized all zlard to the missing
+c     data flag znull.
             nyqptr(ff) = incb( nlards, 1 )
-            print *,'Routine fields in qreo1.F: ff,nlards,nyqptr(ff)=',
-     +           ff,nlards,nyqptr(ff)
             zlard(nyqptr(ff)) = znull
-c
+c     Note: STOPPED HERE in understanding this code
         else           
             go to 22
         endif
@@ -2024,15 +2077,16 @@ c
         nflds = nflds + 1
 
 c     Check that the user is not asking for more fields
-c     than allowed - LJM (06/09/2010)
+c     than allowed by Reorder - LJM (06/09/2010)
+c     Change test to maximum allowed in Cedric (mxced=25) - LJM (06/21/2010)
 c
-        print *,'Routine fields in qreo1.F: mxfld,nflds,ff=',
-     +       mxfld,nflds,ff
-        if(nflds .gt. mxfld)then
-           write(6,1770)nflds,mxfld
+        print *,'Routine fields in qreo1.F: mxced,nflds,ff=',
+     +       mxced,nflds,ff
+        if(nflds .gt. mxced)then
+           write(6,1770)nflds,mxced
  1770      format(' Number of fields requested ',i3,
      +            ' exceeds the number allowed ',i3)
-           print *,'**** Change mxfld dimension in qreo1-3.F ****'
+           print *,'**** Check mxfld dimension in qreo1-3.F ****'
            call flush
 
 c     Force program exit with "Floating exception"
@@ -2141,8 +2195,7 @@ c   locate the source field
     	    endif
             nx = incb( noutf, 1 )
             print *,'Routine fields in qreo1.F:',
-     +           ' Creating components of COUNT & QUALITY fields,',
-     +           ' nx=',nx
+     +           ' Creating COUNT & QUAL,  nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   need to create a sum field if it's not already there
@@ -2177,7 +2230,7 @@ c   locate the source field
     	    endif
             nx = incb( noutf, 1 )
             print *,'Routine fields in qreo1.F:',
-     +           ' Creating COUNT field, nx=',nx
+     +           ' Creating COUNT field,   nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   put away the name of the output field
@@ -2245,7 +2298,7 @@ c   locate the source field
     	    endif
             nx = incb( noutf, 1 )
             print *,'Routine fields in qreo1.F:',
-     +           ' Creating components of AVERAGE field, nx=',nx
+     +           ' Creating AVERAGE field, nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   need to create a sum field if it's not already there
@@ -2270,7 +2323,7 @@ c   locate the source field
     	    endif
             nx = incb( noutf, 1 )
             print *,'Routine fields in qreo1.F:',
-     +           ' Creating components of SDEVIATION field, nx=',nx
+     +           ' Creating SDEV field,    nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   need to create an sum field if it's not already there
@@ -2299,7 +2352,7 @@ c   locate the source field
     	    endif
             nx = incb( noutf, 1 )
             print *,'Routine fields in qreo1.F:',
-     +           ' Creating components of WFACTOR field, nx=',nx
+     +           ' Creating WFACTOR field, nx=',nx
 c   need to create a weight field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 11, ith, 1, 0 )
 c   need to create a weights squared field if it's not already there
@@ -2324,7 +2377,7 @@ c   locate the source field
     	    endif
             nx = incb( noutf, 1 )
             print *,'Routine fields in qreo1.F:',
-     +           ' Creating RADIUS field, nx=',nx
+     +           ' Creating RADIUS field,  nx=',nx
 c   need to create a min radius field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 5, ith, 1, wmax )
 c   put away the name of the output field
@@ -2351,6 +2404,8 @@ c   error
     	    	go to 45
             endif
             nx = incb( noutf, 1 )
+            print *,'Routine fields in qreo1.F:',
+     +           ' Creating VREFENCE field,nx=',nx
             comptr(1,nx) = unfptr(ith)
 c   this field is treated similar to the closest point field
             oftyp(nx) = 25
@@ -2372,7 +2427,7 @@ c   locate the source field
     	    endif
     	    nx = incb( noutf, 1 )
             print *,'Routine fields in qreo1.F:',
-     +           ' Creating OCTANT field, nx=',nx
+     +           ' Creating OCTANT field,  nx=',nx
 c   need to create an octant field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 13, ith, 1, 0 )
 c   put away the name of the output field
@@ -2415,14 +2470,13 @@ c
         call i8( 'mnr', 3, mnrptr )
         call i8( 'lenbox', 6, lenbox )
         call dmplnb
-        print *,'Routine fields in qreo1.F: fldmne=',fldmne,'|'
+c        print *,'Routine fields in qreo1.F: fldmne=',fldmne,'|'
         call typstg( lunout(), fldmne, 1, nflds*2 )
 c        call typefx( fldtyp, 1, nflds )
 c        call typefx( fldoff, 1, nflds )
 c        call typefe( thrval, 1, nflds )
 c        call typefx( nyqptr, 1, nflds )
 c        call typefx( natfld, 1, nflds )
-        print *,'Routine fields in qreo1.F: ngpps=',ngpps
         call i8( 'ngpps', 5, ngpps )
 c        call dmplnb
 c        call typefx( gpptyp, 1, ngpps )
@@ -2444,7 +2498,13 @@ c        do 990 i = 1, noutf
 c            call typefx( comptr(1,i), 1, mxcomp )
 c 990    continue
         call typstg( lunout(), mnames, 1, 8*noutf )
-        call dmplin( 'fieldsx  ', 8 )
+c        call dmplin( 'fieldsx  ', 8 )
+        if(noutf .gt. mxced)then
+           print *,' '
+           print *,'******** WARNING-WARNING-WARNING *******'
+           print *,'Max nmb fields allowed by Cedric, mxced=',mxced
+           print *,' '
+        endif
 c
 c
         return
@@ -2457,6 +2517,7 @@ c
         implicit integer( a-z )
         integer a(*)
 c
+        print *,'TYPSRC has been called'
         ith = -1
         do 11 i = 1, n
             if( a(i) .eq. ityp ) then
@@ -2485,6 +2546,8 @@ c
         do 11 k = 1, nf
             if( mne(l:l+1) .eq. s(i:i+1)) then
                 ith = k
+c                print *,'mnesrc: k,mne(l:l+1),s(i:i+1)=',
+c     +               k,mne(l:l+1),s(i:i+1)
                 go to 22
             endif
             l = l+2
@@ -2504,8 +2567,8 @@ c
 
 c-------------------------------------------------------------------------
         subroutine unfsrc( unff, mne, nf, s, i, n, ith )
-c   this routine is searching for the source of a unfolding information.
-c   this routine seaches the array of unfolding flag "unff" and 
+c   this routine searches for the source of unfolding information.
+c   this routine searches the array of unfolding flag "unff" and 
 c   the array of mnemonics "mne" for the "n" character
 c   string beginning at character "i" of string "s" and returns the location
 c   if found in "ith"
@@ -2517,6 +2580,8 @@ c
         ith = -1
         l = 1
         do 11 k = 1, nf
+c           print *,'unfsrc: k,i,unff(k),mne(l:l+1),s(i:i+1)=',
+c     +          k,i,unff(k),mne(l:l+1),s(i:i+1)
             if( unff(k) .and. mne(l:l+1) .eq. s(i:i+1)) then 
                 ith = k
                 go to 90
@@ -2547,11 +2612,12 @@ c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
 c       Made sizcart=2048 consistent throughout - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
@@ -2679,6 +2745,7 @@ c
 c___qcommon.reo;10
 c===========================================================================
 c
+        print *,'Routine crefld in qreo1.F, cpn=',cpn
         jth = -1
         do 11 i = 1, n
             if( a(i) .eq. ityp ) then
@@ -2689,22 +2756,22 @@ c
   22	continue
 c
     	if( jth .gt. 0 ) then
-           print *,'Routine crefld in qreo1.F:               ith,jth=',
-     +          ith,jth
+c           print *,'Routine crefld in qreo1.F:               ith,jth=',
+c     +          ith,jth
            comptr(cpn,noutf) = atptr( jth, ith )
-           print *,'Routine crefld qreo1.F:  cpn, noutf,comptr,atptr=',
-     +     cpn, noutf, comptr(cpn,noutf),atptr(jth,ith)
+c           print *,'Routine crefld qreo1.F:  cpn, noutf,comptr,atptr=',
+c     +     cpn, noutf, comptr(cpn,noutf),atptr(jth,ith)
     	else
            at = incb( natfld(ith), 1 )
            attyp( at, ith ) = ityp
            atptr( at, ith ) = incb( lenbox, 1 )
            space( atptr(at,ith)) = def
            comptr(cpn,noutf) = atptr( at, ith )
-           print *,'Routine crefld in qreo1.F:                at,ith=',
-     +          at,ith
-           print *,'Routine crefld qreo1.F: attyp,atptr,space,comptr=',
-     +     attyp(at,ith),atptr(at,ith),space(atptr(at,ith)),
-     +     comptr(cpn,noutf)		
+c           print *,'Routine crefld in qreo1.F:                at,ith=',
+c     +          at,ith
+c           print *,'Routine crefld qreo1.F: attyp,atptr,space,comptr=',
+c     +     attyp(at,ith),atptr(at,ith),space(atptr(at,ith)),
+c     +     comptr(cpn,noutf)		
     	endif
 c
   90    continue

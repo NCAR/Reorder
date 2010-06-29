@@ -10,21 +10,39 @@ c--------------------------------------------------------------------------
 c..file:reo2.for
 c
 c  this file contains the following routines
-c	inireo
-c	genhed
-c	transc
-c	toeart
-c	tosurf
-c	putasc
-c	advxyz
-c	adhxyz
-c	xyz
-c	esurf
-c	dxyz
-c	dcopl
-c	xyswap
-c	insoff
-c       filter
+c     inireo-----Sets up internal values for all user-specified parameters
+c                and sets default values for any not specified by the user.
+c     genhed-----Builds the Cedric (mudras) 510 16-bit volume header
+c     transc-----Calls reciprocal routines toeart and tosurf for conversions
+c                back and forth between surface and earth-centered locations.
+c     toeart-----Converts a surface cartesian coordinate vector to an 
+c                earth cartesian coordinate vector.
+c     tosurf-----Converts an earth cartesian coordinate vector to a 
+c                surface cartesian coordinate vector.
+c     putasc-----Calls put16c to copy ascii string beginning at 16-bit
+c                word number "iword" into an output record.
+c     advxyz-----Applies a constant advection of data fields to new (x,y)
+c                locations, given storm speeds in the x and y directions.
+c     adhxyz-----Applies height-dependent advection of data fields to 
+c                new (x,y) locations, given storm speeds in the x and y 
+c                directions at each height.
+c     esurf------Converts xyz values to earth surface coordinates.
+c     dxyz-------Translates to the destination landmark and converts
+c                latitude, longitude, and height back to xyz values.
+c     dcopl------Converts destination xyz to destination coplane coordinates.
+c     xyswap-----Swaps x and y axes so that y is along true north and
+c                x points east.
+c     insoff-----Offsets xyz values by three constant distances.
+c     filter-----Main routine that accumulates weighted sums (Cressman,
+c                Exponential, Closest point, or Uniform) of all fields
+c                asked for by the user.  These weighted sums, sum of squares,
+c                etc. are accumulated at each xyz-grid point within the 
+c                user-specified radii of each rae location from the input 
+c                radar data stream.
+c                Note: The final calculations are done in qreo3.F (subrooutine
+c                wrimud).  Any conversions such as dB --> linear or local
+c                velocity unfolding (subroutine unfold in qreo3.F) are done
+c                during the accumulation phase.
 c
 c--------------------------------------------------------------------------
         subroutine inireo( buf, advect, aaz, advec
@@ -32,8 +50,9 @@ c--------------------------------------------------------------------------
 c  this routine defaults all parameters that have not been input
 c
 c       Increased maxfld from 7 to 30 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
-        parameter(      maxval=500,     maxfld=30,       maxf32=maxfld*8
+        parameter(      maxval=2000,    maxfld=30,      maxf32=maxfld*8
      +,                 par=22,         list=4,         infil=11
      +,                 outfil=12,      maxgt=2048,     mxtfld=maxfld+3
      +,                 range1=0.0,     range2=10000.0, zap=-32768.
@@ -54,7 +73,7 @@ c
      +,         tref,           values(maxval,3)
 c 
 	real zvx(maxval),   zvy(maxval),  zht(maxval)
-      integer tref
+        integer tref
 c
 c
 c
@@ -265,11 +284,12 @@ c
 c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
@@ -778,11 +798,11 @@ c+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       call put16(hed,452,((numval(1)*numval(2)-1)/4+1)*numval(3))
       call put16(hed,453,0)
 c+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        call e12( 'x0', 2, x )
-        call e12( 'y0', 2, y )
-        call e12( 'z0', 2, z )
-        if(diag_ljm)print *,' '
-c      call tswp16( hed, 1, 330 )
+      call e12( 'x0', 2, x )
+      call e12( 'y0', 2, y )
+      call e12( 'z0', 2, z )
+      if(diag_ljm)print *,' '
+c     call tswp16( hed, 1, 330 )
 c
       return
       end
@@ -1461,10 +1481,9 @@ c      print 123, earx, eary, earz
  
  
 c----------------------------------------------------------------------
-
-
-c subroutine toeart
-
+      subroutine toeart(lat,lon,radius,surfx,surfy,
+     + surfz,earx,eary,earz)
+c
 c this subroutine converts a surface cartesian coordinate vector 
 c to an earth cartesian coordinate vector.  the surface coordinate 
 c system is centered at the radar with positive x-axis to the north, 
@@ -1472,9 +1491,7 @@ c positive y-axis to the west, and positive z-axis upwards.  the
 c earth coordinate system has its origin at the center of the earth 
 c with z-axis to the north, x-axis through 0 degrees longitude, and 
 c y-axis through 90 degrees longitude.
-c----------------------------------------------------------------------
-      subroutine toeart(lat,lon,radius,surfx,surfy,
-     + surfz,earx,eary,earz)
+c
 c----------------------------------------------------------------------
       double precision lat,lon,radius,surfx,surfy,surfz,
      + earx,eary,earz,radlat,radlon
@@ -1511,11 +1528,9 @@ c      type *, 'toeart-xyz', earx,eary,earz
       return
       end
 c----------------------------------------------------------------------
-
-
-
-c subroutine tosurf
-
+      subroutine tosurf(lat,lon,radius,surfx,surfy,
+     + surfz,earx,eary,earz)
+c
 c this subroutine converts a earth cartesian coordinate vector to
 c a surface cartesian coordinate vector.  the surface coordinate 
 c system is centered at the radar with positive x-axis to the north, 
@@ -1523,9 +1538,7 @@ c positive y-axis to the west, and positive z-axis upwards.  the
 c earth coordinate system has its origin at the center of the earth 
 c with z-axis to the north, x-axis through 0 degrees longitude, and 
 c y-axis through 90 degrees longitude.
-c----------------------------------------------------------------------
-      subroutine tosurf(lat,lon,radius,surfx,surfy,
-     + surfz,earx,eary,earz)
+c
 c----------------------------------------------------------------------
       double precision lat,lon,radius,surfx,surfy,
      + surfz,earx,eary,earz,radlat,radlon
@@ -2168,11 +2181,12 @@ c
 c       Increased mxfld from 16 to 30 - LJM 06/09/2010
 c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
 c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
+c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( maxcart=4001, sizcart=2048 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=500 )
+        parameter( maxval=2000 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
@@ -2631,7 +2645,7 @@ c
 c   end of initialization
 c
 c
-c
+
 c
 c   begin processing the current beam!
 c
@@ -2769,8 +2783,8 @@ c     LJM (05/05/09): Outer loop (555) over (ngts) range gates with
 c     an inner loop (466) over (nflds) fields for summations of weights,
 c     weights*field, etc.  These intermediate output values are put in
 c     the array (space) at location [n=offset+atptr(j,i)].  Eventually,
-c     these intermediate values are eventually used to calculate output
-c     fields [zval=wsum/sumw) in routine wrimud and written out in the 
+c     these intermediate values are used to calculate output fields 
+c     [zval=wsum/sumw) in routine wrimud and written out in the 
 c     Cedric file.
 c
       do 555 igt = 1, ngts, igskip
