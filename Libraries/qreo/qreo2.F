@@ -2868,6 +2868,17 @@ c   for each field
 c
         do 466 i = 1, nflds
 c
+       
+c     Print pointers, etc associated with each field - LJM 07/12/2010
+c
+           if((az.gt.110.0 .and. az.lt.115.0) .and.
+     +        (el.gt.0.25 .and. el.lt.0.75)   .and.
+     +          igt.eq.50)then
+              print *,"i,fldtyp,fldoff,nyqptr,unfflg,unfptr,zlard=",
+     +             i,fldtyp(i),fldoff(i),nyqptr(i),unfflg(i),unfptr(i),
+     +             zref
+           endif
+
             if( unfflg(i)) then
 c   unfold
                 zdata = flds( igt + fldoff(i))

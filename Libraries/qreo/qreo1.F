@@ -109,6 +109,14 @@ c                special such as COUNT, OCTANT, WFACTOR,..., that require a
 c                source field such as the velocity.  Source field names are 
 c                2-character mnemonics that must coincide with names within 
 c                the input data stream.
+c                Note: The ith value returned by crefld is the pointer (field 
+c                      number) within the source field character array fldmne.
+c                      The variable nx is the pointer (field number) within 
+c                      the output field character array mnames.  The variable
+c                      fldmne (mnames) is a packed character string of 2-char
+c                      (8-char) mnenomics for field names.  The number of
+c                      output field names in mnames should always be .ge. to
+c                      the number of source field names in fldmne.
 c     scanfo-----Accumulates and prints information about the input scan such
 c                as type, times, fixed angle, varying angle, spacing, ...
 c     fspecl-----Creates the special field "XX" of radar data where a
@@ -262,7 +270,7 @@ c
 c   noutf   =   the number of output fields
 c   oftyp   =   type of output field (see attached fields) plus 
 c                  21 = Weighted sum over sum of the weights
-c                  22 = Quality field
+c                  22 = Quality field (source must be a velocity field)
 c                  23 = Interpolated point (dBz field)
 c                  24 = Sum of weights squared over sum of weights
 c                  25 = Closest point
@@ -354,7 +362,7 @@ c
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'QREO--LINUX VERSION 2.10 June 2010 ', 0 )
+      call dmplin( 'QREO--LINUX VERSION 2.20 July 2010 ', 0 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -497,6 +505,10 @@ c   special fields?
      +              fldtyp(i) .eq. 5 .or.
      +              fldtyp(i) .eq. 6 .or.
      +              fldtyp(i) .eq. 10
+c     
+c     Print to understand this loop - LJM (07/13/2010)
+c          print *,'Do 22 loop: i,specl,fldmne(i*2-1:),mne=',i,
+c     +         specl,fldmne(i*2-1:),'++',mne(1:2)
 c
          if( .not.specl ) then
 c   make sure the source field is present for this field
@@ -520,8 +532,8 @@ c
 c
          if(i.eq.1)then
             print *,' '
+            print *,'List source field names, numbers, and types'
             print *,'Routine reo in module qreo1.F'
-            print *,'List field name, number, and type'
          endif
          call inslc( mne(1:2))
          call i8( 'i', 1, i )
@@ -1841,7 +1853,7 @@ c
 c   noutf   =   the number of output fields
 c   oftyp   =   type of output field (see attached fields) plus 
 c                  21 = Weighted sum over sum of the weights
-c                  22 = Quality field
+c                  22 = Quality field (source must be a velocity field)
 c                  23 = Interpolated point (dBz field)
 c                  24 = Sum of weights squared over sum of weights
 c                  25 = Closest point
@@ -1925,7 +1937,7 @@ c     Examines the ith-jth characters of ab to find
 c     the first non-blank character (a1)
 
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
-c        print *,'Routine fields in qreo1.F - call nxtatt: ith,jth=',
+c        print *,'Fields routine in qreo1.F - call nxtatt: ith,jth=',
 c     +       ae+1,a2
 
 c     (LJM 06/15/09 diagnostic prints)
@@ -1946,7 +1958,7 @@ c
         call attarg( acs, f1, ae, 1, aa, na )
         ff = nflds+1
         if(ff.gt.mxfld)then
-           print *,'Routine fields in qreo1.F (ff .gt. mxfld)'
+           print *,'Fields routine in qreo1.F (ff .gt. mxfld)'
            call flush
            STOP
         endif
@@ -1992,6 +2004,10 @@ c     before interpolation!
 c
 c     End of checking for field types 3-6, 10, and 1.
 c    
+c            do j=1,nflds
+c               jj=2*j-1
+c               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
+c            enddo
             call mnesrc( fldmne, nflds, acs, aa, 2, ith,
      +           f1,nch,flee,NO)
             if( ith .gt. 0) then
@@ -2072,32 +2088,11 @@ c     Note: STOPPED HERE in understanding this code
             go to 22
         endif
 c
-c   set up the rest of the info and pointers
+c     set up the rest of the info and pointers
 c
         nflds = nflds + 1
-
-c     Check that the user is not asking for more fields
-c     than allowed by Reorder - LJM (06/09/2010)
-c     Change test to maximum allowed in Cedric (mxced=25) - LJM (06/21/2010)
 c
-        print *,'Routine fields in qreo1.F: mxced,nflds,ff=',
-     +       mxced,nflds,ff
-        if(nflds .gt. mxced)then
-           write(6,1770)nflds,mxced
- 1770      format(' Number of fields requested ',i3,
-     +            ' exceeds the number allowed ',i3)
-           print *,'**** Check mxfld dimension in qreo1-3.F ****'
-           call flush
-
-c     Force program exit with "Floating exception"
-c
-           ityp=1
-           ibomb=1/(1-ityp)
-           write(*,*)'****IBOMB=',ibomb,'****'
-           STOP
-        end if
-c
-c   get the input field mnemonic
+c   copy field mnenomics within acs into source field mnenomic (fldmne)
         call copyc( acs, aa, 2, fldmne, ff*2-1 )
 c   bump output field count
         nx = incb( noutf, 1 )
@@ -2108,11 +2103,24 @@ c   put away the name of the output field
         if( nb .gt. 0 ) then
             call copyc( acs, ab, nb, mnames, mnptr(nx) )
         else
-c   if no alias, just use the field mnemonic
+c   if no output field name, just use the source field 2-char mnemonic
             call bfill( mnames, mnptr(nx), 8 )
             call copyc( fldmne, ff*2-1, 2, mnames, mnptr(nx))
         endif
+
+c     Print mnenomics (names) for source (2-char)
+c     and output (8-char) fields - LJM (07/14/2010)
 c
+        nn=2*(nflds-1)+1
+        mm=8*(noutf-1)+1
+        if(noutf.eq.1)then
+           print *,' '
+           print *,'List source and output field numbers and names'
+           print *,'Fields routine in qreo1.F:'
+        endif
+        print *,'Fields routine in qreo1.F: nflds,noutf,ff=',
+     +       nflds,noutf,ff,fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
+        
         if( wtfun .ne. 3 ) then
             natfld(ff) = 2
 c   there will be 2 components in the output field--the weighted sum and
@@ -2194,8 +2202,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating COUNT & QUAL,  nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   need to create a sum field if it's not already there
@@ -2215,7 +2221,36 @@ c   put away the name of the output field
             call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 22
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating QUALITY    fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
+
+c     Source must be a velocity field since this QUALITY field
+c     is normalized to the Nyquist (folding) velocity and is 
+c     defined as 100*[1-std(Velocities)/Vnyquist/sqrt(3)].
+c     See routine wrimud in file qreo3.F
 c
+            if(fldmne(nn:nn) .ne. 'V')then
+               print *,' '
+               write(6,1770)fldmne(nn:nn+1)
+ 1770          format(' Source for QUALITY must be a velocity field: '
+     +              'name starts with V - your source name = ',a2)
+           print *,'********** Change source to a velocity **********'
+           print *,'** Questions: contact programmer (see qreo1.F) **'
+           call flush
+           
+c     Force program exit with "Floating exception"
+c     
+           ityp=1
+           ibomb=1/(1-ityp)
+           write(*,*)'****IBOMB=',ibomb,'****'
+           STOP
+        end if
+
+
+
 c
 c
         elseif( same( acs, f1, 5, 'COUNT', 1 ) .and. na .gt. 0 ) then
@@ -2229,8 +2264,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating COUNT field,   nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   put away the name of the output field
@@ -2238,6 +2271,11 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 27
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating COUNT      fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2252,8 +2290,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating MINBIGR field, nx=',nx
 c   need to create a min big R field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 15, ith, 1, wmax )
 c   put away the name of the output field
@@ -2261,6 +2297,11 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 30
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating MINBIGR fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
         elseif( same( acs, f1, 4, 'MAXBIGR', 1 ) .and. na .gt. 0 ) then
@@ -2274,8 +2315,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating MAXBIGR field, nx=',nx
 c   need to create a max big R field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 16, ith, 1, 0 )
 c   put away the name of the output field
@@ -2283,6 +2322,11 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 30
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating MAXbigr fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2297,8 +2341,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating AVERAGE field, nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   need to create a sum field if it's not already there
@@ -2308,6 +2350,11 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 2
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating AVERAGE    fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2322,8 +2369,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating SDEV field,    nx=',nx
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
 c   need to create an sum field if it's not already there
@@ -2335,6 +2380,11 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 28
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating SDEVIATION fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2351,8 +2401,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating WFACTOR field, nx=',nx
 c   need to create a weight field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 11, ith, 1, 0 )
 c   need to create a weights squared field if it's not already there
@@ -2362,6 +2410,11 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 24
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating WFACTOR    fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2376,8 +2429,6 @@ c   locate the source field
     	    	go to 45
     	    endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating RADIUS field,  nx=',nx
 c   need to create a min radius field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 5, ith, 1, wmax )
 c   put away the name of the output field
@@ -2385,6 +2436,11 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 30
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating RADIUS fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2404,14 +2460,17 @@ c   error
     	    	go to 45
             endif
             nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating VREFENCE field,nx=',nx
             comptr(1,nx) = unfptr(ith)
 c   this field is treated similar to the closest point field
             oftyp(nx) = 25
 c   put away the name of the output field
             call bfill( mnames, mnptr(nx), 8 )
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating VREFERENCE fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2426,8 +2485,6 @@ c   locate the source field
     	    	go to 45
     	    endif
     	    nx = incb( noutf, 1 )
-            print *,'Routine fields in qreo1.F:',
-     +           ' Creating OCTANT field,  nx=',nx
 c   need to create an octant field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 13, ith, 1, 0 )
 c   put away the name of the output field
@@ -2435,9 +2492,15 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 29
+            nn=2*(ith-1)+1
+            mm=8*(nx-1)+1
+            print *,'Fields routine in qreo1.F:',
+     +           ' Creating OCTANT     fld nx=',nx,noutf,
+     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
-        endif            
+        endif
+
         go to 45
 c 
   60	continue
@@ -2470,8 +2533,29 @@ c
         call i8( 'mnr', 3, mnrptr )
         call i8( 'lenbox', 6, lenbox )
         call dmplnb
-c        print *,'Routine fields in qreo1.F: fldmne=',fldmne,'|'
         call typstg( lunout(), fldmne, 1, nflds*2 )
+
+c     Moved this test against mxced (CEDRIC) instead of mxfld (Reorder)
+c     Check that the user is not asking for more fields
+c     than allowed by Reorder (mxfld=30) - LJM (06/09/2010)
+c     Changed this test to maximum readable by CEDRIC - LJM (07/13/2010)
+c     Currently, maximum readable by CEDRIC is mxced=25 - LJM (07/13/2010)
+c
+        if(noutf .gt. mxced)then
+           write(6,1771)noutf,mxced
+ 1771      format(' Number of fields requested ',i3,
+     +          ' exceeds the number currently readable by CEDRIC ',i3)
+           print *,'** Check mxced and mxfld parameters in qreo1.F **'
+           call flush
+           
+c     Force program exit with "Floating exception"
+c     
+           ityp=1
+           ibomb=1/(1-ityp)
+           write(*,*)'****IBOMB=',ibomb,'****'
+           STOP
+        end if
+
 c        call typefx( fldtyp, 1, nflds )
 c        call typefx( fldoff, 1, nflds )
 c        call typefe( thrval, 1, nflds )
@@ -2505,6 +2589,18 @@ c        call dmplin( 'fieldsx  ', 8 )
            print *,'Max nmb fields allowed by Cedric, mxced=',mxced
            print *,' '
         endif
+c        do i=1,noutf
+c           if(i.gt.nflds)then
+c              nn=2*(nflds-1)+1
+c           else
+c              nn=2*(i-1)+1
+c           endif
+c           mm=8*(i-1)+1
+c           print *,'Fields routine in qreo1.F:',
+c     +          i,i,
+c     +          fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
+c        enddo
+           
 c
 c
         return
@@ -2534,7 +2630,8 @@ c-------------------------------------------------------------------------
      +     f1, nch, flee, verify )
 c   this routine seaches an array of mnemonics "mne" for the "n" character
 c   string beginning at character "i" of string "s" and returns the location
-c   if found in "ith"
+c   if found in "ith" which is the source field number within a packed 
+c   character array of n-character names.
 c
         implicit integer( a-z )
     	parameter( YES=1, NO=0 )
@@ -2544,10 +2641,15 @@ c
         ith = -1
         l = 1
         do 11 k = 1, nf
+
+c       Print statement to help understand what ith variable
+c       returned actually refers to - LJM 07/14/2010.
+c
+c           print *,'mnesrc: k,aa,fldmne(l:l+1),acs(i:i+1)=',
+c     +          k,i,mne(l:l+1),s(i:i+1)
+c
             if( mne(l:l+1) .eq. s(i:i+1)) then
                 ith = k
-c                print *,'mnesrc: k,mne(l:l+1),s(i:i+1)=',
-c     +               k,mne(l:l+1),s(i:i+1)
                 go to 22
             endif
             l = l+2
@@ -2729,7 +2831,7 @@ c
 c   noutf   =   the number of output fields
 c   oftyp   =   type of output field (see attached fields) plus 
 c                  21 = Weighted sum over sum of the weights
-c                  22 = Quality field
+c                  22 = Quality field (source must be a velocity field)
 c                  23 = Interpolated point (dBz field)
 c                  24 = Sum of weights squared over sum of weights
 c                  25 = Closest point
@@ -2745,7 +2847,11 @@ c
 c___qcommon.reo;10
 c===========================================================================
 c
-        print *,'Routine crefld in qreo1.F, cpn=',cpn
+c     Print statements to help understand what this routine 
+c     is actually doing. - LJM 07/14/2010
+c
+c        print *,'Crefld routine in qreo1.F: a,n,ityp,cpn=',
+c     +       a(ith),n,ityp,cpn
         jth = -1
         do 11 i = 1, n
             if( a(i) .eq. ityp ) then
@@ -2756,10 +2862,10 @@ c
   22	continue
 c
     	if( jth .gt. 0 ) then
-c           print *,'Routine crefld in qreo1.F:               ith,jth=',
+c           print *,'Crefld routine in qreo1.F:               ith,jth=',
 c     +          ith,jth
            comptr(cpn,noutf) = atptr( jth, ith )
-c           print *,'Routine crefld qreo1.F:  cpn, noutf,comptr,atptr=',
+c           print *,'Crefld routine qreo1.F:  cpn, noutf,comptr,atptr=',
 c     +     cpn, noutf, comptr(cpn,noutf),atptr(jth,ith)
     	else
            at = incb( natfld(ith), 1 )
@@ -2767,9 +2873,9 @@ c     +     cpn, noutf, comptr(cpn,noutf),atptr(jth,ith)
            atptr( at, ith ) = incb( lenbox, 1 )
            space( atptr(at,ith)) = def
            comptr(cpn,noutf) = atptr( at, ith )
-c           print *,'Routine crefld in qreo1.F:                at,ith=',
+c           print *,'Crefld routine in qreo1.F:                at,ith=',
 c     +          at,ith
-c           print *,'Routine crefld qreo1.F: attyp,atptr,space,comptr=',
+c           print *,'Crefld routine qreo1.F: attyp,atptr,space,comptr=',
 c     +     attyp(at,ith),atptr(at,ith),space(atptr(at,ith)),
 c     +     comptr(cpn,noutf)		
     	endif
