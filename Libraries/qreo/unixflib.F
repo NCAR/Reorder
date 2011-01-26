@@ -62,7 +62,7 @@ c
         character card*(*)
       logical zend, zerr
 c
-c     print *,'unixflib.F:subroutine readcd has been called'
+      print *,'unixflib.F:subroutine readcd has been called'
 c
       nc = 0
       zend = .false.

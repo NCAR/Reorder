@@ -992,6 +992,45 @@ c   merge flag bit
 c
         return
         end
+c----------------------------------------------------------------------X
+c
+      INTEGER FUNCTION GETLEN (STRING)
+C
+C  DETERMINE THE LENGTH OF A CHARACTER STRING, EXCLUDING TRAILING BLANKS.
+C     RETURNS LENGTH IN GETLEN
+C
+C     STRING - DECLARED AS CHARACTER IN CALLING ROUTINE
+C     GETLEN -     "     "  INTEGER   "    "       "
+C
+c     Borrowed this fortran routine from Ppi_mmm-src in order to
+c     get a correct length of a character string.  The Fortran
+c     LEN command always returns the length of a character string
+c     according to its DIMENSION statement, not its actual length
+c     of non-blank characters.  Currently called from readln which
+c     is called from gnxatt. (LJM - 12/22/2010).
+c
+      CHARACTER *(*) STRING
+      CHARACTER*1 BLANK
+      PARAMETER (BLANK=' ')
+      INTEGER NEXT
+
+C     START WITH THE LAST CHARACTER AND FIND THE FIRST NONBLANK
+C
+      NEND=LEN(STRING)
+c      print *,'GETLEN: nend,string=',nend,string
+      DO 10 NEXT=NEND,1,-1
+         IF(STRING(NEXT:NEXT).NE.BLANK)THEN
+            GETLEN=NEXT
+c            print *,'GETLEN: next,string=',next,string(next:next)
+            RETURN
+         END IF
+   10 CONTINUE
+
+C     ALL CHARACTERS ARE BLANKS
+C
+      GETLEN=0
+      RETURN
+      END
 c---------------------------------------------------------------------
     	integer function fzap()
 c   the definitive source for the floating version of the missing flag
@@ -2359,7 +2398,9 @@ c
         implicit        integer( a-z )
         character       ab*(*)
 c
-c
+c     diagnostic print (LJM 01/10/2011)
+c        print *,'nxtatt routine in foflib.F: ith,jth=',
+c     +       ith,jth
         c1 = ith
         a1 = 0
         nch = 0
@@ -2721,6 +2762,7 @@ c     subroutine hgnxatt.
 c
         character line*(*)
       logical zend, zerr
+      integer getlen
 c
 c     print *,'foflib.F:subroutine readln has been called'
 c     Appears to always be called rather than calling
@@ -2731,26 +2773,40 @@ c
       zerr = .false.
       read( lun, 987, err=77, end=66 ) line
   987 format( a )
-      	nd = len(line)
-    	n = nd
-c
-    	do 22 i = nd, 1, -1
-    	    if( line(i:i) .ne. ' ' ) then
-    	    	go to 23
-    	    endif
-    	    n = n-1
-  22	continue
-  23 	continue
+      nd = getlen(line)
+      n = nd
+
+c     Trap blank lines and reset them to a semi-colon (;)
+c     along with a length (nd and n) of one.
+c     (LJM 12/22/2010)
+c     
+      if(n.eq.0)then
+         print *,'************ WARNING WARNING WARNING *************'
+         print *,'*** readln in foflib.F: zero length blank line ***'
+         print *,'* Blank line not allowed - reset to a semi-colon *'
+         print *,'******** END-WARNING WARNING WARNING-END *********'
+         line(1:1) = ';'
+         nd = 1
+         n = nd
+      endif
+c     
+      do 22 i = nd, 1, -1
+         if( line(i:i) .ne. ' ' ) then
+            go to 23
+         endif
+         n = n-1
+ 22   continue
+ 23   continue
 c
       return
-c
+c     
  66   continue
       zend = .true.
       return
-c
+c     
  77   continue
-    	write( lunout(), 789 )
- 789	format( ' Error in readln ' )
+      write( lunout(), 789 )
+ 789  format( ' Error in readln ' )
       zerr = .true.
       return
       end
@@ -3229,10 +3285,27 @@ c---------------------------------------------------------------------
 c  this routine prints an arbitrary string of one line or less to
 c  logical unit 'lun'.
 c
+c     (LJM 01/10/2011) 
+c     1. When called with a diagnostic or information character string,
+c     the string ends with ^ and has ith=1 and nchr=0; e.g.
+c     call typstg( lun(), 'string^',1,0)
+c     2. Other calls include passing character strings with various
+c     lengths, e.g. nchr=128 when calls come from the Cedric header
+c     building (subroutine wrimud) and nchr is variable when called
+c     with the character strings associated with the user-specified
+c     attributes.  In general the fortran len command returns the
+c     length of a character string as dimensioned.  Therefore, nchr
+c     need not equal nlen.
+c
         implicit integer( a-z )
     	parameter( LLIM=78 )
         character is*(*)
 c
+c
+        nlen = len(is)
+c
+c     diagnostic print statement (LJM 01/10/2011)
+c       print *,'foflib-typstg:ith,nchr,nlen,is=',ith,nchr,nlen,is
 c
         i = ith
         n = nchr
@@ -3248,7 +3321,12 @@ c  search the next 256 characters for a "^"
         endif
 c
         if( n .lt. 1 ) then
-          go to 90
+           print *,'******* WARNING WARNING WARNING WARNING *******'
+           print *,'foflib.F - routine typstg: string length .lt. 1'
+           print *,'Apparently, nlen and string = ',nlen,is
+           print *,'************** STOPPING PROGRAM ***************'
+           STOP
+c          go to 90
         endif
 c
  11     continue
@@ -3262,6 +3340,11 @@ c
 c
         write( lun, 988 ) is(i:j)
  988    format( ' ', a )
+c
+c     diagnostic print statement (LJM 01/10/2011)
+c        write( lun, 988 ) i,j,is(i:j)
+c 988    format( 'typstg:i,j=',2i6,' ', a )
+c
 c
         if( n .gt. 0 ) then
           i = j+1

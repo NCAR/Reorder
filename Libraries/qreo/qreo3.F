@@ -112,16 +112,19 @@ c
 c   acs     =   user-specified input "attribute:parameter;" stream
 c               compressed into a large, continuous, without spaces
 c               stream starting with ";"
-c   ncas    =   the length of acs (~600-800 characters)
+c   ncas    =   the length of acs is typically ~600-800 characters, but
+c               cannot exceed 2222 (see subroutine reo)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data
-c                   2 = dbz field
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = 
+c                   7 = height above curved Earth (km MSL)
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -457,13 +460,15 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data
-c                   2 = dbz field
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = 
+c                   7 = height above curved Earth (km MSL)
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -963,10 +968,21 @@ c
  600  continue
  
         call dmplin( 'c...mark   ', 8 )
+
+c     bsmud is called to display the cedric output as a
+c     alphanumeric display within the printout.
+c
+c     reonetcdf within xcedio.c is called to output the Cedric binary 
+c     format as a netCDF format file.  Note that netCDF also has the 
+c     lat/lon of the lower left hand corner of the XY grid.  That 
+c     conversion from XY to LL is done with code added by Dennis 
+c     Flanigan in April 2009.  See comment at the top of the
+c     xcedio.c code.  That code is not used elsewhere. (LJM - 12/6/2010)
+
         call bsmud( lunwri, outrec, space, acs, 1, nacs,
      +      syms, nsym )
         if(nncdf .gt. 0) then
-    	call reonetcdf(name_netcdf, nncdf)
+           call reonetcdf(name_netcdf, nncdf)
 	endif
     	call cedcls()
         return 

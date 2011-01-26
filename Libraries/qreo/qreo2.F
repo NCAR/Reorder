@@ -202,7 +202,7 @@ c  if more than one sort by height
                   advhgt(j) = tempht
                 endif
  45     continue
-c          call typstg( 6, 'sort^', 1, 0 )
+c          call typstg( 6, 'sort^',1,0)
 c          call typefe( advx, 1, 20 )
 c          call typefe( advy, 1, 20 )
 c          call typefe( advhgt, 1, 20 )
@@ -241,19 +241,19 @@ c   the delta is .le. half the resolution
 	    endif
  488	continue
 c
-c          call typstg( 6, 'position^', 1, 0 )
+c          call typstg( 6, 'position^',1,0)
 c          call typefe( advx, 1, 20 )
 c          call typefe( advy, 1, 20 )
 c          call typefe( advhgt, 1, 20 )
 c  now do a linear fill of the arrays
         call linfit( advx, 1, maxval, zap )
-c          call typstg( 6, 'advx^', 1, 0 )
+c          call typstg( 6, 'advx^',1,0)
 c          call typefe( advx, 1, 20 )
         call linfit( advy, 1, maxval, zap )
-c          call typstg( 6, 'advy^', 1, 0 )
+c          call typstg( 6, 'advy^',1,0)
 c          call typefe( advy, 1, 20 )
         call linfit( advhgt, 1, maxval, zap )
-c          call typstg( 6, 'advhgt^', 1, 0 )
+c          call typstg( 6, 'advhgt^',1,0)
 c          call typefe( advhgt, 1, 20 )
 c
  55     continue
@@ -327,16 +327,19 @@ c
 c   acs     =   user-specified input "attribute:parameter;" stream
 c               compressed into a large, continuous, without spaces
 c               stream starting with ";"
-c   ncas    =   the length of acs (~600-800 characters)
+c   ncas    =   the length of acs is typically ~600-800 characters, but
+c               cannot exceed 2222 (see subroutine reo)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data
-c                   2 = dbz field
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = 
+c                   7 = height above curved Earth (km MSL)
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -754,21 +757,27 @@ C        SPECIFIED IN LAT, LON TO SEPARATION IN X, Y IN KM.
       endif
       if( sprint_xlt ) then
          if(diag_ljm)then
-            print *,'Before call ll2xydrv: slat-lon-alt=',slati,-slong,salti
-            print *,'Before call ll2xydrv: dlat-lon-alt=',dlati,-dlong,dalti
+            print *,'Before call ll2xydrv: slat-lon-alt=',
+     +           slati,-slong,salti
+            print *,'Before call ll2xydrv: dlat-lon-alt=',
+     +           dlati,-dlong,dalti
             print *,'Before call ll2xydrv: xyz=',x,y,z
          endif
          call ll2xydrv( slati, -slong, x, y, dlati, -dlong, dbase )
          z = salti - dalti
          if(diag_ljm)then
-            print *,'After call ll2xydrv: slat-lon-alt=',slati,-slong,salti
-            print *,'After call ll2xydrv: dlat-lon-alt=',dlati,-dlong,dalti
+            print *,'After call ll2xydrv: slat-lon-alt=',
+     +           slati,-slong,salti
+            print *,'After call ll2xydrv: dlat-lon-alt=',
+     +           dlati,-dlong,dalti
             print *,'After call ll2xydrv: xyz=',x,y,z
          endif
       else
          if(diag_ljm)then
-            print *,'Before call transc: slat-lon-alt=',slati,slong,salti
-            print *,'Before call transc: dlat-lon-alt=',dlati,dlong,dalti
+            print *,'Before call transc: slat-lon-alt=',
+     +           slati,slong,salti
+            print *,'Before call transc: dlat-lon-alt=',
+     +           dlati,dlong,dalti
             print *,'Before call transc: xyz=',x,y,z
          endif
          call transc(dbase, 0.0, 0.0, 0.0,
@@ -2225,13 +2234,15 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data
-c                   2 = dbz field
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = 
+c                   7 = height above curved Earth (km MSL)
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -2460,7 +2471,7 @@ c
                 call i8( 'max. possible  ', 13, maxrec*nbxcar )
                 call dmplin( ' ', 1 )
                 call typstg( list,
-     a  'the total number of grid points is too large ^', 1, -1 )
+     +  'the total number of grid points is too large ^',1,-1)
                 stop66
             endif
 c
@@ -2871,13 +2882,13 @@ c
        
 c     Print pointers, etc associated with each field - LJM 07/12/2010
 c
-           if((az.gt.110.0 .and. az.lt.115.0) .and.
-     +        (el.gt.0.25 .and. el.lt.0.75)   .and.
-     +          igt.eq.50)then
-              print *,"i,fldtyp,fldoff,nyqptr,unfflg,unfptr,zlard=",
-     +             i,fldtyp(i),fldoff(i),nyqptr(i),unfflg(i),unfptr(i),
-     +             zref
-           endif
+c           if((az.gt.110.0 .and. az.lt.115.0) .and.
+c     +        (el.gt.0.25 .and. el.lt.0.75)   .and.
+c     +          igt.eq.50)then
+c              print *,"i,fldtyp,fldoff,nyqptr,unfflg,unfptr,zlard=",
+c     +             i,fldtyp(i),fldoff(i),nyqptr(i),unfflg(i),unfptr(i),
+c     +             zref
+c           endif
 
             if( unfflg(i)) then
 c   unfold
@@ -2893,8 +2904,24 @@ c   unfold
                 endif
                 go to 417
             endif
-c       
-            go to ( 401, 401, 403, 404, 405, 406, 466
+
+c           Branch to get the requested type of field
+c
+c   fldtyp  =   type of field   
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
+c                   3 = time
+c                   4 = azimuth
+c                   5 = elevation
+c                   6 = range
+c                   7 = height above curved Earth (km MSL)
+c                   8 = 
+c                   9 = k or the weighted number of folds
+c                  10 = field created by function FSPECL 
+c
+            go to ( 401, 401, 403, 404, 405, 406, 407
      +              , 466, 417, 401 ), fldtyp(i)
 c       
             call panic( '** Bad field type **' )
@@ -2924,6 +2951,7 @@ c        closest point
 		    zdata = zdata +360.
 		endif
     	    endif
+c-----------if(igt.eq.250)print *,'igt,az=',igt,az
             go to 417
   405       continue
 c       elevation   
@@ -2942,10 +2970,47 @@ c        closest point
 		    zdata = zdata +360.
 		endif
     	    endif
+c-----------if(igt.eq.250)print *,'igt,el=',igt,el
             go to 417
   406       continue
 c       range
             zdata = rg(igt)
+c-----------if(igt.eq.250)print *,'igt,rg=',igt,rg(igt)
+            go to 417
+  407       continue
+c       height above curved Earth (km MSL)
+c------------------------------------------------------
+c     Temporarily replaced elevation angle with the
+c     height of the data point, either with or 
+c     without a 4/3 earth correction. (LJM 11/1/2010) 
+c
+c-----------if(igt.eq.250)print *,'igt,rg,az,el=',igt,rg(igt),az,el
+            earthr=6366.8056
+            cfac=0.375/earthr
+            sinaz=sin(az*torad)
+            cosaz=cos(az*torad)
+            sinel=sin(el*torad)
+            cosel=cos(el*torad)
+            xgate=x_rad+rg(igt)*sinaz*cosel
+            ygate=y_rad+rg(igt)*cosaz*cosel
+            hgate=rg(igt)*cosel
+            zcor=cfac*hgate*hgate
+
+c     Flat earth do not include zcor; otherwise
+c     correct for a 4/3 earth radius.
+c
+            zgate=z_rad+rg(igt)*sinel
+
+c     Confirmation printout (LJM 11/11/2010)
+c            if(igt.eq.250)then
+c               write(6,1771)igt,rg(igt),hgate,az,el,
+c     +              xgate,ydate,zgate,zcor
+c 1771          format(' igt,srng,hrng,az,el,xyz,zcor=',i3,8f10.3)
+c            endif
+
+            zgate=zgate+zcor
+            zdata = zgate
+c------------------------------------------------------
             go to 417
 c       
   417       continue

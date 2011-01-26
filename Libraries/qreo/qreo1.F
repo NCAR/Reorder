@@ -130,8 +130,7 @@ c
 c----------------------------------------------------------------------
       subroutine reo( butter, lenbuf )
 c===========================================================================
-c___qcommon.for
-c
+c___qcom
 
 c       maxcart output set to 4001, that is nx * ny * nz <= maxcart
     	parameter( maxcart=4001, sizcart=2048 )
@@ -190,7 +189,7 @@ c   acs     =   user-specified input "attribute:parameter;" stream
 c               compressed into a large, continuous, without spaces
 c               stream starting with ";"
 c   ncas    =   the length of acs is typically ~600-800 characters, but
-c               cannot exceed 2222
+c               cannot exceed 2222 (see subroutine reo)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
 c                   1 = normal data (no conversion before interpolate)
@@ -201,7 +200,7 @@ c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = 
+c                   7 = height above curved Earth (km MSL)
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -362,7 +361,7 @@ c
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'QREO--LINUX VERSION 2.20 July 2010 ', 0 )
+      call dmplin( 'qreo1.F--LINUX VERSION 2.40 January 2011', 0 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -374,13 +373,16 @@ c  open input control string file
       twiddle = 1
 c
 c  get the input control string
+      print *,' qreo1 - before call initdat: iradfun=',iradfun
+      call flush(6)
       call inidat( ipar, acs, nacs, aaz, advec, advhgt, xoff
      a, yoff, zoff, pt1, pinc, syms, nsym, az1, az2
      a, exct1, exct2, nxcl, multiv, prf1, prf2, fixflt, igskip
      a, flee, azrad, elrad, rgrad, earthr, gnyqv, grc, gbmwid
      a, grnd_out, range1, range2, swpskp, bmskp, iadjust_z
      a, sprint_xlt, twiddle, iradfun, diag_ljm)
-      if(diag_ljm)print *,'After inidat iradfun=',iradfun
+      print *,' qreo1 - after call initdat: iradfun=',iradfun
+      call flush(6)
 c
 c      sprint_xlt = .true.
 c      sprint_xlt = .false.
@@ -411,6 +413,7 @@ c  initialize the access package and position to first record
       call setcat( butter, lenbuf,
      1   7, 8, ltp, acs, nacs, error)
       print *,'qreo1-reo: after setcat: error=',error
+      call flush(6)
 c 
       if(error.ne.0)then
         call typstg( lunout()
@@ -425,6 +428,7 @@ c  set up reorder parameters
       call inireo( butter, advect, aaz, advec
      +,         advhgt, advx, advy, azrad, elrad, rgrad, rg )
       print *,'qreo1-reo: after inireo'
+      call flush(6)
 c
 c   this is all the stuff that used to be in equivalence statements
         zmin = values(1,3)
@@ -443,6 +447,7 @@ c
       call f9( 'dalt', 4, dalti )
       call f9( 'dbas', 4, dbase )
       call e12( 'earthr', 6, earthr )
+      call flush(6)
 c
 c  set up source and destination position constants
 
@@ -499,11 +504,16 @@ c   set diagnostic print out
 c
       do 22 i=1,nflds
 c   special fields?
+c     Adding "fldtyp(i) .eq. 7" here fixed Segmentation
+c     fault that was occurring after I added the ZMSL field.
+c     (LJM 12/21/2010)
+c
           mne(1:2) = fldmne(i*2-1:)
           specl =   fldtyp(i) .eq. 3 .or.
      +              fldtyp(i) .eq. 4 .or.
      +              fldtyp(i) .eq. 5 .or.
      +              fldtyp(i) .eq. 6 .or.
+     +              fldtyp(i) .eq. 7 .or.
      +              fldtyp(i) .eq. 10
 c     
 c     Print to understand this loop - LJM (07/13/2010)
@@ -534,6 +544,7 @@ c
             print *,' '
             print *,'List source field names, numbers, and types'
             print *,'Routine reo in module qreo1.F'
+            call flush(6)
          endif
          call inslc( mne(1:2))
          call i8( 'i', 1, i )
@@ -621,9 +632,11 @@ c
 
 c     For each ray get (azz,ell,fx,zprf) from functions in
 c     either
-c        UF: qufap.F (compiled and linked for qreou)
+c        UF: 
+c           ./Applications/qreou/qufap.F (compiled and linked for qreou)
 c     or
-c        DORADE: qdfap.F (compiled and linked for qreod)
+c        DORADE: 
+c           ./Libraries/dap/qdfap.F (compiled and linked for qreod)
 c
 c     These functions are called here for both UF and DORADE formats.
 c     These housekeeping words are inside the kbuf integer array.
@@ -1129,12 +1142,12 @@ c       comment (^) lines.
 c     
         call idset( acs, nacs, flee )
 c       LJM (6/15/09 diagnostic prints)
-c        if(diag_ljm)then
+        if(diag_ljm)then
            print *,'After call idset: acs=attribute+parameter stream'
            print *,'After call idset nacs=',nacs
            print *,'After call idset acs=',acs(1:nacs)
            print *,' '
-c        endif
+        endif
         if(nacs.gt.2222)then
            print *,'*** Routine inidat in qreo1.F: nacs .gt. 2222 ***'
            print *,'***   Increase size of character string acs   ***'
@@ -1360,7 +1373,7 @@ c
     	a1 = indexa( acs, 1, nacs, 4, 'GALTITUDE' )
     	if( a1 .gt. 0 ) then
             call rargs( acs, a1, nacs, dalti, rum, dum )
-    	endif
+   	endif
 c       
     	a1 = indexa( acs, 1, nacs, 4, 'GBASELINE' )
     	if( a1 .gt. 0 ) then
@@ -1553,7 +1566,7 @@ c
     	    	az2 = z2
     	    endif
     	endif
-c       
+c    
     	a1 = indexa( acs, 1, nacs, 4, 'RANGES' )
     	if( a1 .gt. 0 ) then
     	    z1 = znull
@@ -1691,8 +1704,8 @@ c
     	call i8( 'igs', 3, igskip )
         if( .not. outflg ) then
             flee = .true.
-            call typstg(lunout(), 'No output file specification ^',
-     +              1,0)
+            call typstg(lunout(), 
+     +           'No output file specification ^',1,0)
         endif
 c       
         return
@@ -1778,13 +1791,15 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data
-c                   2 = dbz field
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = 
+c                   7 = height above curved Earth (km MSL)
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -1937,6 +1952,7 @@ c     Examines the ith-jth characters of ab to find
 c     the first non-blank character (a1)
 
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
+c     diagnostic print (LJM 01/2011)
 c        print *,'Fields routine in qreo1.F - call nxtatt: ith,jth=',
 c     +       ae+1,a2
 
@@ -1967,7 +1983,7 @@ c
             if( na .le. 0 ) then
                 flee = .true.
                 call typstg( lunout(),
-     +                  'No source field name for ^', 1, 0 )
+     +                  'No source field name for ^',1,0)
                 call typstg( lunout(), acs, f1, nch )
             endif
 
@@ -1992,6 +2008,11 @@ c     Check for EL and reserve a spot for the elevation angle
 c     Check for RG (slant range)
             elseif( same( acs, aa, 2, 'RG', 1 )) then
                 fldtyp(ff) = 6
+c     Check for ZMSL (height above curved Earth - km MSL)
+            elseif( same( acs, aa, 4, 'ZMSL', 1 )) then
+                fldtyp(ff) = 7
+            	unfptr(ff) = incb( lenbox, 1 )
+            	space( unfptr(ff)) = znull
 c     Check for XX (field produced by routine FSPECL)
             elseif( same( acs, aa, 2, 'XX', 1 )) then
                 fldtyp(ff) = 10
@@ -2002,12 +2023,12 @@ c     before interpolation!
                 fldtyp(ff) = 1
             endif
 c
-c     End of checking for field types 3-6, 10, and 1.
+c     End of checking for field types 3-7, 10, and 1.
 c    
-c            do j=1,nflds
-c               jj=2*j-1
-c               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
-c            enddo
+            do j=1,nflds
+               jj=2*j-1
+               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
+            enddo
             call mnesrc( fldmne, nflds, acs, aa, 2, ith,
      +           f1,nch,flee,NO)
             if( ith .gt. 0) then
@@ -2038,7 +2059,7 @@ c     Check for DBZFIELD (dB --> Linear conversion)
             if( na .le. 0 ) then
                 flee = .true.
                 call typstg( lunout(),
-     +	    	    'No source field name for ^', 1, 0 )
+     +	    	    'No source field name for ^',1,0)
                 call typstg( lunout(), acs, f1, nch )
             endif
             if( wtfun .eq. 3 ) then
@@ -2055,7 +2076,7 @@ c     in the local-unfolding algorithm.
             if( na .le. 0 ) then
                 flee = .true.
                 call typstg( lunout(),
-     +	    	    'No source field name for ^', 1, 0 )
+     +	    	    'No source field name for ^',1,0)
                 call typstg( lunout(), acs, f1, nch )
             endif
     	    if(same( acs, f1, 5, 'KFIELD', 1 )) then
@@ -2455,7 +2476,7 @@ c   search the unfold flags until the source fields match
 c   error   
                 flee = .true.
                 call typstg( lunout(),
-     +'No source field for ^', 1, 0 )
+     +               'No source field for ^',1,0)
                 call typstg( lunout(), acs, f1, nch )
     	    	go to 45
             endif
@@ -2507,7 +2528,7 @@ c
 c   error!
     	flee = .true.
         call typstg( lunout(),
-     +	    	'No output field name for ^', 1, 0 )
+     +	    	'No output field name for ^',1,0)
         call typstg( lunout(), acs, f1, nch )
     	go to 45
 c
@@ -2659,7 +2680,7 @@ c
     	if( verify .eq. YES .and. ith .lt. 0 ) then
             flee = .true.
             call typstg( lunout(),
-     +              'No source field for ^', 1, 0 )
+     +              'No source field for ^',1,0)
             call typstg( lunout(), acs, f1, nch )
     	endif
 c
@@ -2756,13 +2777,15 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data
-c                   2 = dbz field
+c                   1 = normal data (no conversion before interpolate)
+c                   2 = dbz or db field 
+c                       (db --> linear --> interpolate --> db)
+c                       Values that come from houskeeping information
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = 
+c                   7 = height above curved Earth (km MSL)
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 

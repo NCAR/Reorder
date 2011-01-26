@@ -1,0 +1,6 @@
+Reorder has always had the apparent capability to grid at least 16 fields.
+Depending on the number and particular fields asked for, mxfld=16 is not
+reachable without generating lots of bogus values.  This problem was 
+partially fixed by increasing some array sizes (increased mxfld, mxsfld, 
+and mxcomp) along with a few other related arrays.  There remain a few
+bogus values scattered throughout the output fields.

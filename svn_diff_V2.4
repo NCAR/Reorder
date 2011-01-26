@@ -1,0 +1,849 @@
+Index: Applications/qreou/unixqufap.F
+===================================================================
+--- Applications/qreou/unixqufap.F	(revision 60)
++++ Applications/qreou/unixqufap.F	(working copy)
+@@ -4,7 +4,7 @@
+ c-----------------------------------------------------------------------
+     	subroutine accver()
+ c   dump out the current access version date
+-        call dmplin( 'qUFAP--LINUX VERSION 2.20 July 2010 ' ,0)
++        call dmplin( 'qUFAP--LINUX VERSION 2.30 December 2010 ' ,0)
+     	return
+     	end
+ c-----------------------------------------------------------------------
+Index: logmsg
+===================================================================
+--- logmsg	(revision 56)
++++ logmsg	(working copy)
+@@ -1,45 +0,0 @@
+-REORDER VERSION 2.00
+-
+-1. Applications/qreod & qreou/qreoroot.F - Added write statement to distinguish
+-             whether Dorade sweep files (qreod) or Universal format files (qreou)
+-
+-2. Applications/qreou/qufap.F & unixqufap - minor comment change & updated
+-             dmplin to LINUX VERSION 2.00 March 2010
+-	
+-3. Libraries/qreo/unixflib.F - added some comment lines
+-
+-4. Libraries/qreo/foflib.F - added some comment lines
+-
+-5. Libraries/qreo/qreo1.F - updated dmplin to LINUX VERSION 2.00 March 2010
+-
+-6. Libraries/qreo/qreo1.F - added some comment lines and the logical variable 
+-             diag_ljm to turn on (.true.) or off (.false.) diagnostic print.
+-             The diag_ljm variable is set in qreo1.F and passed around from
+-             there. 
+-
+-7. Libraries/qreo/qreo1.F - changed signs of slong and dlong from (-) to (+)
+-             since the NCAR/MMM ll2xy and xy2ll routines are no longer being
+-             called.  NCAR/MMM used the convention of west longitude is (+)
+-             rather than the standard west longitude is (-).
+-
+-8. Libraries/qreo/qreo1.F - added a new user-specified input variable "BOX
+-             DIMENSIONS" that has values of CARTESIAN, SPHERICAL, or HYBRID.
+-             This allows the user to leave both the XYZ and RAE radii intact
+-             in the run_reorder script.  HYBRID uses the CARTESIAN near the
+-             radar and the SPHERICAL once the Cartesian box radii are
+-             exceeded.
+-
+-9. Libraries/qreo/qreo2.F - added some comment lines and changed default grid
+-             to a larger one with a coarser grid spacing.
+-
+-10. Libraries/qreo/qreo2.F - fixed how region of influence (box dimensions) are
+-             calculated: XRADIUS=YRADIUS when XRADIUS is set to zero.  When
+-             RGRADIUS=0, RGRADIUS=AZRADIUS.  When SPHERICAL radii are used, 
+-             they are converted to arc lengths (Range*AngularRadius) so that
+-             the region of influence increases with range.
+-11. Libraries/qreo/qreo2.F - commented out "call radinf" which was a feeble
+-             attempt to rotate the box to be aligned with the local beam
+-             direction.  The subroutine radinf in qreo3.F was producing an
+-             odd-looking "clover-leaf" pattern in the CNT field that had
+-             minima at 0, 90, 180, 270, and 360 deg. 
+-12. Libraries/qreo/qreo3.F - added improved comment lines
+Index: Libraries/qreo/unixflib.F
+===================================================================
+--- Libraries/qreo/unixflib.F	(revision 56)
++++ Libraries/qreo/unixflib.F	(working copy)
+@@ -62,7 +62,7 @@
+         character card*(*)
+       logical zend, zerr
+ c
+-c     print *,'unixflib.F:subroutine readcd has been called'
++      print *,'unixflib.F:subroutine readcd has been called'
+ c
+       nc = 0
+       zend = .false.
+Index: Libraries/qreo/foflib.F
+===================================================================
+--- Libraries/qreo/foflib.F	(revision 58)
++++ Libraries/qreo/foflib.F	(working copy)
+@@ -992,6 +992,45 @@
+ c
+         return
+         end
++c----------------------------------------------------------------------X
++c
++      INTEGER FUNCTION GETLEN (STRING)
++C
++C  DETERMINE THE LENGTH OF A CHARACTER STRING, EXCLUDING TRAILING BLANKS.
++C     RETURNS LENGTH IN GETLEN
++C
++C     STRING - DECLARED AS CHARACTER IN CALLING ROUTINE
++C     GETLEN -     "     "  INTEGER   "    "       "
++C
++c     Borrowed this fortran routine from Ppi_mmm-src in order to
++c     get a correct length of a character string.  The Fortran
++c     LEN command always returns the length of a character string
++c     according to its DIMENSION statement, not its actual length
++c     of non-blank characters.  Currently called from readln which
++c     is called from gnxatt. (LJM - 12/22/2010).
++c
++      CHARACTER *(*) STRING
++      CHARACTER*1 BLANK
++      PARAMETER (BLANK=' ')
++      INTEGER NEXT
++
++C     START WITH THE LAST CHARACTER AND FIND THE FIRST NONBLANK
++C
++      NEND=LEN(STRING)
++c      print *,'GETLEN: nend,string=',nend,string
++      DO 10 NEXT=NEND,1,-1
++         IF(STRING(NEXT:NEXT).NE.BLANK)THEN
++            GETLEN=NEXT
++c            print *,'GETLEN: next,string=',next,string(next:next)
++            RETURN
++         END IF
++   10 CONTINUE
++
++C     ALL CHARACTERS ARE BLANKS
++C
++      GETLEN=0
++      RETURN
++      END
+ c---------------------------------------------------------------------
+     	integer function fzap()
+ c   the definitive source for the floating version of the missing flag
+@@ -2359,7 +2398,9 @@
+         implicit        integer( a-z )
+         character       ab*(*)
+ c
+-c
++c     diagnostic print (LJM 01/10/2011)
++c        print *,'nxtatt routine in foflib.F: ith,jth=',
++c     +       ith,jth
+         c1 = ith
+         a1 = 0
+         nch = 0
+@@ -2721,6 +2762,7 @@
+ c
+         character line*(*)
+       logical zend, zerr
++      integer getlen
+ c
+ c     print *,'foflib.F:subroutine readln has been called'
+ c     Appears to always be called rather than calling
+@@ -2731,26 +2773,40 @@
+       zerr = .false.
+       read( lun, 987, err=77, end=66 ) line
+   987 format( a )
+-      	nd = len(line)
+-    	n = nd
++      nd = getlen(line)
++      n = nd
++
++c     Trap blank lines and reset them to a semi-colon (;)
++c     along with a length (nd and n) of one.
++c     (LJM 12/22/2010)
++c     
++      if(n.eq.0)then
++         print *,'************ WARNING WARNING WARNING *************'
++         print *,'*** readln in foflib.F: zero length blank line ***'
++         print *,'* Blank line not allowed - reset to a semi-colon *'
++         print *,'******** END-WARNING WARNING WARNING-END *********'
++         line(1:1) = ';'
++         nd = 1
++         n = nd
++      endif
++c     
++      do 22 i = nd, 1, -1
++         if( line(i:i) .ne. ' ' ) then
++            go to 23
++         endif
++         n = n-1
++ 22   continue
++ 23   continue
+ c
+-    	do 22 i = nd, 1, -1
+-    	    if( line(i:i) .ne. ' ' ) then
+-    	    	go to 23
+-    	    endif
+-    	    n = n-1
+-  22	continue
+-  23 	continue
+-c
+       return
+-c
++c     
+  66   continue
+       zend = .true.
+       return
+-c
++c     
+  77   continue
+-    	write( lunout(), 789 )
+- 789	format( ' Error in readln ' )
++      write( lunout(), 789 )
++ 789  format( ' Error in readln ' )
+       zerr = .true.
+       return
+       end
+@@ -3229,11 +3285,28 @@
+ c  this routine prints an arbitrary string of one line or less to
+ c  logical unit 'lun'.
+ c
++c     (LJM 01/10/2011) 
++c     1. When called with a diagnostic or information character string,
++c     the string ends with ^ and has ith=1 and nchr=0; e.g.
++c     call typstg( lun(), 'string^',1,0)
++c     2. Other calls include passing character strings with various
++c     lengths, e.g. nchr=128 when calls come from the Cedric header
++c     building (subroutine wrimud) and nchr is variable when called
++c     with the character strings associated with the user-specified
++c     attributes.  In general the fortran len command returns the
++c     length of a character string as dimensioned.  Therefore, nchr
++c     need not equal nlen.
++c
+         implicit integer( a-z )
+     	parameter( LLIM=78 )
+         character is*(*)
+ c
+ c
++        nlen = len(is)
++c
++c     diagnostic print statement (LJM 01/10/2011)
++c       print *,'foflib-typstg:ith,nchr,nlen,is=',ith,nchr,nlen,is
++c
+         i = ith
+         n = nchr
+ c
+@@ -3248,7 +3321,12 @@
+         endif
+ c
+         if( n .lt. 1 ) then
+-          go to 90
++           print *,'******* WARNING WARNING WARNING WARNING *******'
++           print *,'foflib.F - routine typstg: string length .lt. 1'
++           print *,'Apparently, nlen and string = ',nlen,is
++           print *,'************** STOPPING PROGRAM ***************'
++           STOP
++c          go to 90
+         endif
+ c
+  11     continue
+@@ -3263,6 +3341,11 @@
+         write( lun, 988 ) is(i:j)
+  988    format( ' ', a )
+ c
++c     diagnostic print statement (LJM 01/10/2011)
++c        write( lun, 988 ) i,j,is(i:j)
++c 988    format( 'typstg:i,j=',2i6,' ', a )
++c
++c
+         if( n .gt. 0 ) then
+           i = j+1
+           go to 11
+Index: Libraries/qreo/qreo1.F
+===================================================================
+--- Libraries/qreo/qreo1.F	(revision 60)
++++ Libraries/qreo/qreo1.F	(working copy)
+@@ -130,8 +130,7 @@
+ c----------------------------------------------------------------------
+       subroutine reo( butter, lenbuf )
+ c===========================================================================
+-c___qcommon.for
+-c
++c___qcom
+ 
+ c       maxcart output set to 4001, that is nx * ny * nz <= maxcart
+     	parameter( maxcart=4001, sizcart=2048 )
+@@ -190,7 +189,7 @@
+ c               compressed into a large, continuous, without spaces
+ c               stream starting with ";"
+ c   ncas    =   the length of acs is typically ~600-800 characters, but
+-c               cannot exceed 2222
++c               cannot exceed 2222 (see subroutine reo)
+ c   nflds   =   the number of source data fields 
+ c   fldtyp  =   type of field   
+ c                   1 = normal data (no conversion before interpolate)
+@@ -201,7 +200,7 @@
+ c                   4 = azimuth
+ c                   5 = elevation
+ c                   6 = range
+-c                   7 = 
++c                   7 = height above curved Earth (km MSL)
+ c                   8 = 
+ c                   9 = k or the weighted number of folds
+ c                  10 = field created by function FSPECL 
+@@ -362,7 +361,7 @@
+ code
+ c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ 
+-      call dmplin( 'QREO--LINUX VERSION 2.20 July 2010 ', 0 )
++      call dmplin( 'qreo1.F--LINUX VERSION 2.40 January 2011', 0 )
+ c
+     	write(*,*) ' '
+     	write(*,*)
+@@ -374,13 +373,16 @@
+       twiddle = 1
+ c
+ c  get the input control string
++      print *,' qreo1 - before call initdat: iradfun=',iradfun
++      call flush(6)
+       call inidat( ipar, acs, nacs, aaz, advec, advhgt, xoff
+      a, yoff, zoff, pt1, pinc, syms, nsym, az1, az2
+      a, exct1, exct2, nxcl, multiv, prf1, prf2, fixflt, igskip
+      a, flee, azrad, elrad, rgrad, earthr, gnyqv, grc, gbmwid
+      a, grnd_out, range1, range2, swpskp, bmskp, iadjust_z
+      a, sprint_xlt, twiddle, iradfun, diag_ljm)
+-      if(diag_ljm)print *,'After inidat iradfun=',iradfun
++      print *,' qreo1 - after call initdat: iradfun=',iradfun
++      call flush(6)
+ c
+ c      sprint_xlt = .true.
+ c      sprint_xlt = .false.
+@@ -411,6 +413,7 @@
+       call setcat( butter, lenbuf,
+      1   7, 8, ltp, acs, nacs, error)
+       print *,'qreo1-reo: after setcat: error=',error
++      call flush(6)
+ c 
+       if(error.ne.0)then
+         call typstg( lunout()
+@@ -425,6 +428,7 @@
+       call inireo( butter, advect, aaz, advec
+      +,         advhgt, advx, advy, azrad, elrad, rgrad, rg )
+       print *,'qreo1-reo: after inireo'
++      call flush(6)
+ c
+ c   this is all the stuff that used to be in equivalence statements
+         zmin = values(1,3)
+@@ -443,6 +447,7 @@
+       call f9( 'dalt', 4, dalti )
+       call f9( 'dbas', 4, dbase )
+       call e12( 'earthr', 6, earthr )
++      call flush(6)
+ c
+ c  set up source and destination position constants
+ 
+@@ -499,11 +504,16 @@
+ c
+       do 22 i=1,nflds
+ c   special fields?
++c     Adding "fldtyp(i) .eq. 7" here fixed Segmentation
++c     fault that was occurring after I added the ZMSL field.
++c     (LJM 12/21/2010)
++c
+           mne(1:2) = fldmne(i*2-1:)
+           specl =   fldtyp(i) .eq. 3 .or.
+      +              fldtyp(i) .eq. 4 .or.
+      +              fldtyp(i) .eq. 5 .or.
+      +              fldtyp(i) .eq. 6 .or.
++     +              fldtyp(i) .eq. 7 .or.
+      +              fldtyp(i) .eq. 10
+ c     
+ c     Print to understand this loop - LJM (07/13/2010)
+@@ -534,6 +544,7 @@
+             print *,' '
+             print *,'List source field names, numbers, and types'
+             print *,'Routine reo in module qreo1.F'
++            call flush(6)
+          endif
+          call inslc( mne(1:2))
+          call i8( 'i', 1, i )
+@@ -621,9 +632,11 @@
+ 
+ c     For each ray get (azz,ell,fx,zprf) from functions in
+ c     either
+-c        UF: qufap.F (compiled and linked for qreou)
++c        UF: 
++c           ./Applications/qreou/qufap.F (compiled and linked for qreou)
+ c     or
+-c        DORADE: qdfap.F (compiled and linked for qreod)
++c        DORADE: 
++c           ./Libraries/dap/qdfap.F (compiled and linked for qreod)
+ c
+ c     These functions are called here for both UF and DORADE formats.
+ c     These housekeeping words are inside the kbuf integer array.
+@@ -1129,12 +1142,12 @@
+ c     
+         call idset( acs, nacs, flee )
+ c       LJM (6/15/09 diagnostic prints)
+-c        if(diag_ljm)then
++        if(diag_ljm)then
+            print *,'After call idset: acs=attribute+parameter stream'
+            print *,'After call idset nacs=',nacs
+            print *,'After call idset acs=',acs(1:nacs)
+            print *,' '
+-c        endif
++        endif
+         if(nacs.gt.2222)then
+            print *,'*** Routine inidat in qreo1.F: nacs .gt. 2222 ***'
+            print *,'***   Increase size of character string acs   ***'
+@@ -1360,7 +1373,7 @@
+     	a1 = indexa( acs, 1, nacs, 4, 'GALTITUDE' )
+     	if( a1 .gt. 0 ) then
+             call rargs( acs, a1, nacs, dalti, rum, dum )
+-    	endif
++   	endif
+ c       
+     	a1 = indexa( acs, 1, nacs, 4, 'GBASELINE' )
+     	if( a1 .gt. 0 ) then
+@@ -1553,7 +1566,7 @@
+     	    	az2 = z2
+     	    endif
+     	endif
+-c       
++c    
+     	a1 = indexa( acs, 1, nacs, 4, 'RANGES' )
+     	if( a1 .gt. 0 ) then
+     	    z1 = znull
+@@ -1691,8 +1704,8 @@
+     	call i8( 'igs', 3, igskip )
+         if( .not. outflg ) then
+             flee = .true.
+-            call typstg(lunout(), 'No output file specification ^',
+-     +              1,0)
++            call typstg(lunout(), 
++     +           'No output file specification ^',1,0)
+         endif
+ c       
+         return
+@@ -1778,13 +1791,15 @@
+ c
+ c   nflds   =   the number of source data fields 
+ c   fldtyp  =   type of field   
+-c                   1 = normal data
+-c                   2 = dbz field
++c                   1 = normal data (no conversion before interpolate)
++c                   2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
+ c                   3 = time
+ c                   4 = azimuth
+ c                   5 = elevation
+ c                   6 = range
+-c                   7 = 
++c                   7 = height above curved Earth (km MSL)
+ c                   8 = 
+ c                   9 = k or the weighted number of folds
+ c                  10 = field created by function FSPECL 
+@@ -1937,6 +1952,7 @@
+ c     the first non-blank character (a1)
+ 
+         call nxtatt( acs, ae+1, a2, f1, nch, ae )
++c     diagnostic print (LJM 01/2011)
+ c        print *,'Fields routine in qreo1.F - call nxtatt: ith,jth=',
+ c     +       ae+1,a2
+ 
+@@ -1967,7 +1983,7 @@
+             if( na .le. 0 ) then
+                 flee = .true.
+                 call typstg( lunout(),
+-     +                  'No source field name for ^', 1, 0 )
++     +                  'No source field name for ^',1,0)
+                 call typstg( lunout(), acs, f1, nch )
+             endif
+ 
+@@ -1992,6 +2008,11 @@
+ c     Check for RG (slant range)
+             elseif( same( acs, aa, 2, 'RG', 1 )) then
+                 fldtyp(ff) = 6
++c     Check for ZMSL (height above curved Earth - km MSL)
++            elseif( same( acs, aa, 4, 'ZMSL', 1 )) then
++                fldtyp(ff) = 7
++            	unfptr(ff) = incb( lenbox, 1 )
++            	space( unfptr(ff)) = znull
+ c     Check for XX (field produced by routine FSPECL)
+             elseif( same( acs, aa, 2, 'XX', 1 )) then
+                 fldtyp(ff) = 10
+@@ -2002,12 +2023,12 @@
+                 fldtyp(ff) = 1
+             endif
+ c
+-c     End of checking for field types 3-6, 10, and 1.
++c     End of checking for field types 3-7, 10, and 1.
+ c    
+-c            do j=1,nflds
+-c               jj=2*j-1
+-c               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
+-c            enddo
++            do j=1,nflds
++               jj=2*j-1
++               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
++            enddo
+             call mnesrc( fldmne, nflds, acs, aa, 2, ith,
+      +           f1,nch,flee,NO)
+             if( ith .gt. 0) then
+@@ -2038,7 +2059,7 @@
+             if( na .le. 0 ) then
+                 flee = .true.
+                 call typstg( lunout(),
+-     +	    	    'No source field name for ^', 1, 0 )
++     +	    	    'No source field name for ^',1,0)
+                 call typstg( lunout(), acs, f1, nch )
+             endif
+             if( wtfun .eq. 3 ) then
+@@ -2055,7 +2076,7 @@
+             if( na .le. 0 ) then
+                 flee = .true.
+                 call typstg( lunout(),
+-     +	    	    'No source field name for ^', 1, 0 )
++     +	    	    'No source field name for ^',1,0)
+                 call typstg( lunout(), acs, f1, nch )
+             endif
+     	    if(same( acs, f1, 5, 'KFIELD', 1 )) then
+@@ -2455,7 +2476,7 @@
+ c   error   
+                 flee = .true.
+                 call typstg( lunout(),
+-     +'No source field for ^', 1, 0 )
++     +               'No source field for ^',1,0)
+                 call typstg( lunout(), acs, f1, nch )
+     	    	go to 45
+             endif
+@@ -2507,7 +2528,7 @@
+ c   error!
+     	flee = .true.
+         call typstg( lunout(),
+-     +	    	'No output field name for ^', 1, 0 )
++     +	    	'No output field name for ^',1,0)
+         call typstg( lunout(), acs, f1, nch )
+     	go to 45
+ c
+@@ -2659,7 +2680,7 @@
+     	if( verify .eq. YES .and. ith .lt. 0 ) then
+             flee = .true.
+             call typstg( lunout(),
+-     +              'No source field for ^', 1, 0 )
++     +              'No source field for ^',1,0)
+             call typstg( lunout(), acs, f1, nch )
+     	endif
+ c
+@@ -2756,13 +2777,15 @@
+ c
+ c   nflds   =   the number of source data fields 
+ c   fldtyp  =   type of field   
+-c                   1 = normal data
+-c                   2 = dbz field
++c                   1 = normal data (no conversion before interpolate)
++c                   2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
+ c                   3 = time
+ c                   4 = azimuth
+ c                   5 = elevation
+ c                   6 = range
+-c                   7 = 
++c                   7 = height above curved Earth (km MSL)
+ c                   8 = 
+ c                   9 = k or the weighted number of folds
+ c                  10 = field created by function FSPECL 
+Index: Libraries/qreo/qreo2.F
+===================================================================
+--- Libraries/qreo/qreo2.F	(revision 60)
++++ Libraries/qreo/qreo2.F	(working copy)
+@@ -202,7 +202,7 @@
+                   advhgt(j) = tempht
+                 endif
+  45     continue
+-c          call typstg( 6, 'sort^', 1, 0 )
++c          call typstg( 6, 'sort^',1,0)
+ c          call typefe( advx, 1, 20 )
+ c          call typefe( advy, 1, 20 )
+ c          call typefe( advhgt, 1, 20 )
+@@ -241,19 +241,19 @@
+ 	    endif
+  488	continue
+ c
+-c          call typstg( 6, 'position^', 1, 0 )
++c          call typstg( 6, 'position^',1,0)
+ c          call typefe( advx, 1, 20 )
+ c          call typefe( advy, 1, 20 )
+ c          call typefe( advhgt, 1, 20 )
+ c  now do a linear fill of the arrays
+         call linfit( advx, 1, maxval, zap )
+-c          call typstg( 6, 'advx^', 1, 0 )
++c          call typstg( 6, 'advx^',1,0)
+ c          call typefe( advx, 1, 20 )
+         call linfit( advy, 1, maxval, zap )
+-c          call typstg( 6, 'advy^', 1, 0 )
++c          call typstg( 6, 'advy^',1,0)
+ c          call typefe( advy, 1, 20 )
+         call linfit( advhgt, 1, maxval, zap )
+-c          call typstg( 6, 'advhgt^', 1, 0 )
++c          call typstg( 6, 'advhgt^',1,0)
+ c          call typefe( advhgt, 1, 20 )
+ c
+  55     continue
+@@ -327,16 +327,19 @@
+ c   acs     =   user-specified input "attribute:parameter;" stream
+ c               compressed into a large, continuous, without spaces
+ c               stream starting with ";"
+-c   ncas    =   the length of acs (~600-800 characters)
++c   ncas    =   the length of acs is typically ~600-800 characters, but
++c               cannot exceed 2222 (see subroutine reo)
+ c   nflds   =   the number of source data fields 
+ c   fldtyp  =   type of field   
+-c                   1 = normal data
+-c                   2 = dbz field
++c                   1 = normal data (no conversion before interpolate)
++c                   2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
+ c                   3 = time
+ c                   4 = azimuth
+ c                   5 = elevation
+ c                   6 = range
+-c                   7 = 
++c                   7 = height above curved Earth (km MSL)
+ c                   8 = 
+ c                   9 = k or the weighted number of folds
+ c                  10 = field created by function FSPECL 
+@@ -754,21 +757,27 @@
+       endif
+       if( sprint_xlt ) then
+          if(diag_ljm)then
+-            print *,'Before call ll2xydrv: slat-lon-alt=',slati,-slong,salti
+-            print *,'Before call ll2xydrv: dlat-lon-alt=',dlati,-dlong,dalti
++            print *,'Before call ll2xydrv: slat-lon-alt=',
++     +           slati,-slong,salti
++            print *,'Before call ll2xydrv: dlat-lon-alt=',
++     +           dlati,-dlong,dalti
+             print *,'Before call ll2xydrv: xyz=',x,y,z
+          endif
+          call ll2xydrv( slati, -slong, x, y, dlati, -dlong, dbase )
+          z = salti - dalti
+          if(diag_ljm)then
+-            print *,'After call ll2xydrv: slat-lon-alt=',slati,-slong,salti
+-            print *,'After call ll2xydrv: dlat-lon-alt=',dlati,-dlong,dalti
++            print *,'After call ll2xydrv: slat-lon-alt=',
++     +           slati,-slong,salti
++            print *,'After call ll2xydrv: dlat-lon-alt=',
++     +           dlati,-dlong,dalti
+             print *,'After call ll2xydrv: xyz=',x,y,z
+          endif
+       else
+          if(diag_ljm)then
+-            print *,'Before call transc: slat-lon-alt=',slati,slong,salti
+-            print *,'Before call transc: dlat-lon-alt=',dlati,dlong,dalti
++            print *,'Before call transc: slat-lon-alt=',
++     +           slati,slong,salti
++            print *,'Before call transc: dlat-lon-alt=',
++     +           dlati,dlong,dalti
+             print *,'Before call transc: xyz=',x,y,z
+          endif
+          call transc(dbase, 0.0, 0.0, 0.0,
+@@ -2225,13 +2234,15 @@
+ c
+ c   nflds   =   the number of source data fields 
+ c   fldtyp  =   type of field   
+-c                   1 = normal data
+-c                   2 = dbz field
++c                   1 = normal data (no conversion before interpolate)
++c                   2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
+ c                   3 = time
+ c                   4 = azimuth
+ c                   5 = elevation
+ c                   6 = range
+-c                   7 = 
++c                   7 = height above curved Earth (km MSL)
+ c                   8 = 
+ c                   9 = k or the weighted number of folds
+ c                  10 = field created by function FSPECL 
+@@ -2460,7 +2471,7 @@
+                 call i8( 'max. possible  ', 13, maxrec*nbxcar )
+                 call dmplin( ' ', 1 )
+                 call typstg( list,
+-     a  'the total number of grid points is too large ^', 1, -1 )
++     +  'the total number of grid points is too large ^',1,-1)
+                 stop66
+             endif
+ c
+@@ -2871,13 +2882,13 @@
+        
+ c     Print pointers, etc associated with each field - LJM 07/12/2010
+ c
+-           if((az.gt.110.0 .and. az.lt.115.0) .and.
+-     +        (el.gt.0.25 .and. el.lt.0.75)   .and.
+-     +          igt.eq.50)then
+-              print *,"i,fldtyp,fldoff,nyqptr,unfflg,unfptr,zlard=",
+-     +             i,fldtyp(i),fldoff(i),nyqptr(i),unfflg(i),unfptr(i),
+-     +             zref
+-           endif
++c           if((az.gt.110.0 .and. az.lt.115.0) .and.
++c     +        (el.gt.0.25 .and. el.lt.0.75)   .and.
++c     +          igt.eq.50)then
++c              print *,"i,fldtyp,fldoff,nyqptr,unfflg,unfptr,zlard=",
++c     +             i,fldtyp(i),fldoff(i),nyqptr(i),unfflg(i),unfptr(i),
++c     +             zref
++c           endif
+ 
+             if( unfflg(i)) then
+ c   unfold
+@@ -2893,8 +2904,24 @@
+                 endif
+                 go to 417
+             endif
+-c       
+-            go to ( 401, 401, 403, 404, 405, 406, 466
++
++c           Branch to get the requested type of field
++c
++c   fldtyp  =   type of field   
++c                   1 = normal data (no conversion before interpolate)
++c                   2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
++c                   3 = time
++c                   4 = azimuth
++c                   5 = elevation
++c                   6 = range
++c                   7 = height above curved Earth (km MSL)
++c                   8 = 
++c                   9 = k or the weighted number of folds
++c                  10 = field created by function FSPECL 
++c
++            go to ( 401, 401, 403, 404, 405, 406, 407
+      +              , 466, 417, 401 ), fldtyp(i)
+ c       
+             call panic( '** Bad field type **' )
+@@ -2924,6 +2951,7 @@
+ 		    zdata = zdata +360.
+ 		endif
+     	    endif
++c-----------if(igt.eq.250)print *,'igt,az=',igt,az
+             go to 417
+   405       continue
+ c       elevation   
+@@ -2942,11 +2970,48 @@
+ 		    zdata = zdata +360.
+ 		endif
+     	    endif
++c-----------if(igt.eq.250)print *,'igt,el=',igt,el
+             go to 417
+   406       continue
+ c       range
+             zdata = rg(igt)
++c-----------if(igt.eq.250)print *,'igt,rg=',igt,rg(igt)
+             go to 417
++  407       continue
++c       height above curved Earth (km MSL)
++c------------------------------------------------------
++c     Temporarily replaced elevation angle with the
++c     height of the data point, either with or 
++c     without a 4/3 earth correction. (LJM 11/1/2010) 
++c
++c-----------if(igt.eq.250)print *,'igt,rg,az,el=',igt,rg(igt),az,el
++            earthr=6366.8056
++            cfac=0.375/earthr
++            sinaz=sin(az*torad)
++            cosaz=cos(az*torad)
++            sinel=sin(el*torad)
++            cosel=cos(el*torad)
++            xgate=x_rad+rg(igt)*sinaz*cosel
++            ygate=y_rad+rg(igt)*cosaz*cosel
++            hgate=rg(igt)*cosel
++            zcor=cfac*hgate*hgate
++
++c     Flat earth do not include zcor; otherwise
++c     correct for a 4/3 earth radius.
++c
++            zgate=z_rad+rg(igt)*sinel
++
++c     Confirmation printout (LJM 11/11/2010)
++c            if(igt.eq.250)then
++c               write(6,1771)igt,rg(igt),hgate,az,el,
++c     +              xgate,ydate,zgate,zcor
++c 1771          format(' igt,srng,hrng,az,el,xyz,zcor=',i3,8f10.3)
++c            endif
++
++            zgate=zgate+zcor
++            zdata = zgate
++c------------------------------------------------------
++            go to 417
+ c       
+   417       continue
+ c
+Index: Libraries/qreo/qreo3.F
+===================================================================
+--- Libraries/qreo/qreo3.F	(revision 59)
++++ Libraries/qreo/qreo3.F	(working copy)
+@@ -112,16 +112,19 @@
+ c   acs     =   user-specified input "attribute:parameter;" stream
+ c               compressed into a large, continuous, without spaces
+ c               stream starting with ";"
+-c   ncas    =   the length of acs (~600-800 characters)
++c   ncas    =   the length of acs is typically ~600-800 characters, but
++c               cannot exceed 2222 (see subroutine reo)
+ c   nflds   =   the number of source data fields 
+ c   fldtyp  =   type of field   
+-c                   1 = normal data
+-c                   2 = dbz field
++c                   1 = normal data (no conversion before interpolate)
++c                   2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
+ c                   3 = time
+ c                   4 = azimuth
+ c                   5 = elevation
+ c                   6 = range
+-c                   7 = 
++c                   7 = height above curved Earth (km MSL)
+ c                   8 = 
+ c                   9 = k or the weighted number of folds
+ c                  10 = field created by function FSPECL 
+@@ -457,13 +460,15 @@
+ c
+ c   nflds   =   the number of source data fields 
+ c   fldtyp  =   type of field   
+-c                   1 = normal data
+-c                   2 = dbz field
++c                   1 = normal data (no conversion before interpolate)
++c                   2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
+ c                   3 = time
+ c                   4 = azimuth
+ c                   5 = elevation
+ c                   6 = range
+-c                   7 = 
++c                   7 = height above curved Earth (km MSL)
+ c                   8 = 
+ c                   9 = k or the weighted number of folds
+ c                  10 = field created by function FSPECL 
+@@ -963,10 +968,21 @@
+  600  continue
+  
+         call dmplin( 'c...mark   ', 8 )
++
++c     bsmud is called to display the cedric output as a
++c     alphanumeric display within the printout.
++c
++c     reonetcdf within xcedio.c is called to output the Cedric binary 
++c     format as a netCDF format file.  Note that netCDF also has the 
++c     lat/lon of the lower left hand corner of the XY grid.  That 
++c     conversion from XY to LL is done with code added by Dennis 
++c     Flanigan in April 2009.  See comment at the top of the
++c     xcedio.c code.  That code is not used elsewhere. (LJM - 12/6/2010)
++
+         call bsmud( lunwri, outrec, space, acs, 1, nacs,
+      +      syms, nsym )
+         if(nncdf .gt. 0) then
+-    	call reonetcdf(name_netcdf, nncdf)
++           call reonetcdf(name_netcdf, nncdf)
+ 	endif
+     	call cedcls()
+         return 

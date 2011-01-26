@@ -1,0 +1,34 @@
+REORDER VERSION 2.40 January 2011 (LJM)
+
+1. Libraries/qreo/qreo1.F - 
+                 routine reo prints 'qreo1.F--LINUX VERSION 2.40 January 2011'
+   Libraries/dap/qdap.F - 
+                 routine accver() prints 'qDAP unix VERSION November 1997'
+   Applications/qreou/unixqufap.F - 
+                 routine accver() prints 'qUFAP--LINUX VERSION 2.30 December 2010'
+   Applications/qreod/qreoroot.F - 
+                 prints 'qreod - REORDER executable for reading Dorade sweep files'
+   Applications/qreou/qreoroot.F - 
+                 prints 'qreou - REORDER executable for reading Universal format files'
+
+2. Libraries/qreo/foflib - added "INTEGER FUNCTION GETLEN (STRING)" to trap those
+             instances when the user-supplied input/script has any blank lines since
+             the program requires (;) instead.  Fixes this and allows program to
+             continue execution.
+
+3. Found and fixed additional minor instances where results of Fortran len command
+   could give erroneous results.  Added comments and diagnostic prints (now are
+   commented out) in areas where parsing the user-supplied input could produce
+   run-time errors due to going out-of-bounds on character strings.  
+
+   For now bounds checking (env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
+   is left ON in SConstruct.  This line could be commented out (#) to prevent
+   the program from dying, but this could lead to unpredictable results in some
+   instances.  See subroutine readln in Libraries/qreo/foflib.F and all calls 
+   to this and similar routines.
+
+4. Libraries/qreo/qreo1.F - added a new field ZMSL (height above a curved Earth)
+             that can be calculated from the range gate location (R,A,E) that 
+             includes 4/3 Earth correction.  Still unable to sort out with any
+             degree of certainty that this height-correction is done with the 
+             user-supplied ADJUST_Z command.
