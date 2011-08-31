@@ -1593,9 +1593,9 @@ c----------------------------------------------------------------------
         subroutine advxyz( n, x, y, advx, advy, et )
 c  this routine applies a constant advection to x and y where advx is
 c  the x advection in m/s and advy is the y advection in m/s and
-c  et is the elapsed time is seconds.
+c  et is the elapsed time in seconds.
 c
-        dimension x(1), y(1)
+        dimension x(n), y(n)
     	integer et
 c
 c   remember: y is really -x and x is really y
@@ -1624,7 +1624,10 @@ c  This routine advects as a function of height
 c
 c   remember: y is really -x and x is really y
 c
-        dimension x(1), y(1), z(1), advx(1), advy(1), advz(1)
+c     Note: maxval --> maxz from qreo1:reo (call adhxyz)
+
+        dimension x(n), y(n), z(n)
+        dimension advx(maxz), advy(maxz), advz(maxz)
     	integer et
 c
         do 11 i = 1, n
@@ -1662,11 +1665,11 @@ c      call e9( 'c2', 2, c2 )
 c      call e9( 'se', 2, sinel )
 
       do 11 i = 1, n
-        x(i) = r(i)*c1
+         x(i) = r(i)*c1
  11   continue
 
       do 12 i = 1, n
-        y(i) = r(i)*c2
+         y(i) = r(i)*c2
  12   continue
 
 c----------------------------------------------------------------------
@@ -1806,7 +1809,9 @@ c     +         , x(ii), y(ii), z(ii)
 
  44      continue
 
-         loop_xy2ll_v3 = num_pts
+c     Fixed this bug (LJM 8/31/2011) was loop_xy2ll_v3, not ..._v4
+c
+         loop_xy2ll_v4 = num_pts
          return
 
          end
@@ -1880,7 +1885,9 @@ c     +         , x(ii), y(ii), z(ii)
 
  44      continue
 
-         loop_ll2xy_v3 = num_pts
+c     Fixed this bug (LJM 8/31/2011) was loop_xy2ll_v3, not ..._v4
+c
+         loop_ll2xy_v4 = num_pts
          return
 
          end
@@ -2162,7 +2169,7 @@ c  swap x and y axes
 c----------------------------------------------------------------------
         subroutine insoff( xo, yo, zo, n, x, y, z )
 c
-        dimension x(1), y(1), z(1)
+        dimension x(n), y(n), z(n)
 c  offset the xyz values by constants
 c
 c   remember: y is really -x and x is really y

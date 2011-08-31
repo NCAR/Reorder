@@ -358,10 +358,11 @@ c
         data iadjust_z / .false. /
         data sprint_xlt / .false. /
         data range1, range2 / 0.00, 10000.00 /
+        data xoff,yoff,zoff / 0.0, 0.0, 0.0 /
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'qreo1.F--LINUX VERSION 2.40 January 2011', 0 )
+      call dmplin( 'qreo1.F--LINUX VERSION 2.41 August 2011', 0 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -646,7 +647,8 @@ c
  
 c     LJM (04/29/09) - diagnostic print
 c
-      if(diag_ljm)print *,'Before uelev,uazim:',bmcnt,azz,ell,fx
+      if(diag_ljm)print *,'Before uelev,uazim:bmcnt,azz,ell,fx=',
+     x     bmcnt,azz,ell,fx
 c
       ell=uelev( butter )
 c      call f9( 'el', 2, ell )
@@ -659,7 +661,8 @@ c      call f9( 'el', 2, ell )
 
 c     LJM (04/29/09) - diagnostic print
 c
-      if(diag_ljm)print *,'After uelev,uazim:',bmcnt,azz,ell,fx
+      if(diag_ljm)print *,'After uelev,uazim:bmcnt,azz,ell,fx=',
+     x     bmcnt,azz,ell,fx
 c
       if( kswepn(butter).ne.kscan ) then
 c        call f5( 'fixed', 5, ufixed(butter))
@@ -749,13 +752,18 @@ c   to x being east and y north.
 c     (LJM 5/27/09) - diagnostic print
 c
         if(diag_ljm)then
-           print *,'Just before call xyz, salti,dalti=',salti,dalti
+           print *,'qreo1.F-call xyz, salti,dalti=',salti,dalti
+           print *,'numgt,gatesp,az,el,earthr=',
+     +          numgt,gatesp,azz,ell,earthr
+           print *,'el, cosel,sin(el)=',el,cosel,sin(el)
         endif
 
       call xyz( numgt, rg, fat(l4), fat(l5), fat(l6),
      a  cosel*cos( az ), -cosel*sin( az ), sin( el ),
      a  cosel, earthr, salti)
-c     interesting values now in l4, l5, l6
+c-----print *,'Returned from qreo1.F-call xyz'
+
+c     interesting values now in 14, 15, 16
 
       if( .false. .and. zok ) then
 c      if( zok ) then
@@ -773,8 +781,11 @@ c      if( zok ) then
 
       if( airpln ) then
 c  corrections for airborn doppler
+c--------print *,'qreo1.F-call insoff: numgt,xyz-off:',
+c----+        numgt,xoff,yoff,zoff,fat(14),fat(15),fat(16)
          call insoff( xoff, yoff, zoff,
      +        numgt, fat(l4), fat(l5), fat(l6))
+c--------print *,'Returned qreo1.F-call insoff'
          slong = ulongt( butter )
          slati = ulatit( butter )
          salti = uhight( butter )
@@ -794,13 +805,13 @@ c      call f9( 'salt', 4, salti )
 c
 c  advection
         if( advect .eq. 1 ) then
-c  single vector
+c  single vector (advx, advy are single-valued in advxyz)
           call advxyz( numgt, fat(l4), fat(l5), advx(1), advy(1),
      +          itm )
         elseif( advect .gt. 1 ) then
-c  as a function of height
+c  as a function of height (advx, advy are multi-valued in adhxyz)
           call adhxyz( numgt, fat(l4), fat(l5), fat(l6),
-     +          advx, advy, advz, itm, zmin, rcpdz, maxval, zok )
+     +          advx, advy, advz, itm, zmin, rcpdz, maxval )
         endif
 c
 c  convert xyz values to earth surface coordinates.
@@ -1581,6 +1592,7 @@ c
 	    call e12('rng1', 4, range1)
 	    call e12('rng2', 4, range2)
     	endif
+        print *,'RANGES in qreo1-initdat:rng1,rng2=',range1,range2
 c       
     	a1 = indexa( acs, 1, nacs, 3, 'PRFS' )
     	if( a1 .gt. 0 ) then

@@ -1,0 +1,38 @@
+REORDER VERSION 2.41 August 2011 (LJM)
+
+1. Libraries/qreo/qreo1.F - 
+                 routine reo prints 'qreo1.F--LINUX VERSION 2.41 August 2011'
+
+2. For now bounds checking (env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
+   is left ON in SConstruct.  This line could be commented out (#) to prevent
+   the program from dying, but this could lead to unpredictable results in some
+   instances.  This is true in several routines where there do loops over which
+   dimensioned arrays are not properly dimensioned.
+
+3. Libraries/qreo/qreo2.F - Out-of-bounds accessing problems with Stacy Brodzik's
+   GRIP (P3 airborne, dorade sweep files)
+        subroutine xyz( n, r, x, y, z, ...) call from qreo1.F
+	 - changed dimension r(1), x(1), y(1), z(1) 
+                to dimension r(n), x(n), y(n), z(n)
+	subroutine insoff( xo, yo, zo, n, x, y, z)
+	 - changed dimension x(1), y(1), z(1)
+                to dimension x(n), y(n), z(n)
+
+4. Libraries/qreo/qreo2.F - Out-of-bounds accessing problems could occur if 
+   routines advxyz and adhxyz were ever called.  Fixed the dimension statements
+   in both routines to include dimensioning variable passed into the routines.
+
+5. Libraries/qreo/qreo2.F - Fixed "warnings" regarding function loop_xy2ll_v4
+   and function loop_ll2xy_v4, where both returned loop_....._v3 = num_pts
+   instead of loop_....._v4 = num_pts.  It is not clear if these two functions
+   are stilled up, but if loop_....._v4 was needed somewhere it would not be
+   correct.
+
+6. Libraries/qreo/qreo1.F - call adhxyz parameter list included variable zok
+   which was not included in qreo2.F subroutine adhxyz.  The variable zok was
+   never referenced in the subroutine so it was deleted from the call.
+
+These kinds of problems continue to exist throughout Reorder code and are
+being fixed as they are uncovered.  This is a painful process since each
+user run can expose these problems, but only when their script for their
+particular user-specified choices are made.
