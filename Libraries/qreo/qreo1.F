@@ -362,7 +362,7 @@ c
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'qreo1.F--LINUX VERSION 2.41 August 2011', 0 )
+      call dmplin( 'qreo1.F--LINUX VERSION 2.42 September 2011', 0 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -411,6 +411,8 @@ c   set the end of volume flag
 c
 c
 c  initialize the access package and position to first record
+c-----subroutine setcat
+c----1  ( buffer, lenbf, lundx, lucat, ludat, uics, lens, ierr )
       call setcat( butter, lenbuf,
      1   7, 8, ltp, acs, nacs, error)
       print *,'qreo1-reo: after setcat: error=',error
@@ -637,7 +639,7 @@ c        UF:
 c           ./Applications/qreou/qufap.F (compiled and linked for qreou)
 c     or
 c        DORADE: 
-c           ./Libraries/dap/qdfap.F (compiled and linked for qreod)
+c           ./Libraries/dap/qdap.F (compiled and linked for qreod)
 c
 c     These functions are called here for both UF and DORADE formats.
 c     These housekeeping words are inside the kbuf integer array.
@@ -1162,7 +1164,7 @@ c       LJM (6/15/09 diagnostic prints)
         if(nacs.gt.2222)then
            print *,'*** Routine inidat in qreo1.F: nacs .gt. 2222 ***'
            print *,'***   Increase size of character string acs   ***'
-           call flush
+           call flush(6)
            STOP
         endif
 c
@@ -1907,11 +1909,15 @@ c
 c
 c     (LJM 6/15/09 - diagnostic prints)
 c
-        if(diag_ljm)then
-           print *,'Fields has been called'
-           print *,'FIELDS:   acs=',acs
-           print *,'FIELDS: a1,a2=',a1,a2
-        endif
+        len_string = GETLEN(acs)
+        na = len_string
+c-------if(diag_ljm)then
+           print *,'qreo1-fields has been called from qreo1-inidat'
+           print *,'Fields    acs len_string=',len_string
+           print *,'FIELDS:(c1,nacs)->(a1,a2)=',a1,a2
+           print *,'FIELDS:   acs=',acs(1:len_string)
+           print *,'FIELDS: First call to attarg'
+c-------endif
 
         call insl( '**fields**  ', 10 )
         flee = .false.
@@ -1920,14 +1926,16 @@ c   determine the weighting function (default is CRESSMAN)
 c
         f1 = indexa( acs, a1, a2, 5, 'WEIGHTING' ) 
         if( f1 .gt. 0 ) then
-            call attarg( acs, f1, a2, 1, aa, na)
-            
-            if(diag_ljm)then
-               print *,'WEIGHTS: pointer to begin attribute f1=',f1
-               print *,'WEIGHTS: pointer to begin parameter aa=',aa
-               print *,'WEIGHTS: length of parameter        na=',na
-            endif
-            call flush(6)
+           aa=0
+c----------if(diag_ljm)then
+              print *,'First call to attarg: f1,a2,1,aa,na=',
+     +          f1,a2,1,aa,na
+              call attarg( acs, f1, a2, 1, aa, na)
+              print *,'WEIGHTS: pointer to begin attribute f1=',f1
+              print *,'WEIGHTS: pointer to begin parameter aa=',aa
+              print *,'WEIGHTS: length of parameter        na=',na
+c----------endif
+           call flush(6)
 
 c     Set the value of wtfun according to which weighting function
 c     (parameter = CRESSMAN, EXPONENTIAL, CLOSEST, or UNIFORM) was

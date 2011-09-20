@@ -33,7 +33,30 @@ but you need to explicitly disable use of a GNU-specific compiler flag by adding
 CHANGE LOG
 ==========
 
-2.00   LJay Miller: 
+2.40+  LJay Miller (also see logmsg.3, logmsg.4):
+
+       Continuing to find and fix memory access problems, especially now
+       that bounds-checking is turned on inside SConstruct by Chris Burghart.
+
+       env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
+
+       The dimensions of several arrays scattered throughout have been
+       increased.  More diagnostic print statements have been included.
+       Many of these are turned on with data diag_ljm/.true./ in the 
+       qreo1.F/subroutine reo module.  The logical variable diag_ljm
+       is passed around to other subroutines.  I've yet to learn how to
+       use the debugger, besides finding all of these sorts of problems
+       seems very tedious and apparently dependent on how and what is
+       done by individual users as well as the version of Linux that
+       others are using.
+
+       In the case of Stacy Brodzik's (Univ. Wash.) P3 dataset from GRIP,
+       I got reorder to work here (Red Hat Linux), but it still does not 
+       work at UW (Debian Linux).  A similar issue came up with Nolan
+       Atkins (Lyndon State College of Vermont) who is using Ubuntu Linux.
+   
+
+2.00   LJay Miller (also see logmsg.0, logmsg.1, logmsg.2): 
        Updated README in Feb-Mar, 2010 to elaborate on changes (1.38-1.40)
        made prior to my changes listed here for 1.41 that were done inside 
        Reorder/original138/reorder138 rather than inside Reorder/trunk.

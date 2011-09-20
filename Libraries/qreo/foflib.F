@@ -176,7 +176,8 @@ c   the nth argument and the length of the argument in nchar.
 c   The pointer c1 = 0 if the nth argument cannot be located.
 c
 c   Input: ibuf - the compressed attribute-parameter stream
-c           acs - usual name elsewhere in the call attarg statements
+c           jth - ibuf dimension.  Various calls to attarg can
+c                 pass ncs, nc, nacs, a2, and ae
 c 
 c   Returns ith - pointer within input attribute-parameter stream
 c                 to the beginning character of the attribute
@@ -185,9 +186,22 @@ c                 parameter associated with the attribute
 c         nchar - character length of the attribute
 c
       implicit integer( a-z )
-        character ibuf*(*)
+      character ibuf*(*)
 c
 c
+      len_string=GETLEN(ibuf)
+      print *,
+     +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
+     +     len_string,ith,jth,nth,c1,nchar
+      if(ith.eq.0 .and. jth.eq.1)ith=1
+      
+      if(ith.ne.0 .and. jth.ne.0)then
+         print *,'foflib-attarg: ibuf=',ibuf(ith:jth)
+      elseif(jth.ne.0)then
+         print *,'foflib-attarg: ibuf=',ibuf(1:jth)
+      end if
+      call flush(6)
+
       c1 = 0
       nchar = 0
       isemi = index( ibuf(ith:jth), ';' )
@@ -449,9 +463,14 @@ c
         character chs*(*)
         integer kbuf(*)
 c
+        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
+        print *,'foflib-copycn:  chs(1:78)=',chs(1:78)
+        print *,'foflib-copycn: kbuf(1:78)=',kbuf(1:78)
         j = jth
         do 11 i = ith, ith+n-1
             call put8( kbuf, j, ichar( chs(i:i)))
+            print *,'foflib-copycn: i,j,chs(i:i),kbuf(i:i)=',
+     +           i,j,chs(i:i),kbuf(i:i)
             j = j+1
   11    continue
 c
@@ -624,6 +643,7 @@ c
 c
 
         ni = len( id )
+        print *,'delstr: ni,getlen(id)=',ni,getlen(id)
         do 11 i = n, 1, -1
             a = pi(i)
             b = a+ni-1
@@ -2399,8 +2419,8 @@ c
         character       ab*(*)
 c
 c     diagnostic print (LJM 01/10/2011)
-c        print *,'nxtatt routine in foflib.F: ith,jth=',
-c     +       ith,jth
+        print *,'nxtatt routine in foflib.F: ith,jth=',
+     +       ith,jth
         c1 = ith
         a1 = 0
         nch = 0
