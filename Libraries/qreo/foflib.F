@@ -3320,6 +3320,7 @@ c
         implicit integer( a-z )
     	parameter( LLIM=78 )
         character is*(*)
+        integer searchend
 c
 c
         nlen = len(is)
@@ -3331,8 +3332,9 @@ c
         n = nchr
 c
         if( n .lt. 1 ) then
-c  search the next 256 characters for a "^"
-            h = index( is(i:i+255), '^' )
+c  search (up to) the next 256 characters for a "^"
+            searchend = min(i + 255, len( is ))
+            h = index( is(i:searchend), '^' )
             if( h .gt. 0 ) then
                 n = h -1
             else
