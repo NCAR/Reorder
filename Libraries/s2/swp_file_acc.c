@@ -39,6 +39,7 @@ static char vcid[] = "$Id: swp_file_acc.c 193 2003-10-09 19:07:32Z oye $";
 # include <function_decl.h>
 # include <dgi_func_decl.h>
 # include <stdlib.h>
+# include <stdio.h>
 # include "FieldRadar.h"
 
 # define NEW_MAX_READ MAX_READ/2
@@ -207,6 +208,12 @@ int dd_absorb_header_info(dgi)
 		    }
 		}
 	    }
+	    if (dds->celv->number_cells > MAXCVGATES) {
+	        fprintf(stderr, "BUG: CSFD cell count %d is bigger than max supported: %d\n",
+	                dds->celv->number_cells, MAXCVGATES);
+	        fprintf(stderr, "Increase MAXCVGATES in the code to fix this!\n");
+	        abort();
+	    }
 	    nn = dds->celv->number_cells * sizeof(float) + 12;
 	   memcpy((char *)dds->celvc, dds->celv, nn);
 	   bc += gdsos;
@@ -216,6 +223,15 @@ int dd_absorb_header_info(dgi)
 	   }
 	}
 	else if(strncmp(dgi->in_next_block,"CELV",4)==0 ) {
+	   /* Make sure we have enough space to copy this CELV */
+       if (gdsos > sizeof(CELLVECTOR)) {
+           fprintf(stderr, "BUG: CELV size %d is longer than space available: %d\n",
+                   gdsos, sizeof(CELLVECTOR));
+           fprintf(stderr, "Increase MAXCVGATES in the code to at least %d to fix this!\n",
+                   (gdsos - 12) / 4);
+           abort();
+       }
+       
 	   if(gottaSwap) {
 	      ddin_crack_celv(dgi->in_next_block, dds->celv, (int)0);
 	      swack_long(dgi->in_next_block+12, &dds->celv->dist_cells[0]
