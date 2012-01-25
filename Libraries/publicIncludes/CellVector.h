@@ -29,7 +29,7 @@
 #ifndef INCCellVector_h
 #define INCCellVector_h
 
-#define MAXCVGATES 1500
+#define MAXCVGATES 8192
 
 # ifndef MAXGATES
 # define MAXGATES MAXCVGATES

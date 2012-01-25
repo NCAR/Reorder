@@ -354,7 +354,7 @@ C           Unix DEPENDENT CODE
 c-----------------------------------------------------------------------
     	subroutine accver()
 c   dump out the current access version date
-        call dmplin( 'qdap.F--LINUX VERSION 2.42 September 2011' , 0 )
+        call dmplin( 'qdap.F--LINUX VERSION 2.43 January 2012' , 0 )
     	return
     	end
 c-----------------------------------------------------------------------
@@ -391,8 +391,8 @@ c
 c   convert times to unix time
     	call time2unix( ccstm1, tm1 )
     	call time2unix( ccstm2, tm2 )
-        print *,'qdap-mountd: tim1,tim2=',tim1,tim2
-        print *,'qdap-mountd: ccstm1,ccstm2=',ccstm1,ccstm2
+c-------print *,'qdap-mountd: tim1,tim2=',tim1,tim2
+c-------print *,'qdap-mountd: ccstm1,ccstm2=',ccstm1,ccstm2
 c 
 c-------foflib.F: subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
         in = indexa( ufcs, 1, ncs, 4, 'INSTRUMENT' )
@@ -400,7 +400,7 @@ c-------foflib.F: subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
             call attarg( ufcs, in, ncs, 1, i1, ni )
         endif
         len_string=GETLEN(ufcs)
-        print *,'qdap-mountd: in,ni,radar_name=',in,ni,radar_name
+c-------print *,'qdap-mountd: in,ni,radar_name=',in,ni,radar_name
 c-------foflib.F: subroutine copycn( chs, ith, n, kbuf, jth )
     	if( in .gt.0 .and. ni .gt. 0 ) then    
            call copycn( ufcs, i1, ni, radar_name, 1 )
@@ -438,9 +438,9 @@ c           subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
             call flush(6)
   	    if( ni .gt. 0 ) then
     	    	call copycn( ufcs, i1, ni, directory, 1 )
-                print *,'mountd: ni,directory=',ni,directory(1:ni),
-     +               radar_name
-                call flush(6)
+c---------------print *,'mountd: ni,directory=',ni,directory(1:ni),
+c     +               radar_name
+c                call flush(6)
     	    	call put8( directory, ni+1, 0 )
     	    	ierr = dap_mnt_s( directory, radar_name
      +	    	    , tm1, tm2, ivol, iscan, irec )

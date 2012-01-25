@@ -190,17 +190,17 @@ c
 c
 c
       len_string=GETLEN(ibuf)
-      print *,
-     +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
-     +     len_string,ith,jth,nth,c1,nchar
+c-----print *,
+c     +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
+c     +     len_string,ith,jth,nth,c1,nchar
       if(ith.eq.0 .and. jth.eq.1)ith=1
       
-      if(ith.ne.0 .and. jth.ne.0)then
-         print *,'foflib-attarg: ibuf=',ibuf(ith:jth)
-      elseif(jth.ne.0)then
-         print *,'foflib-attarg: ibuf=',ibuf(1:jth)
-      end if
-      call flush(6)
+c      if(ith.ne.0 .and. jth.ne.0)then
+c         print *,'foflib-attarg: ibuf=',ibuf(ith:jth)
+c      elseif(jth.ne.0)then
+c         print *,'foflib-attarg: ibuf=',ibuf(1:jth)
+c      end if
+c      call flush(6)
 
       c1 = 0
       nchar = 0
@@ -463,14 +463,13 @@ c
         character chs*(*)
         integer kbuf(*)
 c
-        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
-        print *,'foflib-copycn:  chs(1:78)=',chs(1:78)
-        print *,'foflib-copycn: kbuf(1:78)=',kbuf(1:78)
+c        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
+c        print *,'foflib-copycn:  chs(1:78)=',chs(1:78)
         j = jth
         do 11 i = ith, ith+n-1
             call put8( kbuf, j, ichar( chs(i:i)))
-            print *,'foflib-copycn: i,j,chs(i:i),kbuf(i:i)=',
-     +           i,j,chs(i:i),kbuf(i:i)
+c-----------print *,'foflib-copycn: i,j,chs(i:i),kbuf(j)=',
+c     +           i,j,chs(i:i),kbuf(j)
             j = j+1
   11    continue
 c
@@ -643,7 +642,7 @@ c
 c
 
         ni = len( id )
-        print *,'delstr: ni,getlen(id)=',ni,getlen(id)
+c-------print *,'delstr: ni,getlen(id)=',ni,getlen(id)
         do 11 i = n, 1, -1
             a = pi(i)
             b = a+ni-1
@@ -2419,8 +2418,8 @@ c
         character       ab*(*)
 c
 c     diagnostic print (LJM 01/10/2011)
-        print *,'nxtatt routine in foflib.F: ith,jth=',
-     +       ith,jth
+c-------print *,'nxtatt routine in foflib.F: ith,jth=',
+c     +       ith,jth
         c1 = ith
         a1 = 0
         nch = 0

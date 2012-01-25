@@ -362,7 +362,7 @@ c
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'qreo1.F--LINUX VERSION 2.42 September 2011', 0 )
+      call dmplin( 'qreo1.F--LINUX VERSION 2.43 January 2012', 0 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -2045,10 +2045,10 @@ c     before interpolation!
 c
 c     End of checking for field types 3-7, 10, and 1.
 c    
-            do j=1,nflds
-               jj=2*j-1
-               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
-            enddo
+c-----------do j=1,nflds
+c               jj=2*j-1
+c               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
+c-----------enddo
             call mnesrc( fldmne, nflds, acs, aa, 2, ith,
      +           f1,nch,flee,NO)
             if( ith .gt. 0) then
