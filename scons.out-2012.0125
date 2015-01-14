@@ -1,0 +1,105 @@
+scons: Reading SConscript files ...
+scons: done reading SConscript files.
+scons: Building targets ...
+gfortran -o Applications/qreod/qreoroot.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Applications/qreod/qreoroot.F
+gcc -o Libraries/qreo/xcedcio.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/xcedcio.c
+gcc -o Libraries/qreo/fofclib.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/fofclib.c
+gfortran -o Libraries/qreo/qreo1.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/qreo1.F
+gfortran -o Libraries/qreo/qreo2.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/qreo2.F
+gfortran -o Libraries/qreo/qreo3.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/qreo3.F
+gfortran -o Libraries/qreo/unixqreo.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/unixqreo.F
+gfortran -o Libraries/qreo/foflib.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/foflib.F
+gfortran -o Libraries/qreo/unixflib.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/unixflib.F
+ar rc Libraries/qreo/libqreo.a Libraries/qreo/xcedcio.o Libraries/qreo/fofclib.o Libraries/qreo/qreo1.o Libraries/qreo/qreo2.o Libraries/qreo/qreo3.o Libraries/qreo/unixqreo.o Libraries/qreo/foflib.o Libraries/qreo/unixflib.o
+ranlib Libraries/qreo/libqreo.a
+Install file: "Libraries/qreo/libqreo.a" as "lib/libqreo.a"
+Install file: "Libraries/publicIncludes/dd_files.h" as "include/dd_files.h"
+Install file: "Libraries/publicIncludes/input_sweepfiles.h" as "include/input_sweepfiles.h"
+Install file: "Libraries/publicIncludes/dgi_func_decl.h" as "include/dgi_func_decl.h"
+Install file: "Libraries/publicIncludes/dorade_headers.h" as "include/dorade_headers.h"
+Install file: "Libraries/publicIncludes/function_decl.h" as "include/function_decl.h"
+Install file: "Libraries/publicIncludes/dd_defines.h" as "include/dd_defines.h"
+Install file: "Libraries/publicIncludes/dd_general_info.h" as "include/dd_general_info.h"
+Install file: "Libraries/publicIncludes/dorade_data_descriptors.h" as "include/dorade_data_descriptors.h"
+Install file: "Libraries/publicIncludes/dorade_share.h" as "include/dorade_share.h"
+Install file: "Libraries/publicIncludes/CellSpacing.h" as "include/CellSpacing.h"
+Install file: "Libraries/publicIncludes/CellSpacingFP.h" as "include/CellSpacingFP.h"
+Install file: "Libraries/publicIncludes/CellVector.h" as "include/CellVector.h"
+Install file: "Libraries/publicIncludes/Comment.h" as "include/Comment.h"
+Install file: "Libraries/publicIncludes/Correction.h" as "include/Correction.h"
+Install file: "Libraries/publicIncludes/FieldLidar.h" as "include/FieldLidar.h"
+Install file: "Libraries/publicIncludes/FieldParam.h" as "include/FieldParam.h"
+Install file: "Libraries/publicIncludes/FieldRadar.h" as "include/FieldRadar.h"
+Install file: "Libraries/publicIncludes/LidarDesc.h" as "include/LidarDesc.h"
+Install file: "Libraries/publicIncludes/LidarParam.h" as "include/LidarParam.h"
+Install file: "Libraries/publicIncludes/Parameter.h" as "include/Parameter.h"
+Install file: "Libraries/publicIncludes/Pdata.h" as "include/Pdata.h"
+Install file: "Libraries/publicIncludes/Platform.h" as "include/Platform.h"
+Install file: "Libraries/publicIncludes/Qdata.h" as "include/Qdata.h"
+Install file: "Libraries/publicIncludes/RadarDesc.h" as "include/RadarDesc.h"
+Install file: "Libraries/publicIncludes/Ray.h" as "include/Ray.h"
+Install file: "Libraries/publicIncludes/Sweep.h" as "include/Sweep.h"
+Install file: "Libraries/publicIncludes/Volume.h" as "include/Volume.h"
+Install file: "Libraries/publicIncludes/Xtra_stuff.h" as "include/Xtra_stuff.h"
+Install file: "Libraries/publicIncludes/super_SWIB.h" as "include/super_SWIB.h"
+Install file: "Libraries/publicIncludes/dd_time.h" as "include/dd_time.h"
+gcc -o Libraries/dap/dap_common.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/dap/dap_common.c
+gfortran -o Libraries/dap/qdap.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Libraries/dap/qdap.F
+ar rc Libraries/dap/libdap.a Libraries/dap/dap_common.o Libraries/dap/qdap.o
+ranlib Libraries/dap/libdap.a
+Install file: "Libraries/dap/libdap.a" as "lib/libdap.a"
+gcc -o Libraries/s2/by_products.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/by_products.c
+Install file: "Libraries/publicIncludes/dd_math.h" as "include/dd_math.h"
+gcc -o Libraries/s2/cimm_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/cimm_dd.c
+Install file: "Libraries/publicIncludes/piraq.h" as "include/piraq.h"
+Install file: "Libraries/publicIncludes/dd_types.h" as "include/dd_types.h"
+Install file: "Libraries/publicIncludes/piraqx.h" as "include/piraqx.h"
+gcc -o Libraries/s2/dd_catalog.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_catalog.c
+gcc -o Libraries/s2/dd_crackers.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_crackers.c
+gcc -o Libraries/s2/dd_der_flds.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_der_flds.c
+Install file: "Libraries/publicIncludes/solo_utils.h" as "include/solo_utils.h"
+gcc -o Libraries/s2/dd_files.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_files.c
+gcc -o Libraries/s2/dd_io_mgmt.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_io_mgmt.c
+gcc -o Libraries/s2/dd_ncdf.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_ncdf.c
+gcc -o Libraries/s2/dd_swp_files.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_swp_files.c
+gcc -o Libraries/s2/dd_time.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_time.c
+gcc -o Libraries/s2/dd_uf.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_uf.c
+Install file: "Libraries/publicIncludes/point_in_space.h" as "include/point_in_space.h"
+gcc -o Libraries/s2/dda_common.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dda_common.c
+gcc -o Libraries/s2/ddb_common.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddb_common.c
+gcc -o Libraries/s2/ddin.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddin.c
+gcc -o Libraries/s2/ddout.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddout.c
+gcc -o Libraries/s2/dorade_ncdf.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_ncdf.c
+gcc -o Libraries/s2/dorade_share.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_share.c
+gcc -o Libraries/s2/dorade_tape.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_tape.c
+gcc -o Libraries/s2/dorade_uf.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_uf.c
+Install file: "Libraries/publicIncludes/TimeSeries.h" as "include/TimeSeries.h"
+Install file: "Libraries/publicIncludes/Waveform.h" as "include/Waveform.h"
+gcc -o Libraries/s2/elda_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/elda_dd.c
+gcc -o Libraries/s2/etl_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/etl_dd.c
+gcc -o Libraries/s2/fof_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/fof_dd.c
+gcc -o Libraries/s2/gecho.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gecho.c
+gcc -o Libraries/s2/gneric_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gneric_dd.c
+gcc -o Libraries/s2/gpro_data.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gpro_data.c
+gcc -o Libraries/s2/ground_echo.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ground_echo.c
+gcc -o Libraries/s2/hrd_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/hrd_dd.c
+gcc -o Libraries/s2/nc_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nc_dd.c
+gcc -o Libraries/s2/nssl_mrd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nssl_mrd.c
+gcc -o Libraries/s2/product_x.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/product_x.c
+gcc -o Libraries/s2/stdhrd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/stdhrd.c
+gcc -o Libraries/s2/swp_file_acc.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/swp_file_acc.c
+gcc -o Libraries/s2/tdwr_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/tdwr_dd.c
+gcc -o Libraries/s2/uf_dd.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/uf_dd.c
+gcc -o Libraries/s2/xwsrqc.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/xwsrqc.c
+ar rc Libraries/s2/libs2.a Libraries/s2/by_products.o Libraries/s2/cimm_dd.o Libraries/s2/dd_catalog.o Libraries/s2/dd_crackers.o Libraries/s2/dd_der_flds.o Libraries/s2/dd_files.o Libraries/s2/dd_io_mgmt.o Libraries/s2/dd_ncdf.o Libraries/s2/dd_swp_files.o Libraries/s2/dd_time.o Libraries/s2/dd_uf.o Libraries/s2/dda_common.o Libraries/s2/ddb_common.o Libraries/s2/ddin.o Libraries/s2/ddout.o Libraries/s2/dorade_ncdf.o Libraries/s2/dorade_share.o Libraries/s2/dorade_tape.o Libraries/s2/dorade_uf.o Libraries/s2/elda_dd.o Libraries/s2/etl_dd.o Libraries/s2/fof_dd.o Libraries/s2/gecho.o Libraries/s2/gneric_dd.o Libraries/s2/gpro_data.o Libraries/s2/ground_echo.o Libraries/s2/hrd_dd.o Libraries/s2/nc_dd.o Libraries/s2/nssl_mrd.o Libraries/s2/product_x.o Libraries/s2/stdhrd.o Libraries/s2/swp_file_acc.o Libraries/s2/tdwr_dd.o Libraries/s2/uf_dd.o Libraries/s2/xwsrqc.o
+ranlib Libraries/s2/libs2.a
+Install file: "Libraries/s2/libs2.a" as "lib/libs2.a"
+gfortran -o Applications/qreod/qreod -g -m32 Applications/qreod/qreoroot.o -Llib -lqreo -ldap -ls2 -lm -lncurses
+gcc -o Applications/qreou/fofclibPlus.o -c -g -m32 -DUNIX -DLITTLENDIAN -Iinclude Applications/qreou/fofclibPlus.c
+gfortran -o Applications/qreou/qreoroot.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Applications/qreou/qreoroot.F
+gfortran -o Applications/qreou/qufap.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Applications/qreou/qufap.F
+gfortran -o Applications/qreou/unixqufap.o -c -fbounds-check -g -m32 -DUNIX -DLITTLENDIAN Applications/qreou/unixqufap.F
+gfortran -o Applications/qreou/qreou -g -m32 Applications/qreou/qreoroot.o Applications/qreou/fofclibPlus.o Applications/qreou/qufap.o Applications/qreou/unixqufap.o -Llib -lqreo -ldap -ls2 -lm -lncurses
+Install file: "Applications/qreod/qreod" as "bin/qreod"
+Install file: "Applications/qreou/qreou" as "bin/qreou"
+scons: done building targets.
