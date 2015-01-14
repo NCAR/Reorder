@@ -12,7 +12,8 @@ c
 c  this file contains the following routines
 c     inireo-----Sets up internal values for all user-specified parameters
 c                and sets default values for any not specified by the user.
-c     genhed-----Builds the Cedric (mudras) 510 16-bit volume header
+c     genhed-----Builds the CEDRIC (MUDRAS) 510 16-bit volume header
+c                See Appendix D of the CEDRIC documentation
 c     transc-----Calls reciprocal routines toeart and tosurf for conversions
 c                back and forth between surface and earth-centered locations.
 c     toeart-----Converts a surface cartesian coordinate vector to an 
@@ -69,7 +70,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3)
+     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
      +,         tref,           values(maxval,3)
 c 
 	real zvx(maxval),   zvy(maxval),  zht(maxval)
@@ -93,7 +94,34 @@ c
         if( axmin(1) .lt. -32000. ) axmin(1) = -50.
         if( axmax(1) .lt. -32000. ) axmax(1) = 50.
         if( spacng(1) .le. 0 ) spacng(1) = 1.0
-        if( radius(1) .le. 0 ) radius(1) = 1.0
+
+c     Fixed setting default radius(1&2) - LJM 01/30/2010
+c     Both radius(1) and radius(2) cannot be 0.  If they
+c     are, set both to default value of 1.
+c
+        print *,'qreo2-inireo: input radius(1) --> xrad',radius(1)
+        print *,'qreo2-inireo: input radius(2) --> yrad',radius(2)
+        print *,'qreo2-inireo: input radius(3) --> zrad',radius(3)
+
+        if( radius(1) .le. 0 .and. radius(2) .gt. 0 ) then
+           radius(1) = radius(2)
+        elseif( radius(2) .le. 0 .and. radius(1) .gt. 0 ) then
+           radius(2) = radius(1)
+        elseif( radius(1) .le. 0 .and. radius(2) .le. 0 ) then
+           radius(1) = 1.0
+           radius(2) = 1.0
+        endif
+
+c     Added dimensioned variable ijk_radii(3) for storing
+c     the radii in index space when ADAPTIVE option is
+c     included.  Will interpret CARTESIAN radii as indices.
+c     LJM 02/13/2012
+
+        do ijk = 1,3
+           ijk_radii(ijk) = nint (radius(ijk))
+           if (ijk_radii(ijk) .le. 0)ijk_radii(ijk)=1
+        end do
+
         n = ( axmax(1)-axmin(1))/spacng(1) + 1.000001
         if( n .gt. maxval ) n = maxval
         numval(1) = n
@@ -113,7 +141,7 @@ c
         if( axmin(2) .lt. -32000. ) axmin(2) = -50.
         if( axmax(2) .lt. -32000. ) axmax(2) = 50.
         if( spacng(2) .le. 0 ) spacng(2) = 1.0
-        if( radius(2) .le. 0 ) radius(2) = 1.0
+c-------if( radius(2) .le. 0 ) radius(2) = 1.0
         n = ( axmax(2)-axmin(2))/spacng(2) + 1.000001
         if( n .gt. maxval ) n = maxval
         numval(2) = n
@@ -134,6 +162,11 @@ c
         if( axmax(3) .lt. -32000. ) axmax(3) = 15.5
         if( spacng(3) .le. 0 ) spacng(3) = 1.0
         if( radius(3) .le. 0 ) radius(3) = 1.0
+
+        print *,'qreo2-inireo: will use radius(1) --> xrad',radius(1)
+        print *,'qreo2-inireo: will use radius(2) --> yrad',radius(2)
+        print *,'qreo2-inireo: will use radius(3) --> zrad',radius(3)
+
         n = ( axmax(3)-axmin(3))/spacng(3) + 1.000001
         if( n .gt. maxval ) n = maxval
         numval(3) = n
@@ -271,7 +304,9 @@ c       call f9( 'db', 2, dbase )
 c----------------------------------------------------------------------
       subroutine genhed( kbuf, hed, fldnam, gnyqv, grc, acs, nacs
      +       , sprint_xlt, iadjust_z, diag_ljm )
-c  this routine builds the mudras file header record
+
+c  This routine builds the CEDRIC (mudras) 510 16-bit volume header
+c  See Appendix D of the CEDRIC documentation
 c
 c  access string
         character   acs*(*)
@@ -440,7 +475,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3)
+     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
      +,         tref,           values(maxval,3)
 c 
       integer tref
@@ -729,12 +764,20 @@ c
       call put16(hed,303,1)
       call put16(hed,304,nint(gnyqv*sf))
       call put16(hed,305,nint(grc*sf))
-c 
+
+c     CEDRIC volume header - Landmark #1
+c     Name - Words 306-308 always 'ORIGIN', 6 char, 2/word
+c     Landmark #1 - XYZ = km, km, m (MSL) Words 309-311 (Always 0,0,0)
+c
       call putasc(hed,306,'ORIGIN',6)
       call put16(hed,309,0)
       call put16(hed,310,0)
       call put16(hed,311,0)
-c 
+
+c     CEDRIC volume header - Landmark #2
+c     Words 312-314 always 'AIRBRN' if airborne radar
+c     otherwise 6 character radar name, e.g. SPOL or CHIL or KGLD
+c
       if( namefx( 'AIRCRAFT', i ) .ne. 0 ) then
       	call putasc(hed,312,'AIRBRN',6)
       else
@@ -765,21 +808,21 @@ C        SPECIFIED IN LAT, LON TO SEPARATION IN X, Y IN KM.
          endif
          call ll2xydrv( slati, -slong, x, y, dlati, -dlong, dbase )
          z = salti - dalti
-         if(diag_ljm)then
+c         if(diag_ljm)then
             print *,'After call ll2xydrv: slat-lon-alt=',
      +           slati,-slong,salti
             print *,'After call ll2xydrv: dlat-lon-alt=',
      +           dlati,-dlong,dalti
             print *,'After call ll2xydrv: xyz=',x,y,z
-         endif
+c         endif
       else
-         if(diag_ljm)then
+c        if(diag_ljm)then
             print *,'Before call transc: slat-lon-alt=',
      +           slati,slong,salti
             print *,'Before call transc: dlat-lon-alt=',
      +           dlati,dlong,dalti
             print *,'Before call transc: xyz=',x,y,z
-         endif
+c        endif
          call transc(dbase, 0.0, 0.0, 0.0,
      1        salti,
      1        slati,
@@ -788,15 +831,26 @@ C        SPECIFIED IN LAT, LON TO SEPARATION IN X, Y IN KM.
      1        dlati,
      1        dlong,
      1        x,y,z)
+
+c     If ADJUST_Z is included, then iadjust_z = .true.
+c
+c     salti - altitude of the radar
+c     dalti - altitude of the origin 
+
          if( iadjust_z ) then
             z = salti - dalti
          endif
-         if(diag_ljm)then
+c         if(diag_ljm)then
             print *,'After call transc: slat-lon-alt=',slati,slong,salti
             print *,'After call transc: dlat-lon-alt=',dlati,dlong,dalti
             print *,'After call transc: xyz=',x,y,z
-         endif
+c         endif
       endif
+
+c     CEDRIC volume header - Landmark #2
+c     Landmark #2 - XYZ = km, km, m (MSL) Words 315-317
+c
+c
       if(diag_ljm)print *,'Genhed #5 sprint_xlt=',sprint_xlt      
       call put16(hed,315,nint(x*sf))
       call put16(hed,316,nint(y*sf))
@@ -1460,7 +1514,7 @@ c
       blat   = latb
       blon   = lonb
 c 
- 123    format( ' ', 10e12.4 )
+ 123    format( 'qreo2.F-transc:', 10e12.4 )
       call toeart(alat, alon, earthr+aalt, surfxa, surfya,
      + surfza, earx, eary, earz)
 
@@ -1688,12 +1742,28 @@ c  To convert to height MSL, change z(i) calculation to
 c         z(i) = salti + r(i)*sinel + cfac*slantr*slantr
 c  Note:  If r(i) is distance to a range gate (slant range), 
 c         then the variable slantr = horizontal (not slant) range.
+c
+c  Modification by LJM - 11/1/2011:  Added salti (Heigh of radar MSL)
+c     to z(i) so that heights of range gates are now km MSL.
+c     The output xyz grid is implicitly (ENU-ECEF) km E, km N, km MSL.
+c
+c     Flat earth (local tangent plane):
+c        Above radar:  z(i) = r(i)*sinel
+c        Above ground: z(i) = salti + r(i)*sinel
+c
+c     Curved earth correction (uses 4/3 earth radius): 
+c        zcor = cfac*slantr*slantr
 c----------------------------------------------------------------------
 
+C-----Continue testing the computation of z(i) (LJM 11/2/2011)
+C
       cfac = 0.375/earthr
       do 13 i = 1, n
         slantr = r(i)*cosel
-        z(i) = r(i)*sinel + cfac*slantr*slantr
+        zcor = cfac*slantr*slantr
+c        z(i) = r(i)*sinel
+c        z(i) = r(i)*sinel + salti
+        z(i) = r(i)*sinel + zcor
  13   continue
 
       return
@@ -1723,7 +1793,7 @@ c     to a radar at (slat, slon, salt)
 c
 c     (LJM 5/26/09) - diagnostic print
 c
-      print *,'sprint_xyz has been called'
+c-----print *,'sprint_xyz has been called'
 
       ii = loop_xy2ll_v4( plat, plon, palt, x, y, z
      +     , slat, slon, salt, R_earth, n )
@@ -1897,7 +1967,7 @@ c----------------------------------------------------------------------
       subroutine esurf( n, x, y, z, r, cosrlo, s1, s2, sinrlo,
      a  s3, s4, cosrla, sinrla, ex, ey, ez )
 c----------------------------------------------------------------------
-c  convert xyz values to earth surface coordinates.
+c  convert input xyz values to earth surface coordinates (ex,ey,ez).
 c  ie. km. relative to 0 deg. lat., km. relative to 0 deg. lon., and
 c  km. relative to earth center
 
@@ -2190,7 +2260,8 @@ c
         end
 c----------------------------------------------------------------------
       subroutine filter( x, y, z, flds, ngts, zok, az, el, itm
-     +  , newvol, igskip, azrad, elrad, rgrad, iradfun, diag_ljm )
+     +  , newvol, igskip, azrad, elrad, rgrad, iradfun, airpln
+     +  , adaptive, diag_ljm )
 c===========================================================================
 c___qcommon.for
 c
@@ -2214,6 +2285,7 @@ c
         real    thrval, zlard, atten
         real    xmin, ymin, zmin
         logical dupfld, unfflg
+        logical airpln
         logical diag_ljm
 c
         real space
@@ -2351,6 +2423,7 @@ c
      +,         equal,          eof, 	    	newvol
      +,         endofd,         first,          ok,             pow
      +,         nonzro,         bok,            copln,          itrap
+     +,         flat,           adaptive
 
 
         integer
@@ -2373,7 +2446,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3)
+     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
      +,         tref,           values(maxval,3)
 c 
       integer tref
@@ -2389,12 +2462,12 @@ c
 c
         common  / scr /         ok(maxgt)
 c
-    	save ikount, first, tcount
+    	save ikount, first, tcount, flat
      +, copln, nxval, nyval, nzval, rcpdx, rcpdy, rcpdz
      +, xrad, yrad, zrad, xval, yval, zval, dx, dy, dz
      +, xmin, ymin, zmin
 c
-      data first / .true. / 
+      data first,flat / .true., .false. / 
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 c 
@@ -2405,6 +2478,7 @@ c  first pass initialization
         if( first ) then
             first = .false.
             tcount =  namefx( 'TCOUNT', ikount )
+            print *,'qreo2.F-filter: flat=',flat
 c   try to cut down on subscript calculations
 c   a lot of this stuff used to be in equivalence statements
             copln = namefx( 'COPLANE', i ) .ne. 0
@@ -2596,9 +2670,10 @@ c-               endif
 
 c     (LJM 6/15/09)
 c        Replacement for box dimension calculations with a variant
-c        that includes CARTESIAN, SPHERICAL, or HYBRID dimensions.
+c        that includes CARTESIAN, INDEX, SPHERICAL, or HYBRID
+c        dimensions.
 c     
-c     Calculate box dimensions from xyz radii
+c     CARTESIAN - Calculate box dimensions from xyz radii
 c
                if( xrad .gt. 0 ) then
                   dx_xyz = xrad
@@ -2608,7 +2683,7 @@ c
                dy_xyz = yrad
                dz_xyz = zrad
                
-c     Calculate box dimensions from rae radii
+c     SPHERICAL - Calculate box dimensions from rae radii
 c     
                if( rgrad .gt. 0 ) then
                   dx_rae= rgrad
@@ -2618,22 +2693,52 @@ c
                dy_rae = rg(i)*azrad*torad
                dz_rae = rg(i)*elrad*torad
 
-c     Select box dimensions from xyz or rae radii or hybrid
+c     Select box dimensions from xyz (CARTESIAN) or rae radii (SPHERICAL)
+c     or HYBRID (CARTESIAN until SPHERICAL > CARTESIAN, then SPHERICAL)
+c
+c     (LJM 11/8/2011) - Fix for airborne (airpln = .true.)
+c     Always use CARTESIAN box dimensions in horizontal planes (XY) 
+c     since the linear spacing between beams (AFT and FOR) is roughly
+c     constant along the aircraft track, at least for straight-line
+c     flights.
+c        dx - radius of box in the x-direction
+c        dy - radius of box in the y-direction
+c        dz - radius of box in the z-direction
 c     
                if( iradfun .eq. 1) then
+c     CARTESIAN
                   dx(i) = dx_xyz
                   dy(i) = dy_xyz
                   dz(i) = dz_xyz
                else if (iradfun .eq. 2) then
-                  dx(i) = dx_rae
-                  dy(i) = dy_rae
-                  dz(i) = dz_rae
+c     SPHERICAL
+                  if(airpln)then
+                     dx(i) = dx_xyz
+                     dy(i) = dy_xyz
+                     dz(i) = dz_rae
+                  else
+                     dx(i) = dx_rae
+                     dy(i) = dy_rae
+                     dz(i) = dz_rae
+                  end if
                else if (iradfun .eq. 3) then
-                  dx(i) = amax1(dx_xyz,dx_rae)
-                  dy(i) = amax1(dy_xyz,dy_rae)
-                  dz(i) = amax1(dz_xyz,dz_rae)
+c     HYBRID
+                  if(airpln)then
+                     dx(i) = dx_xyz
+                     dy(i) = dy_xyz
+                     dz(i) = amax1(dz_xyz,dz_rae)
+                  else
+                     dx(i) = amax1(dx_xyz,dx_rae)
+                     dy(i) = amax1(dy_xyz,dy_rae)
+                     dz(i) = amax1(dz_xyz,dz_rae)
+                  end if
                end if
-
+c               if(mod(i,10) .eq. 0)then
+                  if(rg(i).gt.0.0 .and. rg(i) .le. 60.0)then
+                     print *,'qreo2-filter: i,rg,dx,dy,dz=',
+     +                    i,rg(i),dx(i),dy(i),dz(i)
+                  endif
+c               endif
   16        continue
 c
         endif
@@ -2663,90 +2768,183 @@ c
 c   end of initialization
 c
 c
-
 c
 c   begin processing the current beam!
 c
 c
-c   LJM (04/29/09/ - commented out this "call radinf" that was
-c      recalculating deltas if using angular radius of influence.
-c      It was producing an odd "clover-leaf looking" pattern in 
-c      the CNT field.  This pattern is a consequence of radinf 
-c      creating a box with dimensions of (dx,dy,dz) that is azimuth
-c      angle dependent, with minima at 0, 90, 180, 270, and 360 deg.
+c     LJM (04/29/2009 - commented out this "call radinf" that was
+c     recalculating deltas if using angular radius of influence.
+c     It was producing an odd "clover-leaf looking" pattern in 
+c     the CNT field.  This pattern is a consequence of radinf 
+c     creating a box with dimensions of (dx,dy,dz) that is azimuth
+c     angle dependent, with minima at 0, 90, 180, 270, and 360 deg.
 c------------------------------------------------------------------
 c        if( azrad .gt. 0 .and..not. copln ) then
 c            call radinf( ngts, az*torad, el*torad, rg, 
 c     +          azrad*torad, elrad*torad, rgrad, dx, dy, dz )
 c        endif
 c------------------------------------------------------------------
+c     (LJM - 11/16/2011)
+c     When (adaptive = .true.) this new scheme populates only the NEAREST
+c     output grid points rather than all output grid points within the
+c     user-specified dimensions of the box.  BOX DIMENSIONS are still used
+c     when determining the weighting function (Cressman, Exponential, etc.)
 c
+c     Adaptive = .true.  ==> Populates only the nearest output grid points.
+c              = .false. ==> Populates all output grid points in the box.
+c------------------------------------------------------------------
+
+c      adaptive = .false.
+
+      if(.not.adaptive)then
+c     
+c     The original algorithm - populate all grid points within the box
+
 c  determine the range of the x indices
-      do 303 i = 1, ngts
-        ixlo(i) = ( x(i)-dx(i)-xmin )*rcpdx +1.
- 303  continue
+       do 303 i = 1, ngts
+         ixlo(i) = ( x(i)-dx(i)-xmin )*rcpdx +1.
+  303  continue
 c
 c
-      do 305 i = 1, ngts
-        ixhi(i) = ( x(i)+dx(i)-xmin )*rcpdx +1.5
- 305  continue
+       do 305 i = 1, ngts
+         ixhi(i) = ( x(i)+dx(i)-xmin )*rcpdx +1.5
+  305  continue
 c
 c
-      do 304 igt = 1, ngts
-        if( ixlo(igt) .lt. 1 ) ixlo(igt) = 1
- 304  continue
+       do 304 igt = 1, ngts
+         if( ixlo(igt) .lt. 1 ) ixlo(igt) = 1
+  304  continue
 c
-      do 306 igt = 1, ngts
-        if( ixhi(igt) .gt. nxval ) then
-            ixhi(igt) = nxval
-        endif
- 306  continue
+       do 306 igt = 1, ngts
+         if( ixhi(igt) .gt. nxval ) then
+             ixhi(igt) = nxval
+         endif
+  306  continue
 c
 c
 c  determine the range of the y indices
-      do 313 i = 1, ngts
-        iylo(i) = ( y(i)-dy(i)-ymin )*rcpdy +1.
- 313  continue
+       do 313 i = 1, ngts
+         iylo(i) = ( y(i)-dy(i)-ymin )*rcpdy +1.
+  313  continue
 c
-      do 315 i = 1, ngts
-        iyhi(i) = ( y(i)+dy(i)-ymin )*rcpdy +1.5
- 315  continue
+       do 315 i = 1, ngts
+         iyhi(i) = ( y(i)+dy(i)-ymin )*rcpdy +1.5
+  315  continue
 c
 c
-      do 314 igt = 1, ngts
-        if( iylo(igt) .lt. 1 ) iylo(igt) = 1
- 314  continue
+       do 314 igt = 1, ngts
+         if( iylo(igt) .lt. 1 ) iylo(igt) = 1
+  314  continue
 c
-      do 316 igt = 1, ngts
-        if( iyhi(igt) .gt. nyval ) iyhi(igt) = nyval
- 316  continue
+       do 316 igt = 1, ngts
+         if( iyhi(igt) .gt. nyval ) iyhi(igt) = nyval
+  316  continue
 c
 c
 c  determine the range of the z indices
-      do 323 i = 1, ngts
-         izlo(i) = ( z(i)-dz(i)-zmin )*rcpdz +1.
-            izrg = nint(( z(i)-zmin )*rcpdz+1.)
-c         izlo(i) = izrg-2
- 323  continue
+       do 323 i = 1, ngts
+          izlo(i) = ( z(i)-dz(i)-zmin )*rcpdz +1.
+             izrg = nint(( z(i)-zmin )*rcpdz+1.)
+c          izlo(i) = izrg-2
+  323  continue
 c
-      do 325 i = 1, ngts
-         izhi(i) = ( z(i)+dz(i)-zmin )*rcpdz +1.5
-            izrg = nint(( z(i)-zmin )*rcpdz+1.)
-c         izhi(i) = izrg+2
- 325  continue
+       do 325 i = 1, ngts
+          izhi(i) = ( z(i)+dz(i)-zmin )*rcpdz +1.5
+             izrg = nint(( z(i)-zmin )*rcpdz+1.)
+           izhi(i) = izrg+2
+  325  continue
 c
 c
-      do 324 igt = 1, ngts
-        if( izlo(igt) .lt. 1 ) izlo(igt) = 1
- 324  continue
+       do 324 igt = 1, ngts
+         if( izlo(igt) .lt. 1 ) izlo(igt) = 1
+  324  continue
 c
-      do 326 igt = 1, ngts
-        if( izhi(igt) .gt. nzval ) izhi(igt) = nzval
- 326  continue
+       do 326 igt = 1, ngts
+         if( izhi(igt) .gt. nzval ) izhi(igt) = nzval
+  326  continue
+
+      else
+c     
+c     Adaptive algorithm - populate only nearest grid points
+c     within the box.
+c
+c     Determine the range of output grid (x) xyz indices
+c     nearest the input range gate (+) sample locations.
+c
+c                               / N
+c                              +  |
+c                W-- x--------/---x --E
+c                    |       +    |
+c                    |      /     |
+c                    |     +      |
+c                    |    /       |
+c                    |   +        |
+c                    x--/---------x
+c                      +          |
+c                     /           S
+c                  Radar
+c
+c
+c     xmin = axmin(1) - minimum value of x output grid
+c     ymin = axmin(2) - minimum value of y output grid
+c     zmin = axmin(3) - minimum value of z output grid
+c     xmax = axmax(1) - maximum value of x output grid
+c     ymax = axmax(2) - maximum value of y output grid
+c     zmax = axmax(3) - maximum value of z output grid
+c     delx = spacng(1) - spacing of the x output grid
+c     dely = spacng(2) - spacing of the y output grid
+c     delz = spacng(3) - spacing of the z output grid
+c     rcpdx = 1.0/spacng(1) - reciprocal of x spacing
+c     rcpdy = 1.0/spacng(2) - reciprocal of y spacing
+c     rcpdz = 1.0/spacng(3) - reciprocal of z spacing
+c
+        iradius = 1
+        jradius = 1
+        kradius = 2
+
+        do 330 i = 1,ngts
+
+c     Determine nearest output grid point relative
+c     to the current range gate at xyz(i).
+c
+           iclst = nint(1.0 + (x(i)-xmin)*rcpdx)
+           jclst = nint(1.0 + (y(i)-ymin)*rcpdy)
+           kclst = nint(1.0 + (z(i)-zmin)*rcpdz)
+
+c     Set the ijk increments +/- nearest output grid point
+c
+c
+           iwest = iclst - iradius
+           ieast = iclst + iradius
+           jsouth = jclst - jradius
+           jnorth = jclst + jradius
+           kbelow = kclst - kradius
+           kabove = kclst + kradius
+ 
+c     Set the output grid indices that are to be 
+c     populated from the current range gate values.
+c
+           ixlo(i) = iwest
+           ixhi(i) = ieast
+           iylo(i) = jsouth
+           iyhi(i) = jnorth
+           izlo(i) = kbelow
+           izhi(i) = kabove
+           if( ixlo(i) .lt. 1 ) ixlo(i) = 1
+           if( iylo(i) .lt. 1 ) iylo(i) = 1
+           if( izlo(i) .lt. 1 ) izlo(i) = 1
+           if( ixhi(i) .gt. nxval ) ixhi(i) = nxval
+           if( iyhi(i) .gt. nyval ) ixhi(i) = nyval
+           if( izhi(i) .gt. nzval ) ixhi(i) = nzval
+ 330    continue
+
+      end if
+
+
+
 
 c     LJM (04/29/09) - diagnostic calculations and print
 c
-      if(diag_ljm)then
          earthr=6366.8056
          cfac=0.375/earthr
  
@@ -2754,9 +2952,10 @@ c
          y_rad=y(1)
          z_rad=z(1)
 
-         print *,'Earth radius,cfac=',earthr,cfac
-         print *,'RadCoord: r,x,y,z=',rg(1),x_rad,y_rad,z_rad
-
+c--------print *,'qreo2.F-filter: Earth radius, RadCoord x,y,z=',
+c----+        earthr,x_rad,y_rad,z_rad
+ 
+      if(diag_ljm)then        
          do jj=10,300,10
             sinaz=sin(az*torad)
             cosaz=cos(az*torad)
@@ -2766,8 +2965,8 @@ c
             ygate=y_rad+rg(jj)*cosaz*cosel
             hgate=rg(jj)*cosel
             zcor=cfac*hgate*hgate
-c           print *,'hgate,zcor=',hgate,zcor
-c           print *,'rg(jj)*sinel=',rg(jj)*sinel
+            print *,'qreo2.F-filter: hgate,zcor=',hgate,zcor
+            print *,'qreo2.F-filter: rg(jj)*sinel=',rg(jj)*sinel
             zgate=z_rad+rg(jj)*sinel+hgate*hgate*cfac
             xdiff=xgate-x(jj)
             ydiff=ygate-y(jj)
@@ -2776,8 +2975,8 @@ c           print *,'rg(jj)*sinel=',rg(jj)*sinel
             zrg = ( z(jj)-zmin )*rcpdz+1.
             zhi = ( z(jj)+dz(jj)-zmin )*rcpdz+1.5
             write(6,991)az,el,jj,rg(jj),
-c     +     x(jj),y(jj),z(jj),
-c     +     xgate,ygate,zgate,
+     +           x(jj),y(jj),z(jj),
+     +           xgate,ygate,zgate,
      +           xdiff,ydiff,zdiff,
      +           dx(jj),dy(jj),dz(jj),
      +           ixlo(jj),ixhi(jj),
@@ -2785,7 +2984,7 @@ c     +     xgate,ygate,zgate,
      +           izlo(jj),izhi(jj),
      +           zlo,zrg,zhi
  991        format('AzEl=',2f6.2,' jj=',i3,' rg=',f5.2,
-c     +     ' xyz=',3f6.2,' xyzgate=',3f6.2,
+     +     ' xyz=',3f6.2,' xyzgate=',3f6.2,
      +           ' xyzdiff=',3f7.3,
      +           ' RaeBox=',3f6.2,' ijk=',6i5,
      +           ' zlo,zrg,zhi=',3f7.3)
@@ -2805,25 +3004,72 @@ c     these intermediate values are used to calculate output fields
 c     [zval=wsum/sumw) in routine wrimud and written out in the 
 c     Cedric file.
 c
+c-----Looping outermost --> innermost (range gates -> z -> y -> x
+c
+c      do 555 - Main outer loop over range gates in a beam
+c         do 503 - Inner loop over z-levels
+c            do 502 - Inner loop over y-levels
+c               do 501 - Inner loop over x-levels
+c               501 continue
+c            502 continue
+c         503 continue
+c      555  continue
+c
       do 555 igt = 1, ngts, igskip
 c
 c
+c     (LJM 11/30/2011): Series of checks on whether or not the xyz location
+c     is within a box with dimensions (xbox, ybox, zbox).  If outside the box, 
+c     don't use this range gate value.  The (xbox, ybox, zbox) values for
+c        adaptive = .true.  are the input grid spacings [delta(1-3)]
+c                   .false. are the input box dimensions (dx,dy,dz)
+c
+c     Check if xyz-distance abs(xyzgrid-xyzgate) is outside the zbox 
+
       do 503 l3=izlo(igt),izhi(igt)
-        if( abs( zval(l3)-z(igt) ).gt. dz(igt) ) then
+         if( adaptive )then
+            zbox = kradius * delta(3)
+         else
+            zbox = dz(igt)
+         end if
+        if( abs( zval(l3)-z(igt) ).gt. zbox ) then
           go to 503
         endif
 c
-c
+c     Check if y-distance abs(ygrid-ygate) is outside the ybox 
+
       do 502 l2=iylo(igt),iyhi(igt)
-        if( abs( yval(l2)-y(igt) ) .gt. dy(igt) ) then
+         if( adaptive )then
+            ybox = jradius * delta(2)
+         else
+            ybox = dy(igt)
+         end if
+        if( abs( yval(l2)-y(igt) ) .gt. ybox ) then
           go to 502
         endif
 c
-c
+c     Check if x-distance abs(xgrid-xgate) is outside the xbox 
+
       do 501 l1=ixlo(igt),ixhi(igt)
-        if( abs( xval(l1)-x(igt) ) .gt. dx(igt) ) then
+         if( adaptive )then
+            xbox = iradius * delta(1)
+         else
+            xbox = dx(igt)
+         end if
+        if( abs( xval(l1)-x(igt) ) .gt. xbox ) then
            go to 501
         endif
+
+c      print *,'In qreo2-filter: adaptive=',adaptive
+
+        if(diag_ljm .and. igt .eq.101)then
+           write(6,1771)
+     +        l3,l2,l1,zval(l3),yval(l2),xval(l1),
+     +        z(igt),y(igt),x(igt),
+     +        delta(3),delta(2),delta(1)
+ 1771      format(' qreo2.F-filter: l321,zyx grd, zyx rg=, d zyx=',
+     +          3i4,9f8.2)
+        end if
 
 c     Original formulation of bigrsq and rsq
 c     Cressman: w = (bigrsq-rsq)/(bigrsq+rsq)
@@ -2865,9 +3111,14 @@ c   cressman weighting
 c        w = (bigrsq-rsq)/(bigrsq+rsq)
         w = (1. - ddsqr)/(1. + ddsqr)
 
+        if(w.lt.0.0)then
+           w = 0.0
+
 c     LJM (04/29/09) - diagnostic print
 c
-        if(w.lt.0.0)print *,'Cressman w .lt.0',w
+c----------print *,'Cressman w .lt.0',w
+
+        endif
 
         go to 400
  362    continue
@@ -2934,15 +3185,15 @@ c
             call panic( '** Bad field type **' )
 c       
   401       continue
-c       just use the data point
+c     (fldtyp = 1 or 2) just use the input data point
             zdata = flds( igt + fldoff(i))
             go to 417
   403       continue
-c       time!                               
+c     (fldtyp = 3) time as a field             
             zdata = itm
             go to 417
   404       continue
-c       azimuth
+c     (fldtyp = 4) azimuth angle as a field
             zdata = az
     	    zref = space(offset+unfptr(i))
             if( oftyp(i) .eq. 25 ) then
@@ -2958,10 +3209,9 @@ c        closest point
 		    zdata = zdata +360.
 		endif
     	    endif
-c-----------if(igt.eq.250)print *,'igt,az=',igt,az
             go to 417
   405       continue
-c       elevation   
+c     (fldtyp = 5) elevation angle as a field   
             zdata = el
     	    zref = space(offset+unfptr(i))
             if( oftyp(i) .eq. 25 ) then
@@ -2977,19 +3227,25 @@ c        closest point
 		    zdata = zdata +360.
 		endif
     	    endif
-c-----------if(igt.eq.250)print *,'igt,el=',igt,el
             go to 417
   406       continue
-c       range
+c     (fldtyp = 6) slant range as a field
             zdata = rg(igt)
-c-----------if(igt.eq.250)print *,'igt,rg=',igt,rg(igt)
             go to 417
   407       continue
+c     (fldtyp = 7) zmsl as a field
+c     ZMSL field (#7) --> zgate --> zdata (LJM 11/1/2011)
 c       height above curved Earth (km MSL)
+c------------------------------------------------------
+c  To convert to height MSL, change z(i) calculation to 
+c         z(i) = salti + r(i)*sinel + cfac*slantr*slantr
+c  Note:  If r(i) is distance to a range gate (slant range), 
+c         then the variable slantr = horizontal (not slant) range.
 c------------------------------------------------------
 c     Temporarily replaced elevation angle with the
 c     height of the data point, either with or 
 c     without a 4/3 earth correction. (LJM 11/1/2010) 
+c------------------------------------------------------
 c
 c-----------if(igt.eq.250)print *,'igt,rg,az,el=',igt,rg(igt),az,el
             earthr=6366.8056
@@ -3003,20 +3259,30 @@ c-----------if(igt.eq.250)print *,'igt,rg,az,el=',igt,rg(igt),az,el
             hgate=rg(igt)*cosel
             zcor=cfac*hgate*hgate
 
-c     Flat earth do not include zcor; otherwise
-c     correct for a 4/3 earth radius.
+c     Generation of the ZMSL field (#7) --> zgate --> zdata (LJM 11/1/2011)
+c     Flat earth do not include zcor; otherwise do include zcor..
+c     Note: z_rad - height of the radar (km MSL)
+c           zflat - range gate height above flat earth (km MSL)
+c           zcor  - height correction for a 4/3 earth radius
+c           zcrvd - range gate height above flat earth (km MSL)
 c
-            zgate=z_rad+rg(igt)*sinel
+            zflat = z_rad + rg(igt)*sinel
+            zcrvd = zflat + zcor
 
-c     Confirmation printout (LJM 11/11/2010)
-c            if(igt.eq.250)then
-c               write(6,1771)igt,rg(igt),hgate,az,el,
-c     +              xgate,ydate,zgate,zcor
-c 1771          format(' igt,srng,hrng,az,el,xyz,zcor=',i3,8f10.3)
-c            endif
+c     Confirmation printout (LJM 10/26/2011) for zmsl field
+            if(mod(igt,3000) .eq. 0 .and. abs(el) .le. 0.5)then
+               write(6,1772)igt,x_rad,y_rad,z_rad,az,el,
+     +              rg(igt),hgate,xgate,ygate,zcor,zflat,zcrvd
+ 1772          format(
+     +              ' igt,xyz_rad,az,el,srng,hrng,xy_gate=',i3,9f10.3,
+     +              ' zcor,zflat,zcrvd=',3f10.3)
+            end if
 
-            zgate=zgate+zcor
-            zdata = zgate
+            if (flat)then
+               zdata = zflat
+            else
+               zdata = zcrvd
+            end if
 c------------------------------------------------------
             go to 417
 c       

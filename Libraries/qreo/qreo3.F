@@ -599,7 +599,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3)
+     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
      +,         tref,           values(maxval,3)
 c 
       integer tref
@@ -632,8 +632,19 @@ c
 c
 c       LJM - debug print
 c
-        print *,'WRIMUD: maxcart, sizcart, maxspc=',
-     +       maxcart, sizcart, maxspc
+        print *,'qreo3:wrimud: maxcart, sizcart, maxspc, noutf=',
+     +       maxcart, sizcart, maxspc, noutf
+
+c     LJM - debug print of information for each (ofn) of noutf
+c           fields. See do 530 ofn = 1, noutf loop below.  That
+c           loop is over all levels, but print here only once 
+        do ofn = 1, noutf
+           icase = oftyp(ofn)-20
+           mm = mnptr(ofn)
+           print *,'qreo3:wrimud: ofn,oftyp,name=',
+     +          ofn,oftyp(ofn),mnames(mm:mm+7)
+        enddo
+
 
         call dmplin( 'c...mark   ', 8 )
 c        call dmplin( '**wrimud**', 10 )
@@ -713,7 +724,6 @@ c
 c  assemble the data for each output field
 c
       do 530 ofn = 1, noutf
-c         print *,'WRIMUD: noutf, ofn=',noutf,ofn
 c
 c     get the scale for each field
          i16w = 176 + (ofn -1) * 5

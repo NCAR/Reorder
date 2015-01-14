@@ -92,7 +92,7 @@ static struct dorade_unique_info *dui=NULL;
 static struct dd_input_sweepfiles_v3 *dis;
 static struct unique_sweepfile_info_v3 *usi;
 static struct dd_general_info *dgi=NULL, *save_dgi=NULL;
-static int Diagnostic_Print=NO;
+static int Diagnostic_Print=YES;
 static int sweep_files=NO, dd_radar_num=-1;
 static char local_radar_name[32];
 static struct volume_d *vold=NULL;

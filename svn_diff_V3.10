@@ -1,0 +1,2594 @@
+Index: DoradeDoc-2010_07.pdf
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+
+Property changes on: DoradeDoc-2010_07.pdf
+___________________________________________________________________
+Added: svn:mime-type
+   + application/octet-stream
+
+Index: old_docs/unixqreola.pdf
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+
+Property changes on: old_docs/unixqreola.pdf
+___________________________________________________________________
+Added: svn:mime-type
+   + application/octet-stream
+
+Index: old_docs/reoexample.pdf
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+
+Property changes on: old_docs/reoexample.pdf
+___________________________________________________________________
+Added: svn:mime-type
+   + application/octet-stream
+
+Index: old_docs/unixreorder.pdf
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+
+Property changes on: old_docs/unixreorder.pdf
+___________________________________________________________________
+Added: svn:mime-type
+   + application/octet-stream
+
+Index: Applications/qreod/qreoroot.F
+===================================================================
+--- Applications/qreod/qreoroot.F	(revision 56)
++++ Applications/qreod/qreoroot.F	(working copy)
+@@ -5,6 +5,8 @@
+         program root
+     	parameter( lenbuf=17000 )
+     	integer tbuf( lenbuf )
++        data tbuf /lenbuf*0/
++
+     	write(*,*) ' '
+     	write(*,*)
+      +' qreod - REORDER executable for reading Dorade sweep files'
+Index: logmsg.5
+===================================================================
+--- logmsg.5	(revision 0)
++++ logmsg.5	(revision 0)
+@@ -0,0 +1,74 @@
++REORDER VERSION 3.00 November 2011 (LJM)
++
++--------------------------------------------------------------------------
++Significant changes were made to how Reorder populates the output XYZ grid 
++and to what is included in the calculation of heights (MSL).
++--------------------------------------------------------------------------
++
++1. Libraries/qreo/qreo1.F
++      routine reo prints 'qreo1.F--LINUX VERSION 3.00 November 2011'
++
++2. Libraries/dap/qdap.F
++      routine accver prints 'qdap.F--LINUX VERSION 3.00 November 2011'
++
++3. For now bounds checking (env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
++   remains ON in SConstruct.  This line could be commented out (#) to prevent
++   the program from dying, but this could lead to unpredictable results in some
++   instances.  There are likely some lingering problems where the program can
++   go beyond the bounds of dimensioned variables.  Unfortunately, these tend to
++   be unique to a particular set of user-specied variables and parameters when
++   applied to their dataset.
++
++4. Airborne Doppler;
++   a. Added some more detailed print statements for a thorough re-examination of
++      some parts of the code, especially as it applies to gridding an airborne
++      dataset. A current issue is whether or not refraction and Earth's curvature
++      are included compared to height calculations above a local tangent plane
++      (flat Earth with no correction for refraction).
++
++      The issue in #4a above haa come up during gridding of a synthetic dataset
++      based on a Beltrami flow model (sequence of counter-rotating vortices that 
++      satisfy mass-continuity).  Specific changes and/or fixes relevant to these
++      tests follow.
++
++   b. Changed how the region of XYZ output grid points [size of boxes surrounding
++      the input range gate (RAE) sample locations] get defined.  The antenna
++      spins around the centerline of the fuselage as the aircraft moves forward,
++      thus making a series of surveillance-like scans spaced a few hundred meters
++      apart along the flight track.  Therefore, it is more appropriate to keep
++      the horizontal box dimensions fixed (CARTESIAN) and to let the vertical 
++      dimension increase with range (SPHERICAL and/or HYBRID) from the radar.
++
++   c. qreo1.F (call filter) and qreo2.F (subroutine filter): added logical
++      variable airpln to parameter list.  The user specifies the BOX 
++      DIMENSIONS variable, with parameter of CARTESIAN, SPHERICAL, or HYBRID,
++      along with the desired XYZ and RAE radii, and Reorder makes the choice
++      of XY and Z (or E) box dimensions to be used.  See comments inside
++      qreo2.F, subroutine filter.
++
++   d. qreo1.F (call inidat) and qreo1.F (subroutine inidat): added logical
++      variable adaptive to parameter list.  This new logical variable is
++      used to determine the algorithm for populating the output grid points
++      surrounding an input range gate location.  The intent is to let the
++      program adapt its box size (linear dimensions) to a local RAE sampling
++      resolution (spherical dimensions).  
++
++      If the adaptive scheme is desired, the user must specify a new variable
++      and its parameter (POPULATE: ADAPTIVE;) in their script; otherwise, this
++      variable is not included and the program uses the original (default) 
++      scheme.
++
++      Adaptive = .false. ==> Populates all output grid points (the historic
++                             or original algorithm)  
++               = .true.  ==> Populates only the nearest output grid points
++
++      This adaptive scheme uncouples spatial filtering (distance-weighted
++      averages (Cressman, Exponential, and Uniform) from which output
++      grid points get populated.  The original approach used the same
++      XYZ-radii and/or RAE-radii for both the output grid region to be
++      populated and how the filtering is to be done.
++
++5. Some fixes were made to how Reorder parses the user-specified variables
++   and parameters (the input script).  These fixes included initializing
++   some variables and/or resetting their values back to an initial value
++      
+Index: scons.out
+===================================================================
+--- scons.out	(revision 56)
++++ scons.out	(working copy)
+@@ -1,121 +0,0 @@
+-scons: Reading SConscript files ...
+-scons: done reading SConscript files.
+-scons: Building targets ...
+-gfortran -o Applications/qreod/qreoroot.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Applications/qreod/qreoroot.F
+-gcc -o Libraries/qreo/xcedcio.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/xcedcio.c
+-gcc -o Libraries/qreo/fofclib.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/fofclib.c
+-gfortran -o Libraries/qreo/qreo1.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/qreo1.F
+-gfortran -o Libraries/qreo/qreo2.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/qreo2.F
+-Libraries/qreo/qreo2.F: In function 'loop_xy2ll_v4':
+-Libraries/qreo/qreo2.F:1813: warning: Function return value not set
+-Libraries/qreo/qreo2.F: In function 'loop_ll2xy_v4':
+-Libraries/qreo/qreo2.F:1887: warning: Function return value not set
+-gfortran -o Libraries/qreo/qreo3.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/qreo3.F
+-gfortran -o Libraries/qreo/unixqreo.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/unixqreo.F
+-gfortran -o Libraries/qreo/foflib.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/foflib.F
+-gfortran -o Libraries/qreo/unixflib.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/unixflib.F
+-ar rc Libraries/qreo/libqreo.a Libraries/qreo/xcedcio.o Libraries/qreo/fofclib.o Libraries/qreo/qreo1.o Libraries/qreo/qreo2.o Libraries/qreo/qreo3.o Libraries/qreo/unixqreo.o Libraries/qreo/foflib.o Libraries/qreo/unixflib.o
+-ranlib Libraries/qreo/libqreo.a
+-Install file: "Libraries/qreo/libqreo.a" as "lib/libqreo.a"
+-Install file: "Libraries/publicIncludes/dd_files.h" as "include/dd_files.h"
+-Install file: "Libraries/publicIncludes/input_sweepfiles.h" as "include/input_sweepfiles.h"
+-Install file: "Libraries/publicIncludes/dgi_func_decl.h" as "include/dgi_func_decl.h"
+-Install file: "Libraries/publicIncludes/dorade_headers.h" as "include/dorade_headers.h"
+-Install file: "Libraries/publicIncludes/function_decl.h" as "include/function_decl.h"
+-Install file: "Libraries/publicIncludes/dd_defines.h" as "include/dd_defines.h"
+-Install file: "Libraries/publicIncludes/dd_general_info.h" as "include/dd_general_info.h"
+-Install file: "Libraries/publicIncludes/dorade_data_descriptors.h" as "include/dorade_data_descriptors.h"
+-Install file: "Libraries/publicIncludes/dorade_share.h" as "include/dorade_share.h"
+-Install file: "Libraries/publicIncludes/CellSpacing.h" as "include/CellSpacing.h"
+-Install file: "Libraries/publicIncludes/CellSpacingFP.h" as "include/CellSpacingFP.h"
+-Install file: "Libraries/publicIncludes/CellVector.h" as "include/CellVector.h"
+-Install file: "Libraries/publicIncludes/Comment.h" as "include/Comment.h"
+-Install file: "Libraries/publicIncludes/Correction.h" as "include/Correction.h"
+-Install file: "Libraries/publicIncludes/FieldLidar.h" as "include/FieldLidar.h"
+-Install file: "Libraries/publicIncludes/FieldParam.h" as "include/FieldParam.h"
+-Install file: "Libraries/publicIncludes/FieldRadar.h" as "include/FieldRadar.h"
+-Install file: "Libraries/publicIncludes/LidarDesc.h" as "include/LidarDesc.h"
+-Install file: "Libraries/publicIncludes/LidarParam.h" as "include/LidarParam.h"
+-Install file: "Libraries/publicIncludes/Parameter.h" as "include/Parameter.h"
+-Install file: "Libraries/publicIncludes/Pdata.h" as "include/Pdata.h"
+-Install file: "Libraries/publicIncludes/Platform.h" as "include/Platform.h"
+-Install file: "Libraries/publicIncludes/Qdata.h" as "include/Qdata.h"
+-Install file: "Libraries/publicIncludes/RadarDesc.h" as "include/RadarDesc.h"
+-Install file: "Libraries/publicIncludes/Ray.h" as "include/Ray.h"
+-Install file: "Libraries/publicIncludes/Sweep.h" as "include/Sweep.h"
+-Install file: "Libraries/publicIncludes/Volume.h" as "include/Volume.h"
+-Install file: "Libraries/publicIncludes/Xtra_stuff.h" as "include/Xtra_stuff.h"
+-Install file: "Libraries/publicIncludes/super_SWIB.h" as "include/super_SWIB.h"
+-Install file: "Libraries/publicIncludes/dd_time.h" as "include/dd_time.h"
+-gcc -o Libraries/dap/dap_common.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/dap/dap_common.c
+-gfortran -o Libraries/dap/qdap.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/dap/qdap.F
+-ar rc Libraries/dap/libdap.a Libraries/dap/dap_common.o Libraries/dap/qdap.o
+-ranlib Libraries/dap/libdap.a
+-Install file: "Libraries/dap/libdap.a" as "lib/libdap.a"
+-gcc -o Libraries/s2/by_products.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/by_products.c
+-Install file: "Libraries/publicIncludes/dd_math.h" as "include/dd_math.h"
+-gcc -o Libraries/s2/cimm_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/cimm_dd.c
+-Install file: "Libraries/publicIncludes/piraq.h" as "include/piraq.h"
+-Install file: "Libraries/publicIncludes/dd_types.h" as "include/dd_types.h"
+-Install file: "Libraries/publicIncludes/piraqx.h" as "include/piraqx.h"
+-gcc -o Libraries/s2/dd_catalog.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_catalog.c
+-gcc -o Libraries/s2/dd_crackers.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_crackers.c
+-gcc -o Libraries/s2/dd_der_flds.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_der_flds.c
+-Install file: "Libraries/publicIncludes/solo_utils.h" as "include/solo_utils.h"
+-gcc -o Libraries/s2/dd_files.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_files.c
+-gcc -o Libraries/s2/dd_io_mgmt.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_io_mgmt.c
+-gcc -o Libraries/s2/dd_ncdf.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_ncdf.c
+-gcc -o Libraries/s2/dd_swp_files.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_swp_files.c
+-gcc -o Libraries/s2/dd_time.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_time.c
+-gcc -o Libraries/s2/dd_uf.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_uf.c
+-Install file: "Libraries/publicIncludes/point_in_space.h" as "include/point_in_space.h"
+-gcc -o Libraries/s2/dda_common.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dda_common.c
+-gcc -o Libraries/s2/ddb_common.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddb_common.c
+-gcc -o Libraries/s2/ddin.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddin.c
+-gcc -o Libraries/s2/ddout.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddout.c
+-gcc -o Libraries/s2/dorade_ncdf.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_ncdf.c
+-gcc -o Libraries/s2/dorade_share.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_share.c
+-gcc -o Libraries/s2/dorade_tape.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_tape.c
+-gcc -o Libraries/s2/dorade_uf.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_uf.c
+-Install file: "Libraries/publicIncludes/TimeSeries.h" as "include/TimeSeries.h"
+-Install file: "Libraries/publicIncludes/Waveform.h" as "include/Waveform.h"
+-gcc -o Libraries/s2/elda_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/elda_dd.c
+-gcc -o Libraries/s2/etl_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/etl_dd.c
+-gcc -o Libraries/s2/fof_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/fof_dd.c
+-gcc -o Libraries/s2/gecho.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gecho.c
+-gcc -o Libraries/s2/gneric_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gneric_dd.c
+-gcc -o Libraries/s2/gpro_data.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gpro_data.c
+-gcc -o Libraries/s2/ground_echo.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ground_echo.c
+-gcc -o Libraries/s2/hrd_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/hrd_dd.c
+-gcc -o Libraries/s2/nc_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nc_dd.c
+-gcc -o Libraries/s2/nssl_mrd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nssl_mrd.c
+-gcc -o Libraries/s2/product_x.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/product_x.c
+-gcc -o Libraries/s2/stdhrd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/stdhrd.c
+-gcc -o Libraries/s2/swp_file_acc.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/swp_file_acc.c
+-gcc -o Libraries/s2/tdwr_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/tdwr_dd.c
+-gcc -o Libraries/s2/uf_dd.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/uf_dd.c
+-gcc -o Libraries/s2/xwsrqc.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/xwsrqc.c
+-ar rc Libraries/s2/libs2.a Libraries/s2/by_products.o Libraries/s2/cimm_dd.o Libraries/s2/dd_catalog.o Libraries/s2/dd_crackers.o Libraries/s2/dd_der_flds.o Libraries/s2/dd_files.o Libraries/s2/dd_io_mgmt.o Libraries/s2/dd_ncdf.o Libraries/s2/dd_swp_files.o Libraries/s2/dd_time.o Libraries/s2/dd_uf.o Libraries/s2/dda_common.o Libraries/s2/ddb_common.o Libraries/s2/ddin.o Libraries/s2/ddout.o Libraries/s2/dorade_ncdf.o Libraries/s2/dorade_share.o Libraries/s2/dorade_tape.o Libraries/s2/dorade_uf.o Libraries/s2/elda_dd.o Libraries/s2/etl_dd.o Libraries/s2/fof_dd.o Libraries/s2/gecho.o Libraries/s2/gneric_dd.o Libraries/s2/gpro_data.o Libraries/s2/ground_echo.o Libraries/s2/hrd_dd.o Libraries/s2/nc_dd.o Libraries/s2/nssl_mrd.o Libraries/s2/product_x.o Libraries/s2/stdhrd.o Libraries/s2/swp_file_acc.o Libraries/s2/tdwr_dd.o Libraries/s2/uf_dd.o Libraries/s2/xwsrqc.o
+-ranlib Libraries/s2/libs2.a
+-Install file: "Libraries/s2/libs2.a" as "lib/libs2.a"
+-gfortran -o Applications/qreod/qreod -m32 Applications/qreod/qreoroot.o -Llib -lqreo -ldap -ls2 -lm -lncurses
+-gcc -o Applications/qreou/fofclibPlus.o -c -m32 -DUNIX -DLITTLENDIAN -Iinclude Applications/qreou/fofclibPlus.c
+-gfortran -o Applications/qreou/qreoroot.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Applications/qreou/qreoroot.F
+-gfortran -o Applications/qreou/qufap.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Applications/qreou/qufap.F
+-gfortran -o Applications/qreou/unixqufap.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Applications/qreou/unixqufap.F
+-gfortran -o Applications/qreou/qreou -m32 Applications/qreou/qreoroot.o Applications/qreou/fofclibPlus.o Applications/qreou/qufap.o Applications/qreou/unixqufap.o -Llib -lqreo -ldap -ls2 -lm -lncurses
+-Install file: "Applications/qreod/qreod" as "bin/qreod"
+-Install file: "Applications/qreou/qreou" as "bin/qreou"
+-scons: done building targets.
+-scons: Reading SConscript files ...
+-scons: done reading SConscript files.
+-scons: Building targets ...
+-gfortran -o Libraries/qreo/qreo2.o -c -fbounds-check -m32 -DUNIX -DLITTLENDIAN Libraries/qreo/qreo2.F
+-ar rc Libraries/qreo/libqreo.a Libraries/qreo/xcedcio.o Libraries/qreo/fofclib.o Libraries/qreo/qreo1.o Libraries/qreo/qreo2.o Libraries/qreo/qreo3.o Libraries/qreo/unixqreo.o Libraries/qreo/foflib.o Libraries/qreo/unixflib.o
+-ranlib Libraries/qreo/libqreo.a
+-Install file: "Libraries/qreo/libqreo.a" as "lib/libqreo.a"
+-gfortran -o Applications/qreod/qreod -m32 Applications/qreod/qreoroot.o -Llib -lqreo -ldap -ls2 -lm -lncurses
+-gfortran -o Applications/qreou/qreou -m32 Applications/qreou/qreoroot.o Applications/qreou/fofclibPlus.o Applications/qreou/qufap.o Applications/qreou/unixqufap.o -Llib -lqreo -ldap -ls2 -lm -lncurses
+-Install file: "Applications/qreod/qreod" as "bin/qreod"
+-Install file: "Applications/qreou/qreou" as "bin/qreou"
+-scons: done building targets.
+Index: README
+===================================================================
+--- README	(revision 64)
++++ README	(working copy)
+@@ -1,4 +1,4 @@
+-README for reorder 1.38-2.00
++README for REORDER VERSION 1.38-3.10 (LJM Jan 14, 2015)
+ 
+ BUILDING
+ ========
+@@ -10,8 +10,8 @@
+ 
+ Unpack the reorder tar file and move to the resulting directory:
+ 
+-    $ tar xvzf reorder140a.tar.gz
+-    $ cd reorder-1.40a
++    $ tar xvzf Reorder_3.00.tar.gz
++    $ cd Reorder/trunk
+ 
+ To build reorder without netCDF support:
+ 
+@@ -33,6 +33,127 @@
+ CHANGE LOG
+ ==========
+ 
++REORDER VERSION 3.10 January 14 2015 (LJM)
++
++--------------------------------------------------------------------------
++No changes other than removing ncurses references since that library is not
++needed.  However, there is no record that version 3.00 was ever committed.
++See logmsg.5 for details of significant changes as well as what is detailed
++below. 
++--------------------------------------------------------------------------
++
++1. Libraries/qreo/qreo1.F
++      routine reo prints 'qreo1.F--LINUX VERSION 3.10 January 2015'
++
++2. Libraries/dap/qdap.F
++      routine accver prints 'qdap.F--LINUX VERSION 3.10 January 2015'
++
++3. Libraries/s2/SConscript
++      removed 'ncurses' from env.AppendUnique(LIBS       = ['m','ncurses'])
++                             env.AppendUnique(LIBS       = ['m'])
++      since it is not needed.  Reorder will now build as 32-bit executable
++      on 64-bit machines.
++
++==========
++ 
++REORDER VERSION 3.00 November 2011 (LJM)
++
++--------------------------------------------------------------------------
++Significant changes were made to how Reorder populates the output XYZ grid 
++and to what is included in the calculation of heights (MSL).
++--------------------------------------------------------------------------
++
++1. Libraries/qreo/qreo1.F
++      routine reo prints 'qreo1.F--LINUX VERSION 3.00 November 2011'
++
++2. Libraries/dap/qdap.F
++      routine accver prints 'qdap.F--LINUX VERSION 3.00 November 2011'
++
++3. For now bounds checking (env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
++   remains ON in SConstruct.  This line could be commented out (#) to prevent
++   the program from dying, but this could lead to unpredictable results in some
++   instances.  There are likely some lingering problems where the program can
++   go beyond the bounds of dimensioned variables.  Unfortunately, these tend to
++   be unique to a particular set of user-specied variables and parameters when
++   applied to their dataset.
++
++4. Airborne Doppler;
++   a. Added some more detailed print statements for a thorough re-examination of
++      some parts of the code, especially as it applies to gridding an airborne
++      dataset. A current issue is whether or not refraction and Earth's curvature
++      are included compared to height calculations above a local tangent plane
++      (flat Earth with no correction for refraction).
++
++      The issue in #4a above haa come up during gridding of a synthetic dataset
++      based on a Beltrami flow model (sequence of counter-rotating vortices that 
++      satisfy mass-continuity).  Specific changes and/or fixes relevant to these
++      tests follow.
++
++   b. Changed how the region of XYZ output grid points [size of boxes surrounding
++      the input range gate (RAE) sample locations] get defined.  The antenna
++      spins around the centerline of the fuselage as the aircraft moves forward,
++      thus making a series of surveillance-like scans spaced a few hundred meters
++      apart along the flight track.  Therefore, it is more appropriate to keep
++      the horizontal box dimensions fixed (CARTESIAN) and to let the vertical 
++      dimension increase with range (SPHERICAL and/or HYBRID) from the radar.
++
++   c. qreo1.F (call filter) and qreo2.F (subroutine filter): added logical
++      variable airpln to parameter list.  The user specifies the BOX 
++      DIMENSIONS variable, with parameter of CARTESIAN, SPHERICAL, or HYBRID,
++      along with the desired XYZ and RAE radii, and Reorder makes the choice
++      of XY and Z (or E) box dimensions to be used.  See comments inside
++      qreo2.F, subroutine filter.
++
++   d. qreo1.F (call inidat) and qreo1.F (subroutine inidat): added logical
++      variable adaptive to parameter list.  This new logical variable is
++      used to determine the algorithm for populating the output grid points
++      surrounding an input range gate location.  The intent is to let the
++      program adapt its box size (linear dimensions) to a local RAE sampling
++      resolution (spherical dimensions).  
++
++      If the adaptive scheme is desired, the user must specify a new variable
++      and its parameter (POPULATE: ADAPTIVE;) in their script; otherwise, this
++      variable is not included and the program uses the original (default) 
++      scheme.
++
++      Adaptive = .false. ==> Populates all output grid points (the historic
++                             or original algorithm)  
++               = .true.  ==> Populates only the nearest output grid points
++
++      This adaptive scheme uncouples spatial filtering (distance-weighted
++      averages (Cressman, Exponential, and Uniform) from which output
++      grid points get populated.  The original approach used the same
++      XYZ-radii and/or RAE-radii for both the output grid region to be
++      populated and how the filtering is to be done.
++
++5. Some fixes were made to how Reorder parses the user-specified variables
++   and parameters (the input script).  These fixes included initializing
++   some variables and/or resetting their values back to an initial value
++      
++6. I now think I understand the basic path through the Reorder code.
++   There are several somewhat extraneous calls from subroutine reo 
++   in qreo1.F, but the most relevant to understanding the logic of
++   Reorder are calls from reo.  This list of those routines and
++   their functions are listed below.
++
++   a. The main program (qreoroot.F) in either ./Applications/qreod 
++      (Dorade) or ./Applications/qreou (Universal) format calls the
++      overall driver subroutine reo in ./Libraries/qreo/qreo1.F that
++      loops over all beams within a volume with START and STOP times
++      specified by the user.
++   b. The list of most-relevant subroutines called from subroutine
++      reo:
++      inidat - 
++      setcat -
++      inireo -
++
++      Top of loop through the requested input volume (3-D RAE scan)
++
++      genhead -
++
++      Top of loop through the 
++
++
+ 2.40+  LJay Miller (also see logmsg.3, logmsg.4):
+ 
+        Continuing to find and fix memory access problems, especially now
+Index: scons_withCDF.out
+===================================================================
+--- scons_withCDF.out	(revision 0)
++++ scons_withCDF.out	(revision 0)
+@@ -0,0 +1,107 @@
++scons: Reading SConscript files ...
++Checking for C library netcdf... no
++Checking for C library netcdf... yes
++scons: done reading SConscript files.
++scons: Building targets ...
++gfortran -o Applications/qreod/qreoroot.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Applications/qreod/qreoroot.F
++gcc -o Libraries/qreo/xcedcio.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/xcedcio.c
++gcc -o Libraries/qreo/fofclib.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/fofclib.c
++gfortran -o Libraries/qreo/qreo1.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Libraries/qreo/qreo1.F
++gfortran -o Libraries/qreo/qreo2.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Libraries/qreo/qreo2.F
++gfortran -o Libraries/qreo/qreo3.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Libraries/qreo/qreo3.F
++gfortran -o Libraries/qreo/unixqreo.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Libraries/qreo/unixqreo.F
++gfortran -o Libraries/qreo/foflib.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Libraries/qreo/foflib.F
++gfortran -o Libraries/qreo/unixflib.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Libraries/qreo/unixflib.F
++ar rc Libraries/qreo/libqreo.a Libraries/qreo/xcedcio.o Libraries/qreo/fofclib.o Libraries/qreo/qreo1.o Libraries/qreo/qreo2.o Libraries/qreo/qreo3.o Libraries/qreo/unixqreo.o Libraries/qreo/foflib.o Libraries/qreo/unixflib.o
++ranlib Libraries/qreo/libqreo.a
++Install file: "Libraries/qreo/libqreo.a" as "lib/libqreo.a"
++Install file: "Libraries/publicIncludes/dd_files.h" as "include/dd_files.h"
++Install file: "Libraries/publicIncludes/input_sweepfiles.h" as "include/input_sweepfiles.h"
++Install file: "Libraries/publicIncludes/dgi_func_decl.h" as "include/dgi_func_decl.h"
++Install file: "Libraries/publicIncludes/dorade_headers.h" as "include/dorade_headers.h"
++Install file: "Libraries/publicIncludes/function_decl.h" as "include/function_decl.h"
++Install file: "Libraries/publicIncludes/dd_defines.h" as "include/dd_defines.h"
++Install file: "Libraries/publicIncludes/dd_general_info.h" as "include/dd_general_info.h"
++Install file: "Libraries/publicIncludes/dorade_data_descriptors.h" as "include/dorade_data_descriptors.h"
++Install file: "Libraries/publicIncludes/dorade_share.h" as "include/dorade_share.h"
++Install file: "Libraries/publicIncludes/CellSpacing.h" as "include/CellSpacing.h"
++Install file: "Libraries/publicIncludes/CellSpacingFP.h" as "include/CellSpacingFP.h"
++Install file: "Libraries/publicIncludes/CellVector.h" as "include/CellVector.h"
++Install file: "Libraries/publicIncludes/Comment.h" as "include/Comment.h"
++Install file: "Libraries/publicIncludes/Correction.h" as "include/Correction.h"
++Install file: "Libraries/publicIncludes/FieldLidar.h" as "include/FieldLidar.h"
++Install file: "Libraries/publicIncludes/FieldParam.h" as "include/FieldParam.h"
++Install file: "Libraries/publicIncludes/FieldRadar.h" as "include/FieldRadar.h"
++Install file: "Libraries/publicIncludes/LidarDesc.h" as "include/LidarDesc.h"
++Install file: "Libraries/publicIncludes/LidarParam.h" as "include/LidarParam.h"
++Install file: "Libraries/publicIncludes/Parameter.h" as "include/Parameter.h"
++Install file: "Libraries/publicIncludes/Pdata.h" as "include/Pdata.h"
++Install file: "Libraries/publicIncludes/Platform.h" as "include/Platform.h"
++Install file: "Libraries/publicIncludes/Qdata.h" as "include/Qdata.h"
++Install file: "Libraries/publicIncludes/RadarDesc.h" as "include/RadarDesc.h"
++Install file: "Libraries/publicIncludes/Ray.h" as "include/Ray.h"
++Install file: "Libraries/publicIncludes/Sweep.h" as "include/Sweep.h"
++Install file: "Libraries/publicIncludes/Volume.h" as "include/Volume.h"
++Install file: "Libraries/publicIncludes/Xtra_stuff.h" as "include/Xtra_stuff.h"
++Install file: "Libraries/publicIncludes/super_SWIB.h" as "include/super_SWIB.h"
++Install file: "Libraries/publicIncludes/dd_time.h" as "include/dd_time.h"
++gcc -o Libraries/dap/dap_common.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/dap/dap_common.c
++gfortran -o Libraries/dap/qdap.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Libraries/dap/qdap.F
++ar rc Libraries/dap/libdap.a Libraries/dap/dap_common.o Libraries/dap/qdap.o
++ranlib Libraries/dap/libdap.a
++Install file: "Libraries/dap/libdap.a" as "lib/libdap.a"
++gcc -o Libraries/s2/by_products.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/by_products.c
++Install file: "Libraries/publicIncludes/dd_math.h" as "include/dd_math.h"
++gcc -o Libraries/s2/cimm_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/cimm_dd.c
++Install file: "Libraries/publicIncludes/piraq.h" as "include/piraq.h"
++Install file: "Libraries/publicIncludes/dd_types.h" as "include/dd_types.h"
++Install file: "Libraries/publicIncludes/piraqx.h" as "include/piraqx.h"
++gcc -o Libraries/s2/dd_catalog.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_catalog.c
++gcc -o Libraries/s2/dd_crackers.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_crackers.c
++gcc -o Libraries/s2/dd_der_flds.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_der_flds.c
++Install file: "Libraries/publicIncludes/solo_utils.h" as "include/solo_utils.h"
++gcc -o Libraries/s2/dd_files.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_files.c
++gcc -o Libraries/s2/dd_io_mgmt.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_io_mgmt.c
++gcc -o Libraries/s2/dd_ncdf.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_ncdf.c
++gcc -o Libraries/s2/dd_swp_files.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_swp_files.c
++gcc -o Libraries/s2/dd_time.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_time.c
++gcc -o Libraries/s2/dd_uf.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_uf.c
++Install file: "Libraries/publicIncludes/point_in_space.h" as "include/point_in_space.h"
++gcc -o Libraries/s2/dda_common.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dda_common.c
++gcc -o Libraries/s2/ddb_common.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddb_common.c
++gcc -o Libraries/s2/ddin.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddin.c
++gcc -o Libraries/s2/ddout.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddout.c
++gcc -o Libraries/s2/dorade_ncdf.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_ncdf.c
++gcc -o Libraries/s2/dorade_share.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_share.c
++gcc -o Libraries/s2/dorade_tape.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_tape.c
++gcc -o Libraries/s2/dorade_uf.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_uf.c
++Install file: "Libraries/publicIncludes/TimeSeries.h" as "include/TimeSeries.h"
++Install file: "Libraries/publicIncludes/Waveform.h" as "include/Waveform.h"
++gcc -o Libraries/s2/elda_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/elda_dd.c
++gcc -o Libraries/s2/etl_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/etl_dd.c
++gcc -o Libraries/s2/fof_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/fof_dd.c
++gcc -o Libraries/s2/gecho.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gecho.c
++gcc -o Libraries/s2/gneric_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gneric_dd.c
++gcc -o Libraries/s2/gpro_data.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gpro_data.c
++gcc -o Libraries/s2/ground_echo.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ground_echo.c
++gcc -o Libraries/s2/hrd_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/hrd_dd.c
++gcc -o Libraries/s2/nc_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nc_dd.c
++gcc -o Libraries/s2/nssl_mrd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nssl_mrd.c
++gcc -o Libraries/s2/product_x.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/product_x.c
++gcc -o Libraries/s2/stdhrd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/stdhrd.c
++gcc -o Libraries/s2/swp_file_acc.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/swp_file_acc.c
++gcc -o Libraries/s2/tdwr_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/tdwr_dd.c
++gcc -o Libraries/s2/uf_dd.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/uf_dd.c
++gcc -o Libraries/s2/xwsrqc.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/xwsrqc.c
++ar rc Libraries/s2/libs2.a Libraries/s2/by_products.o Libraries/s2/cimm_dd.o Libraries/s2/dd_catalog.o Libraries/s2/dd_crackers.o Libraries/s2/dd_der_flds.o Libraries/s2/dd_files.o Libraries/s2/dd_io_mgmt.o Libraries/s2/dd_ncdf.o Libraries/s2/dd_swp_files.o Libraries/s2/dd_time.o Libraries/s2/dd_uf.o Libraries/s2/dda_common.o Libraries/s2/ddb_common.o Libraries/s2/ddin.o Libraries/s2/ddout.o Libraries/s2/dorade_ncdf.o Libraries/s2/dorade_share.o Libraries/s2/dorade_tape.o Libraries/s2/dorade_uf.o Libraries/s2/elda_dd.o Libraries/s2/etl_dd.o Libraries/s2/fof_dd.o Libraries/s2/gecho.o Libraries/s2/gneric_dd.o Libraries/s2/gpro_data.o Libraries/s2/ground_echo.o Libraries/s2/hrd_dd.o Libraries/s2/nc_dd.o Libraries/s2/nssl_mrd.o Libraries/s2/product_x.o Libraries/s2/stdhrd.o Libraries/s2/swp_file_acc.o Libraries/s2/tdwr_dd.o Libraries/s2/uf_dd.o Libraries/s2/xwsrqc.o
++ranlib Libraries/s2/libs2.a
++Install file: "Libraries/s2/libs2.a" as "lib/libs2.a"
++gfortran -o Applications/qreod/qreod -Wl,-rpath=/usr/local/lib -m32 Applications/qreod/qreoroot.o -L/usr/local/lib -L/usr/lib/netcdf-3 -Llib -lqreo -ldap -ls2 -lnetcdf_c++ -lnetcdf -lhdf5_hl -lhdf5 -lbz2 -lm -lncurses
++gcc -o Applications/qreou/fofclibPlus.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN -Iinclude Applications/qreou/fofclibPlus.c
++gfortran -o Applications/qreou/qreoroot.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Applications/qreou/qreoroot.F
++gfortran -o Applications/qreou/qufap.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Applications/qreou/qufap.F
++gfortran -o Applications/qreou/unixqufap.o -c -m32 -O0 -g -DNETCDF -DUNIX -DLITTLENDIAN Applications/qreou/unixqufap.F
++gfortran -o Applications/qreou/qreou -Wl,-rpath=/usr/local/lib -m32 Applications/qreou/qreoroot.o Applications/qreou/fofclibPlus.o Applications/qreou/qufap.o Applications/qreou/unixqufap.o -L/usr/local/lib -L/usr/lib/netcdf-3 -Llib -lqreo -ldap -ls2 -lnetcdf_c++ -lnetcdf -lhdf5_hl -lhdf5 -lbz2 -lm -lncurses
++Install file: "Applications/qreod/qreod" as "bin/qreod"
++Install file: "Applications/qreou/qreou" as "bin/qreou"
++scons: done building targets.
+Index: scons.out-2015.0114
+===================================================================
+--- scons.out-2015.0114	(revision 0)
++++ scons.out-2015.0114	(revision 0)
+@@ -0,0 +1,102 @@
++[?1034hscons: Reading SConscript files ...
++scons: done reading SConscript files.
++scons: Building targets ...
++gfortran -o Applications/qreod/qreoroot.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Applications/qreod/qreoroot.F
++gcc -o Libraries/qreo/xcedcio.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/xcedcio.c
++gcc -o Libraries/qreo/fofclib.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/qreo/fofclib.c
++gfortran -o Libraries/qreo/qreo1.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Libraries/qreo/qreo1.F
++gfortran -o Libraries/qreo/qreo2.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Libraries/qreo/qreo2.F
++gfortran -o Libraries/qreo/qreo3.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Libraries/qreo/qreo3.F
++gfortran -o Libraries/qreo/unixqreo.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Libraries/qreo/unixqreo.F
++gfortran -o Libraries/qreo/foflib.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Libraries/qreo/foflib.F
++gfortran -o Libraries/qreo/unixflib.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Libraries/qreo/unixflib.F
++ar rc Libraries/qreo/libqreo.a Libraries/qreo/xcedcio.o Libraries/qreo/fofclib.o Libraries/qreo/qreo1.o Libraries/qreo/qreo2.o Libraries/qreo/qreo3.o Libraries/qreo/unixqreo.o Libraries/qreo/foflib.o Libraries/qreo/unixflib.o
++ranlib Libraries/qreo/libqreo.a
++Install file: "Libraries/qreo/libqreo.a" as "lib/libqreo.a"
++Install file: "Libraries/publicIncludes/dd_files.h" as "include/dd_files.h"
++Install file: "Libraries/publicIncludes/input_sweepfiles.h" as "include/input_sweepfiles.h"
++Install file: "Libraries/publicIncludes/dgi_func_decl.h" as "include/dgi_func_decl.h"
++Install file: "Libraries/publicIncludes/dorade_headers.h" as "include/dorade_headers.h"
++Install file: "Libraries/publicIncludes/function_decl.h" as "include/function_decl.h"
++Install file: "Libraries/publicIncludes/dd_defines.h" as "include/dd_defines.h"
++Install file: "Libraries/publicIncludes/dd_general_info.h" as "include/dd_general_info.h"
++Install file: "Libraries/publicIncludes/dorade_data_descriptors.h" as "include/dorade_data_descriptors.h"
++Install file: "Libraries/publicIncludes/dorade_share.h" as "include/dorade_share.h"
++Install file: "Libraries/publicIncludes/CellSpacing.h" as "include/CellSpacing.h"
++Install file: "Libraries/publicIncludes/CellSpacingFP.h" as "include/CellSpacingFP.h"
++Install file: "Libraries/publicIncludes/CellVector.h" as "include/CellVector.h"
++Install file: "Libraries/publicIncludes/Comment.h" as "include/Comment.h"
++Install file: "Libraries/publicIncludes/Correction.h" as "include/Correction.h"
++Install file: "Libraries/publicIncludes/FieldLidar.h" as "include/FieldLidar.h"
++Install file: "Libraries/publicIncludes/FieldParam.h" as "include/FieldParam.h"
++Install file: "Libraries/publicIncludes/FieldRadar.h" as "include/FieldRadar.h"
++Install file: "Libraries/publicIncludes/LidarDesc.h" as "include/LidarDesc.h"
++Install file: "Libraries/publicIncludes/LidarParam.h" as "include/LidarParam.h"
++Install file: "Libraries/publicIncludes/Parameter.h" as "include/Parameter.h"
++Install file: "Libraries/publicIncludes/Pdata.h" as "include/Pdata.h"
++Install file: "Libraries/publicIncludes/Platform.h" as "include/Platform.h"
++Install file: "Libraries/publicIncludes/Qdata.h" as "include/Qdata.h"
++Install file: "Libraries/publicIncludes/RadarDesc.h" as "include/RadarDesc.h"
++Install file: "Libraries/publicIncludes/Ray.h" as "include/Ray.h"
++Install file: "Libraries/publicIncludes/Sweep.h" as "include/Sweep.h"
++Install file: "Libraries/publicIncludes/Volume.h" as "include/Volume.h"
++Install file: "Libraries/publicIncludes/Xtra_stuff.h" as "include/Xtra_stuff.h"
++Install file: "Libraries/publicIncludes/super_SWIB.h" as "include/super_SWIB.h"
++Install file: "Libraries/publicIncludes/dd_time.h" as "include/dd_time.h"
++gcc -o Libraries/dap/dap_common.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/dap/dap_common.c
++gfortran -o Libraries/dap/qdap.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Libraries/dap/qdap.F
++ar rc Libraries/dap/libdap.a Libraries/dap/dap_common.o Libraries/dap/qdap.o
++ranlib Libraries/dap/libdap.a
++Install file: "Libraries/dap/libdap.a" as "lib/libdap.a"
++gcc -o Libraries/s2/by_products.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/by_products.c
++Install file: "Libraries/publicIncludes/dd_math.h" as "include/dd_math.h"
++gcc -o Libraries/s2/cimm_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/cimm_dd.c
++Install file: "Libraries/publicIncludes/piraq.h" as "include/piraq.h"
++Install file: "Libraries/publicIncludes/dd_types.h" as "include/dd_types.h"
++Install file: "Libraries/publicIncludes/piraqx.h" as "include/piraqx.h"
++gcc -o Libraries/s2/dd_catalog.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_catalog.c
++gcc -o Libraries/s2/dd_crackers.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_crackers.c
++gcc -o Libraries/s2/dd_der_flds.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_der_flds.c
++Install file: "Libraries/publicIncludes/solo_utils.h" as "include/solo_utils.h"
++gcc -o Libraries/s2/dd_files.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_files.c
++gcc -o Libraries/s2/dd_io_mgmt.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_io_mgmt.c
++gcc -o Libraries/s2/dd_ncdf.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_ncdf.c
++gcc -o Libraries/s2/dd_swp_files.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_swp_files.c
++gcc -o Libraries/s2/dd_time.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_time.c
++gcc -o Libraries/s2/dd_uf.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dd_uf.c
++Install file: "Libraries/publicIncludes/point_in_space.h" as "include/point_in_space.h"
++gcc -o Libraries/s2/dda_common.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dda_common.c
++gcc -o Libraries/s2/ddb_common.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddb_common.c
++gcc -o Libraries/s2/ddin.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddin.c
++gcc -o Libraries/s2/ddout.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ddout.c
++gcc -o Libraries/s2/dorade_ncdf.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_ncdf.c
++gcc -o Libraries/s2/dorade_share.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_share.c
++gcc -o Libraries/s2/dorade_tape.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_tape.c
++gcc -o Libraries/s2/dorade_uf.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/dorade_uf.c
++Install file: "Libraries/publicIncludes/TimeSeries.h" as "include/TimeSeries.h"
++Install file: "Libraries/publicIncludes/Waveform.h" as "include/Waveform.h"
++gcc -o Libraries/s2/elda_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/elda_dd.c
++gcc -o Libraries/s2/etl_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/etl_dd.c
++gcc -o Libraries/s2/fof_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/fof_dd.c
++gcc -o Libraries/s2/gecho.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gecho.c
++gcc -o Libraries/s2/gneric_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gneric_dd.c
++gcc -o Libraries/s2/gpro_data.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/gpro_data.c
++gcc -o Libraries/s2/ground_echo.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/ground_echo.c
++gcc -o Libraries/s2/hrd_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/hrd_dd.c
++gcc -o Libraries/s2/nc_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nc_dd.c
++gcc -o Libraries/s2/nssl_mrd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/nssl_mrd.c
++gcc -o Libraries/s2/product_x.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/product_x.c
++gcc -o Libraries/s2/stdhrd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/stdhrd.c
++gcc -o Libraries/s2/swp_file_acc.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/swp_file_acc.c
++gcc -o Libraries/s2/tdwr_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/tdwr_dd.c
++gcc -o Libraries/s2/uf_dd.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/uf_dd.c
++gcc -o Libraries/s2/xwsrqc.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Libraries/s2/xwsrqc.c
++ar rc Libraries/s2/libs2.a Libraries/s2/by_products.o Libraries/s2/cimm_dd.o Libraries/s2/dd_catalog.o Libraries/s2/dd_crackers.o Libraries/s2/dd_der_flds.o Libraries/s2/dd_files.o Libraries/s2/dd_io_mgmt.o Libraries/s2/dd_ncdf.o Libraries/s2/dd_swp_files.o Libraries/s2/dd_time.o Libraries/s2/dd_uf.o Libraries/s2/dda_common.o Libraries/s2/ddb_common.o Libraries/s2/ddin.o Libraries/s2/ddout.o Libraries/s2/dorade_ncdf.o Libraries/s2/dorade_share.o Libraries/s2/dorade_tape.o Libraries/s2/dorade_uf.o Libraries/s2/elda_dd.o Libraries/s2/etl_dd.o Libraries/s2/fof_dd.o Libraries/s2/gecho.o Libraries/s2/gneric_dd.o Libraries/s2/gpro_data.o Libraries/s2/ground_echo.o Libraries/s2/hrd_dd.o Libraries/s2/nc_dd.o Libraries/s2/nssl_mrd.o Libraries/s2/product_x.o Libraries/s2/stdhrd.o Libraries/s2/swp_file_acc.o Libraries/s2/tdwr_dd.o Libraries/s2/uf_dd.o Libraries/s2/xwsrqc.o
++ranlib Libraries/s2/libs2.a
++Install file: "Libraries/s2/libs2.a" as "lib/libs2.a"
++gfortran -o Applications/qreod/qreod -m32 Applications/qreod/qreoroot.o -Llib -lqreo -ldap -ls2 -lm -lncurses
++/usr/bin/ld: skipping incompatible /usr/lib64/libncurses.so when searching for -lncurses
++/usr/bin/ld: cannot find -lncurses
++collect2: ld returned 1 exit status
++scons: *** [Applications/qreod/qreod] Error 1
++scons: building terminated because of errors.
+Index: scons.out-2015.0114a
+===================================================================
+--- scons.out-2015.0114a	(revision 0)
++++ scons.out-2015.0114a	(revision 0)
+@@ -0,0 +1,12 @@
++[?1034hscons: Reading SConscript files ...
++scons: done reading SConscript files.
++scons: Building targets ...
++gfortran -o Applications/qreod/qreod -m32 Applications/qreod/qreoroot.o -Llib -lqreo -ldap -ls2 -lm
++gcc -o Applications/qreou/fofclibPlus.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Applications/qreou/fofclibPlus.c
++gfortran -o Applications/qreou/qreoroot.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Applications/qreou/qreoroot.F
++gfortran -o Applications/qreou/qufap.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Applications/qreou/qufap.F
++gfortran -o Applications/qreou/unixqufap.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Applications/qreou/unixqufap.F
++gfortran -o Applications/qreou/qreou -m32 Applications/qreou/qreoroot.o Applications/qreou/fofclibPlus.o Applications/qreou/qufap.o Applications/qreou/unixqufap.o -Llib -lqreo -ldap -ls2 -lm
++Install file: "Applications/qreod/qreod" as "bin/qreod"
++Install file: "Applications/qreou/qreou" as "bin/qreou"
++scons: done building targets.
+Index: SConstruct
+===================================================================
+--- SConstruct	(revision 58)
++++ SConstruct	(working copy)
+@@ -14,14 +14,14 @@
+     env.Tool('netcdf')
+     env.AppendUnique(CPPDEFINES = ['NETCDF'])
+ 
+-env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
+-    
++#env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
++
+ if env['use_m32']:
+     if (env['CC'] == 'gcc'):
+         # Put '-m32' onto compilation and linking, since we need to explicitly 
+         # build 32-bit binaries, even on 64-bit systems
+-        env.AppendUnique(CCFLAGS = ['-m32'])
+-        env.AppendUnique(FORTRANFLAGS = ['-m32'])
++        env.AppendUnique(CCFLAGS = ['-m32', '-O0', '-g'])
++        env.AppendUnique(FORTRANFLAGS = ['-m32', '-O0', '-g'])
+         env.AppendUnique(LINKFLAGS = ['-m32'])
+     else:
+         print 'Ignoring option "use_m32", since we are not using gcc.'
+Index: Libraries/dap/qdap.F
+===================================================================
+--- Libraries/dap/qdap.F	(revision 64)
++++ Libraries/dap/qdap.F	(working copy)
+@@ -262,6 +262,7 @@
+ c
+ c
+         ia = indexa( ufcs, 1, ncs, 4, 'SHOW' )
++c-------print *,'qdap-setcat: After SHOW, ia=',ia
+         if( ia .gt. 0 ) then
+             iarg = 1
+   22        continue
+@@ -342,6 +343,12 @@
+         iscan = kswepn( kbuf )
+         ivol = kvoln( kbuf )
+         irec = kprnv( kbuf )
++
++c     Print every 10th record number (LJM 9/26/2011)
++c
++c        if(irec.eq.1 .or. mod(irec,10).eq.0)then
++c           print *,'qdap-setray: ivol,iscan,irec=',ivol,iscan,irec
++c        endif
+ c       
+   90    continue
+         return
+@@ -354,7 +361,7 @@
+ c-----------------------------------------------------------------------
+     	subroutine accver()
+ c   dump out the current access version date
+-        call dmplin( 'qdap.F--LINUX VERSION 2.42 September 2011' , 0 )
++        call dmplin( 'qdap.F--LINUX VERSION 3.00 December 2011' , 0 )
+     	return
+     	end
+ c-----------------------------------------------------------------------
+@@ -378,7 +385,7 @@
+ c       LJM 9/11/2011 - increased dimensions mxr,mxd,mxi
+ c
+ c       parameter(mxr=4,mxd=40,mxi=40)
+-        parameter(mxr=6,mxd=80,mxi=60)
++        parameter(mxr=6,mxd=80,mxi=80)
+ 
+     	integer control_string(1000), radar_name(mxr)
+     	integer directory(mxd)
+@@ -388,11 +395,15 @@
+ c
+     	ierr = 0
+ c
+-c   convert times to unix time
++c   convert start (ccstm1) and stop (ccstm2) times to unix times
++c   void time2unix_ is in dap_common.c (LJM 10/10/2011)
++c
+     	call time2unix( ccstm1, tm1 )
+     	call time2unix( ccstm2, tm2 )
+-        print *,'qdap-mountd: tim1,tim2=',tim1,tim2
+-        print *,'qdap-mountd: ccstm1,ccstm2=',ccstm1,ccstm2
++c-------print *,'qdap-mountd: ccstm1=',ccstm1
++c-------print *,'qdap-mountd: ccstm2=',ccstm2
++c-------print *,'qdap-mountd: tim1,tim2=',tim1,tim2
++
+ c 
+ c-------foflib.F: subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
+         in = indexa( ufcs, 1, ncs, 4, 'INSTRUMENT' )
+@@ -400,8 +411,11 @@
+             call attarg( ufcs, in, ncs, 1, i1, ni )
+         endif
+         len_string=GETLEN(ufcs)
+-        print *,'qdap-mountd: in,ni,radar_name=',in,ni,radar_name
++
+ c-------foflib.F: subroutine copycn( chs, ith, n, kbuf, jth )
++c     Why are copycn and put8 are being called? (LJM - 10/10/2011)
++c
++c-------print *,'qdap-mountd: in,ni,radar_name=',in,ni,radar_name
+     	if( in .gt.0 .and. ni .gt. 0 ) then    
+            call copycn( ufcs, i1, ni, radar_name, 1 )
+     	else
+@@ -409,15 +423,16 @@
+             call copycn( 'NONE', 1, ni, radar_name, 1 )
+     	endif
+     	call put8( radar_name, ni+1, 0 )
++c-------print *,'qdap-mountd: in,ni,radar_name=',in,ni,radar_name
+ c
+ c   open the file and read to the first usable ray
+ c
+         in = indexa( ufcs, 1, ncs, 4, 'INPUT' )
+         dir = indexa( ufcs, 1, ncs, 4, 'DIRECTORY' )
+-        print *,'qdap-mountd: ncs,in,dir=',ncs,in,dir
++c-------print *,'qdap-mountd: ncs,in,dir=',ncs,in,dir
+ c
+     	if(in .gt. 0 ) then
+-            print *,'mountd: calling attarg since in.gt.0'
++c-----------print *,'qdap-mountd: calling attarg since in.gt.0'
+             call attarg( ufcs, in, ncs, 1, i1, ni )
+     	    call copycn( ufcs, i1, ni, input_file, 1 )
+     	    call put8( input_file, ni+1, 0 )
+@@ -429,32 +444,32 @@
+                 go to 90
+             endif
+     	elseif(dir .gt. 0 ) then
+-           print *,'mountd: calling attarg since dir.gt.0'
++c-----------print *,'qdap-mountd: calling attarg since dir.gt.0'
+ c           subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
+             call attarg( ufcs, dir, ncs, 1, i1, ni )
+-            print *,
+-     +       'mountd:after call attarg dir,ncs,1,i1,ni=',
+-     +       dir,ncs,1,i1,ni
+-            call flush(6)
++c-----------print *,
++c     +       'qdap-mountd:after call attarg dir,ncs,1,i1,ni=',
++c     +       dir,ncs,1,i1,ni
++c            call flush(6)
+   	    if( ni .gt. 0 ) then
+     	    	call copycn( ufcs, i1, ni, directory, 1 )
+-                print *,'mountd: ni,directory=',ni,directory(1:ni),
+-     +               radar_name
+-                call flush(6)
++c---------------print *,'qdap-mountd: ni,directory=',ni,directory(1:ni),
++c     +               radar_name
++c                call flush(6)
+     	    	call put8( directory, ni+1, 0 )
+     	    	ierr = dap_mnt_s( directory, radar_name
+      +	    	    , tm1, tm2, ivol, iscan, irec )
+-                print *,'mountd: after call dap_mnt_s ierr=',ierr
+-                print *,
+-     +               'mountd: after call dap_mnt_s ivol,iscan,irec=',
+-     +               ivol,iscan,irec
+-                call flush(6)
++c---------------print *,'qdap-mountd: after call dap_mnt_s ierr=',ierr
++c---------------print *,
++c     +          'qdap-mountd: after call dap_mnt_s ivol,iscan,irec=',
++c     +          ivol,iscan,irec
++c                call flush(6)
+     	    	if(ierr .eq. 0 ) then
+ c  read in the first record
+-                   print *,'qdap-mountd: Read in the first record'
+-                   print *,'qdap-mountd: Before call setray'
++c------------------print *,'qdap-mountd: Read in the first record'
++c------------------print *,'qdap-mountd: Before call setray'
+     	    	    call setray( buffer, 1, ierr )
+-                    print *,'qdap-mountd: After call setray, ierr=',ierr
++c-------------------print *,'qdap-mountd: After call setray, ierr=',ierr
+             	    if( ierr  .ne. 0 ) then
+     	    	    	write(*,*)'Error in mountd on first read...err: '
+      +	    	    	    , ierr
+@@ -479,7 +494,14 @@
+         irec = kprnv( kbuf )
+       	nfiles = 0
+       	krec = 0
++
++c     Print the first record number
+ c
++        if(irec.eq.1)then
++           print *,'qdap-setray: ivol,iscan,irec=',ivol,iscan,irec
++           call flush(6)
++        endif
++c
+  90   	continue
+       	return
+       	end
+Index: Libraries/dap/dap_common.c
+===================================================================
+--- Libraries/dap/dap_common.c	(revision 56)
++++ Libraries/dap/dap_common.c	(working copy)
+@@ -92,7 +92,7 @@
+ static struct dd_input_sweepfiles_v3 *dis;
+ static struct unique_sweepfile_info_v3 *usi;
+ static struct dd_general_info *dgi=NULL, *save_dgi=NULL;
+-static int Diagnostic_Print=NO;
++static int Diagnostic_Print=YES;
+ static int sweep_files=NO, dd_radar_num=-1;
+ static char local_radar_name[32];
+ static struct volume_d *vold=NULL;
+Index: Libraries/s2/swp_file_acc.c
+===================================================================
+--- Libraries/s2/swp_file_acc.c	(revision 56)
++++ Libraries/s2/swp_file_acc.c	(working copy)
+@@ -39,6 +39,7 @@
+ # include <function_decl.h>
+ # include <dgi_func_decl.h>
+ # include <stdlib.h>
++# include <stdio.h>
+ # include "FieldRadar.h"
+ 
+ # define NEW_MAX_READ MAX_READ/2
+@@ -207,6 +208,12 @@
+ 		    }
+ 		}
+ 	    }
++	    if (dds->celv->number_cells > MAXCVGATES) {
++	        fprintf(stderr, "BUG: CSFD cell count %d is bigger than max supported: %d\n",
++	                dds->celv->number_cells, MAXCVGATES);
++	        fprintf(stderr, "Increase MAXCVGATES in the code to fix this!\n");
++	        abort();
++	    }
+ 	    nn = dds->celv->number_cells * sizeof(float) + 12;
+ 	   memcpy((char *)dds->celvc, dds->celv, nn);
+ 	   bc += gdsos;
+@@ -216,6 +223,15 @@
+ 	   }
+ 	}
+ 	else if(strncmp(dgi->in_next_block,"CELV",4)==0 ) {
++	   /* Make sure we have enough space to copy this CELV */
++       if (gdsos > sizeof(CELLVECTOR)) {
++           fprintf(stderr, "BUG: CELV size %d is longer than space available: %d\n",
++                   gdsos, sizeof(CELLVECTOR));
++           fprintf(stderr, "Increase MAXCVGATES in the code to at least %d to fix this!\n",
++                   (gdsos - 12) / 4);
++           abort();
++       }
++       
+ 	   if(gottaSwap) {
+ 	      ddin_crack_celv(dgi->in_next_block, dds->celv, (int)0);
+ 	      swack_long(dgi->in_next_block+12, &dds->celv->dist_cells[0]
+Index: Libraries/publicIncludes/CellVector.h
+===================================================================
+--- Libraries/publicIncludes/CellVector.h	(revision 56)
++++ Libraries/publicIncludes/CellVector.h	(working copy)
+@@ -29,7 +29,7 @@
+ #ifndef INCCellVector_h
+ #define INCCellVector_h
+ 
+-#define MAXCVGATES 1500
++#define MAXCVGATES 8192
+ 
+ # ifndef MAXGATES
+ # define MAXGATES MAXCVGATES
+Index: Libraries/qreo/foflib.F
+===================================================================
+--- Libraries/qreo/foflib.F	(revision 64)
++++ Libraries/qreo/foflib.F	(working copy)
+@@ -158,6 +158,7 @@
+         character s*(*)
+ c
+         itype = 0
++        print *,'In routine foflib-anumbr'
+         call attarg( s, ith, jth, iarg, ia, na )
+         if( na .gt. 0 ) then
+             call dcode( s, ia, na, itype, kintx, zrealx )
+@@ -190,18 +191,15 @@
+ c
+ c
+       len_string=GETLEN(ibuf)
+-      print *,
+-     +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
+-     +     len_string,ith,jth,nth,c1,nchar
+-      if(ith.eq.0 .and. jth.eq.1)ith=1
++c     (LJM 6/15/09 - diagnostic prints)
++c-----print *,
++c    +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
++c    +     len_string,ith,jth,nth,c1,nchar
++      if(ith.eq.0 .and. jth.eq.1)then
++c         print *,'foflib-attarg: reset ith=1'
++         ith = 1
++      endif
+       
+-      if(ith.ne.0 .and. jth.ne.0)then
+-         print *,'foflib-attarg: ibuf=',ibuf(ith:jth)
+-      elseif(jth.ne.0)then
+-         print *,'foflib-attarg: ibuf=',ibuf(1:jth)
+-      end if
+-      call flush(6)
+-
+       c1 = 0
+       nchar = 0
+       isemi = index( ibuf(ith:jth), ';' )
+@@ -263,6 +261,15 @@
+   38    continue
+ c
+    90 continue
++
++c     (LJM 6/15/09 - diagnostic prints)
++c
++c      if(nchar .ne.0)then
++c         print *,'foflib-attarg: ith,nchar,ibuf=',
++c     +        ith,nchar,ibuf(ith:nchar+ith-1)
++c      end if
++c      call flush(6)
++
+       return
+       end
+ c----------------------------------------------------------------------
+@@ -315,6 +322,7 @@
+  5      continue
+ c
+       i = index( ccs(1:ncs), ';START' )
++c-----print *,'In routine foflib-cdatmz-1: i+1=',i+1
+       call attarg( ccs, i+1, ncs, 1, a, n )
+       if( i .le. 0 .or. n .lt. 1 ) then
+ c  bad start date
+@@ -328,6 +336,7 @@
+         call idateo( ccs, a, n, ccstm1, 1 )
+       endif
+ c
++c-----print *,'In routine foflib-cdatmz-2: i+1=',i+1
+       call attarg( ccs, i+1, ncs, 2, a, n )
+ c
+       if( n .gt. 0 ) then
+@@ -335,6 +344,7 @@
+       endif
+ c
+       i = index( ccs(1:ncs), ';STOP' )
++c-----print *,'In routine foflib-cdatmz-3: i+1=',i+1
+       if( i .gt. 0 ) then
+         call attarg( ccs, i+1, ncs, 1, a, n )
+         if( n .gt. 0 ) then
+@@ -462,15 +472,17 @@
+ c
+         character chs*(*)
+         integer kbuf(*)
++
++c     Why is this routine being called? (LJM 9/26/2011)
++c     Seems like it and call put8 are needed only "ifdef titan"
+ c
+-        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
+-        print *,'foflib-copycn:  chs(1:78)=',chs(1:78)
+-        print *,'foflib-copycn: kbuf(1:78)=',kbuf(1:78)
++c        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
++c        print *,'foflib-copycn:  chs(1:120)=',chs(1:120)
+         j = jth
+         do 11 i = ith, ith+n-1
+             call put8( kbuf, j, ichar( chs(i:i)))
+-            print *,'foflib-copycn: i,j,chs(i:i),kbuf(i:i)=',
+-     +           i,j,chs(i:i),kbuf(i:i)
++c            print *,'foflib-copycn: i,j,chs(i:i),kbuf(j)=',
++c     +           i,j,chs(i:i),kbuf(j)
+             j = j+1
+   11    continue
+ c
+@@ -2419,8 +2431,8 @@
+         character       ab*(*)
+ c
+ c     diagnostic print (LJM 01/10/2011)
+-        print *,'nxtatt routine in foflib.F: ith,jth=',
+-     +       ith,jth
++c-----print *,'nxtatt routine in foflib.F: ith,jth=',
++c     +       ith,jth
+         c1 = ith
+         a1 = 0
+         nch = 0
+@@ -2542,6 +2554,7 @@
+         endif
+     	i = ith
+     	arg = 1
++        print *,'In routine foflib-prtargs'
+     	call attarg( is, ith, jth, arg, a, n )
+     	if( a .le. 0 ) then
+             write( lunitp, 988 ) is(ith:nd)
+@@ -3320,6 +3333,7 @@
+         implicit integer( a-z )
+     	parameter( LLIM=78 )
+         character is*(*)
++        integer searchend
+ c
+ c
+         nlen = len(is)
+@@ -3331,8 +3345,9 @@
+         n = nchr
+ c
+         if( n .lt. 1 ) then
+-c  search the next 256 characters for a "^"
+-            h = index( is(i:i+255), '^' )
++            searchend = min(i + 255, len( is ))
++c  search (up to) the next 256 characters for a "^"
++            h = index( is(i:searchend), '^' )
+             if( h .gt. 0 ) then
+                 n = h -1
+             else
+Index: Libraries/qreo/qreo1.F
+===================================================================
+--- Libraries/qreo/qreo1.F	(revision 64)
++++ Libraries/qreo/qreo1.F	(working copy)
+@@ -16,7 +16,7 @@
+         common  / datset /      slong,          slati,          salti
+      +,         dlong,          dlati,          dalti,          dbase
+      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
+-     +,         deltai(3),      numval(3),      spacng(3)
++     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+      +,         tref,           values(maxval,3)
+ c
+         integer wtfun, wtfptr, unfptr
+@@ -48,7 +48,7 @@
+      +,     comptr( mxcomp, mxtot )
+ c
+ c
+-c   data
++c   data - initialize first 22 elements of datset common block to znull
+ c
+ c   	/ datset /
+         data                    slong,          slati,          salti
+@@ -83,10 +83,19 @@
+ c
+     	end
+ c-------------------------------------------------------------------------
+-c..file:qreo1.for                                
++c..file:qreo1.F
+ c  contains routines
++c
+ c     reo--------Overall driver that calls several other routines to obtain
+-c                user-specified parameters needed within the program. 
++c                user-specified parameters needed within the program.  This
++c                subroutine is also the main driver to loop of input beams
++c                within a volume specified by START amd STOP times specified
++c                by the user.
++c
++c                This subroutine is called from qreoroot.F in either
++c                ./Applications/qreod (Dorade) or ./Applications/qreou
++c                (Universal) format.
++c
+ c     inidat-----Reads user-specified input line-by-line, accumulating
+ c                these results into a compressed character stream (acs)
+ c                for later parsing.
+@@ -304,6 +313,7 @@
+      +,         specl
+      +,		eovset,         present,        firstf,	    	fixflt
+      +,		changed,    	grnd_out,       iadjust_z,      sprint_xlt
++     +,         adaptive
+ c
+ c
+         integer                 error
+@@ -322,7 +332,7 @@
+         common  / datset /      slong,          slati,          salti
+      +,         dlong,          dlati,          dalti,          dbase
+      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
+-     +,         deltai(3),      numval(3),      spacng(3)
++     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+      +,         tref,           values(maxval,3)
+ c 
+       integer tref
+@@ -362,8 +372,16 @@
+ code
+ c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ 
+-      call dmplin( 'qreo1.F--LINUX VERSION 2.42 September 2011', 0 )
++      call dmplin( 'qreo1.F--LINUX VERSION 3.00 December 2011', 0 )
++
++c     Initialize acs character string to blank (' ').  acs will 
++c     hold user-specified input stream of commands and attributes.
++c     (LJM 9/26/2011)
+ c
++      do i=1,2222
++         acs(i:i)=' '
++      enddo
++c
+     	write(*,*) ' '
+     	write(*,*)
+      +'    This version of REORDER produces the PURE cedric format'
+@@ -381,7 +399,7 @@
+      a, exct1, exct2, nxcl, multiv, prf1, prf2, fixflt, igskip
+      a, flee, azrad, elrad, rgrad, earthr, gnyqv, grc, gbmwid
+      a, grnd_out, range1, range2, swpskp, bmskp, iadjust_z
+-     a, sprint_xlt, twiddle, iradfun, diag_ljm)
++     a, sprint_xlt, twiddle, iradfun, adaptive, diag_ljm)
+       print *,' qreo1 - after call initdat: iradfun=',iradfun
+       call flush(6)
+ c
+@@ -500,9 +518,16 @@
+ c 
+ c   are all the input fields there?
+       flee = .false.
++
+ c   set diagnostic print out
++c
+       call setdpr( .true. )
++      print *,"qreo1.F-reo: Diagnostic prints - call dmplnb"
++      print *,"   Baseline angle (dbas) and Earth radius (earthr)"
++      print *,"   Height of radar (srad) relative to Earth center"
++      print *,"   Height of grid origin (drad) relative to Earth center"
+       call dmplnb
++      print *,"qreo1.F-reo: Diagnostic prints - finished"
+       firstf = .true.
+ c
+       do 22 i=1,nflds
+@@ -616,7 +641,8 @@
+       	kray = 1
+     	numvol = numvol+1
+     	oldfix = -1.1e11
+-c   set up the current output volume name
++c   set up the current output volume name (setced no longer called?)
++c     and initialize the beam counter (numbm)
+ c    	call setced( numvol, acs, nacs )
+   	numbm = 1
+       	numpnt=0
+@@ -629,7 +655,7 @@
+         call dmplin( 'c...top of loop through input data', 34 )
+         call flush(6)
+ 
+-c  loop thru the input data 
++c  top of loop thru the input data (beam-by-beam this volume) 
+ c
+   44  continue
+ 
+@@ -754,18 +780,25 @@
+ c     (LJM 5/27/09) - diagnostic print
+ c
+         if(diag_ljm)then
+-           print *,'qreo1.F-call xyz, salti,dalti=',salti,dalti
+-           print *,'numgt,gatesp,az,el,earthr=',
+-     +          numgt,gatesp,azz,ell,earthr
+-           print *,'el, cosel,sin(el)=',el,cosel,sin(el)
++           print *,'qreo1.F-call xyz: (salti-radar, dalti-origin)=',
++     +          salti,dalti
++c           print *,'qreo1.F-call xyz: numgt,gatesp,r,az,el,earthr=',
++c     +          numgt,gatesp,rg(numgt),azz,ell,earthr
+         endif
+ 
++c-----------------------------------------------------------------
++c     Parameter list for qreo2.F:subroutine xyz
++c     subroutine xyz( n, r, x, y, z, c1, c2, sinel, cosel, earthr, 
++c    +     salti)
++c-----------------------------------------------------------------
+       call xyz( numgt, rg, fat(l4), fat(l5), fat(l6),
+      a  cosel*cos( az ), -cosel*sin( az ), sin( el ),
+      a  cosel, earthr, salti)
++
+ c-----print *,'Returned from qreo1.F-call xyz'
+ 
+-c     interesting values now in 14, 15, 16
++c     subroutine xyz has returned XYZ values [fat(l4-16) for each 
++c     range gate RAE
+ 
+       if( .false. .and. zok ) then
+ c      if( zok ) then
+@@ -782,12 +815,27 @@
+       endif
+ 
+       if( airpln ) then
+-c  corrections for airborn doppler
++c
++c     Corrections for airborne Doppler
++c     (LJM) not sure why call insoff is needed,
++c           maybe corrections for INS drift.
++c     Default values (xoff,yoff,zoff)=(0,0,0)
++c
+ c--------print *,'qreo1.F-call insoff: numgt,xyz-off:',
+ c----+        numgt,xoff,yoff,zoff,fat(14),fat(15),fat(16)
++
+          call insoff( xoff, yoff, zoff,
+      +        numgt, fat(l4), fat(l5), fat(l6))
++
+ c--------print *,'Returned qreo1.F-call insoff'
++c
++c     Rest of this is needed since the aircraft lat/lon 
++c     (and maybe altitude) change from one rotation to the next.
++c     (LJM) - Strictly lat/lon/alt change beam-to-beam within
++c     the rotation, but this code does not account for this.
++c     It approximates the antenna rotation as a cone rather
++c     than a helix.
++c
+          slong = ulongt( butter )
+          slati = ulatit( butter )
+          salti = uhight( butter )
+@@ -796,6 +844,10 @@
+          sinrlo = sin( slong*torad )
+          cosrlo = cos( slong*torad )
+          srad = earthr+salti
++         if(diag_ljm)then
++            print *,'qreo1.F-reo: airborne current beam lat,lon,alt=',
++     +           slati,slong,salti
++         endif
+          s1 = sinrla*cosrlo
+          s2 = cosrla*cosrlo
+          s3 = sinrla*sinrlo
+@@ -805,7 +857,8 @@
+ c      call f9( 'salt', 4, salti )
+       endif
+ c
+-c  advection
++c  advection - (LJM) moves the xyz values associated
++c              with each input range gate
+         if( advect .eq. 1 ) then
+ c  single vector (advx, advy are single-valued in advxyz)
+           call advxyz( numgt, fat(l4), fat(l5), advx(1), advy(1),
+@@ -816,9 +869,9 @@
+      +          advx, advy, advz, itm, zmin, rcpdz, maxval )
+         endif
+ c
+-c  convert xyz values to earth surface coordinates.
+-c  ie. km. relative to 0 deg. lat., km. relative to 0 deg. lon., and
+-c  km. relative to earth center
++c  Convert xyz values relative to the radar to earth surface coordinates.
++c  ie. XY km. relative to (lat,lon)=(0,0) deg and Z km relative to earth
++c  center.
+ c
+ 
+ c     (LJM 5/26/09) - diagnostic print
+@@ -828,12 +881,21 @@
+      +          .not.(sprint_xlt)
+         endif
+ 
+-c     The default value of sprint_xlt is .false. so that routines
+-c     esurf and dxyz are called when SPRINT_XYZ is not included
+-c     in the user-specified input.
+ c
+-c     If this diag_ljm is included there is no error
++c     If SPRINT_XYZ is not included, sprint_xlt is .false., then
++c     esurf and dxyz are called.  This is the default path.
++c        esurf -- converts range gate (x,y,) to earth surface (ex,ey,ez)
++c                 which are (km east of 0 long, km norht of 0 lat, and
++c                 (km relative to earth center).
++c        dxyz  -- converts (ex,ey,ez) to (x,y,z) relative to output
++c                 grid origin (lat, lon, height).  Normally, height
++c                 should be km MSL and will be if grid origin height
++c                 (dalti) is 0 km.  
++c                 
+ c
++c     If SPRINT_XYZ is included, sprint_xlt is .true. and xyswap_ljm
++c     and sprint_xyz are called.
++c
+         if( .not. sprint_xlt ) then
+            if(diag_ljm)then
+               print *,' '
+@@ -841,35 +903,55 @@
+               print *,' '
+               print *,'Before esurf: s1,s2,s3,s4=',s1,s2,s3,s4
+            endif
++c
++c     Transform xyz-gates [fat(l4-6)] to Earth surface xyz [fat (l1-l3)]
++c
++c-----------------------------------------------------------------
++c     Parameter list for qreo21.F:subroutine esurf
++c      subroutine esurf( n, x, y, z, r, cosrlo, s1, s2, sinrlo,
++c     a  s3, s4, cosrla, sinrla, ex, ey, ez )
++c-----------------------------------------------------------------
+            call esurf( numgt, fat(l4), fat(l5), fat(l6), srad,
+      a          cosrlo, s1, s2, sinrlo, s3, s4, cosrla, sinrla,
+      a          fat( l1 ), fat( l2 ), fat( l3 ))
+-c     values now in l1, l2, l3
+ c
++c     Earth surface xyz are now in fat (l1-l3)
+ c     
++c-----------------------------------------------------------------
++c     Parameter list for qreo2.F:subroutine dxyz
++c      subroutine dxyz( n, ex, ey, ez, r, d1, d2, sindla, cosdla,
++c     a  sindlo, d3, d4, cosdla, x, y, z, iadjust_z, salti, dalti,
++c     a  diag_ljm )
++c-----------------------------------------------------------------
++c
+ c     translate to the destination landmark and convert back to xyz
++c
+            call dxyz( numgt, fat(l1), fat(l2), fat(l3), drad,
+      a          d1, d2, sindla, cosdlo, sindlo, d3, d4, cosdla,
+      a          fat(l4), fat(l5), fat(l6), iadjust_z, salti, dalti,
+      a          diag_ljm )
+-           if(diag_ljm)then
+-              print *,'  After dxyz: d1,d2,d3,d4=',d1,d2,d3,d4
+-           endif
+ c
+-c     values now in l4, l5, l6 again
++c     Range gate xyz values now in l4, l5, l6 again
+ c     
+ c     
+ c     rotate to the baseline
+ c     
+            if( copln ) then
++c
++c  convert destination xyz to destination coplane coordinates
++c
+               call dcopl( numgt, fat(l1), fat(l2), fat(l3), dbaser,
+      a             fat(l4), fat(l5), fat(l6), zok )
+            else
++c
++c  swap x and y axes
++c
+               call xyswap( numgt, fat(l1), fat(l2), fat(l3),
+      a             fat(l4), fat(l5), fat(l6), dbaser, zok )
+            endif
+-c     values back to l1, l2, l3
+-
++c
++c     Range gate xyz values back to l1, l2, l3
++c
+         else
+            if(diag_ljm)then
+               print *,' '
+@@ -894,7 +976,8 @@
+ 
+         endif
+ c
+-      if( .false. .and. zok ) then
++C     Temporarily make the fat(l1) printout (call typefe values 101-115.
++       if( .false. .and. zok ) then
+ c      if( zok ) then
+          call inslc( 'after xlt' )
+          call dmplnb
+@@ -904,7 +987,7 @@
+          call typefe( fat(l1), 101, 115 )
+          call typefe( fat(l2), 101, 115 )
+          call typefe( fat(l3), 101, 115 )
+-      endif
++       endif
+ c     
+ c   make sure this beam has gates inside the grid
+ c   x-axis
+@@ -942,6 +1025,7 @@
+     	    goto 77
+     	endif
+ c
++c     loop over fields this beam
+ c
+       do 66 i=1,nflds
+         mne(1:2) = fldmne(i*2-1:)
+@@ -954,6 +1038,23 @@
+         if( fldoff(i) .eq. inull .or. dupfld(i)) then
+             go to 53
+         endif
++c   Branch according to type of field
++c   fldtyp  =   type of field   
++c   51              1 = normal data (no conversion before interpolate)
++c   51              2 = dbz or db field 
++c                       (db --> linear --> interpolate --> db)
++c                       Values that come from houskeeping information
++c
++c     These fields come from beam header information
++c
++c   53              3 = time
++c   53              4 = azimuth
++c   53              5 = elevation
++c   53              6 = range
++c   51              7 = height above curved Earth (km MSL)
++c   51              8 = 
++c   51              9 = k or the weighted number of folds
++c   52             10 = field created by function FSPECL 
+         go to( 51, 51, 53, 53, 53, 53, 51, 51, 51, 52 ), fldtyp(i)
+ c
+   51    continue
+@@ -990,6 +1091,12 @@
+ c
+ c
+   52    continue
++
++c-----------------------------------------------------------------
++c     Parameter list for qreo1.F:subroutine fspecl
++c        subroutine fspecl( n, az, el, r, rlat, rlon, ralt, 
++c     +      x, y, z, glat, glon, galt, vnyq, itm, field )
++c-----------------------------------------------------------------
+ c   create a special field
+         spot = 1 + fldoff(i)
+         call fspecl( numgt, azz, ell, rg, slati, slong, salti,
+@@ -1004,6 +1111,7 @@
+         go to 66
+ c
+   66  continue
++c     End loop over fields this beam
+ c
+          numpnt = numpnt+numgt
+ c
+@@ -1019,11 +1127,22 @@
+ c
+     	fcount = fcount+1
+ c
+-c   now filter it to the grid
++c   now filter it to the grid by calling filter
+ c
+-      call filter( fat(l1), fat(l2), fat(l3), fat, numgt,
++c-----------------------------------------------------------------
++c     Parameter list for qreo2.F:subroutine filter
++c     subroutine filter( x, y, z, flds, ngts, zok, az, el, itm
++c    +  , newvol, igskip, azrad, elrad, rgrad, iradfun, 
++c    +  , airpln, diag_ljm )
++c-----------------------------------------------------------------
++c
++c-----print *,'qreo1-F-reo: Before call filter, airpln,i,fldtyp(i)=',
++c----+       airpln,i,fldtyp(i)        
++c-----print *,'qreo1.F-prefilter: numgt,gatesp,az,el,itm=',
++c----+       numgt,gatesp,azz,ell,itm
++        call filter( fat(l1), fat(l2), fat(l3), fat, numgt,
+      a  zok, azz, ell, itm, newvol, igskip, azrad, elrad, rgrad,
+-     a  iradfun, diag_ljm )
++     a  iradfun, airpln, adaptive, diag_ljm )
+ c
+ c 
+   77  continue
+@@ -1055,6 +1174,9 @@
+     	 write(*,*) 'endit ', volnum, kvoln(butter)
+          goto 900
+       else
++c     
++c     bottom of loop thru the input data (beam-by-beam this volume)
++c
+          numbm=numbm+1
+          knterr=0
+          goto 44
+@@ -1099,6 +1221,11 @@
+     	call clsscr()
+         call dmplin( 'stop', 4 )
+ c        call histit
++c
++c     End of subroutine reo.  An
++c     input volume has been gridded
++c
++        call flush(6)
+         return
+         end
+ c
+@@ -1109,12 +1236,12 @@
+      a	    , igskip, flee, azrad, elrad, rgrad, earthr
+      a	    , gnyqv, grc, gbmwid, grnd_out, range1, range2
+      a      , swpskp, bmskp, iadjust_z, sprint_xlt, twiddle
+-     a      , iradfun, diag_ljm)
++     a      , iradfun, adaptive, diag_ljm)
+ c  obtain reo specifiec parameters from input file
+ c
+         character acs*(*), syms*(*)
+         dimension aaz(*), advec(*), advhgt(*)
+-        logical iadjust_z, sprint_xlt
++        logical iadjust_z, sprint_xlt, adaptive
+         logical same
+         logical diag_ljm
+ c
+@@ -1128,7 +1255,7 @@
+         common  / datset /      slong,          slati,          salti
+      +,         dlong,          dlati,          dalti,          dbase
+      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
+-     +,         deltai(3),      numval(3),      spacng(3)
++     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+      +,         tref,           values(maxval,3)
+ c 
+ 	integer swpskp, bmskp
+@@ -1174,6 +1301,7 @@
+         twiddle = 3
+         c1 = c
+ 
++        print *,'qreo1-inidat: c1=',c1
+         call fields( acs, c1, nacs, flee, diag_ljm )
+ c
+ c     subroutine fields( acs, a1, a2, flee, diag_ljm )
+@@ -1321,8 +1449,12 @@
+     	    	call putfp(i, gtweak)
+     	    endif
+     	endif
+-c       
+-    	a1 = indexa( acs, 1, nacs, 5, 'USE_GEOMETRIC_ALT' )
++
++c     USE_GEOMETRIC_ALT ==> Get altitude_agl from ASIB via
++c     alt = ugealt(kbuf) -> qdap:real function ugealt() -> cugealt(x)
++c     
++c
++c    	a1 = indexa( acs, 1, nacs, 5, 'USE_GEOMETRIC_ALT' )
+     	if( a1 .gt. 0 ) then
+             grnd_out = .true.
+ 	    j = namefx('GEO_ALT', i)
+@@ -1411,6 +1543,7 @@
+     	a1 = indexa( acs, 1, nacs, 4, 'XRADIUS' )
+     	if( a1 .gt. 0 ) then
+             call rargs( acs, a1, nacs, radius(1), rum, dum )
++            print *,'qreo1-inidat: radius(1)=',radius(1)
+     	endif
+ c       
+     	a1 = indexa( acs, 1, nacs, 4, 'YMIN' )
+@@ -1431,6 +1564,7 @@
+     	a1 = indexa( acs, 1, nacs, 4, 'YRADIUS' )
+     	if( a1 .gt. 0 ) then
+             call rargs( acs, a1, nacs, radius(2), rum, dum )
++            print *,'qreo1-inidat: radius(1)=',radius(2)
+     	endif
+ c       
+     	a1 = indexa( acs, 1, nacs, 4, 'ZMIN' )
+@@ -1451,6 +1585,7 @@
+     	a1 = indexa( acs, 1, nacs, 4, 'ZRADIUS' )
+     	if( a1 .gt. 0 ) then
+             call rargs( acs, a1, nacs, radius(3), rum, dum )
++            print *,'qreo1-inidat: radius(3)=',radius(3)
+     	endif
+ c       
+     	a1 = indexa( acs, 1, nacs, 4, 'AZRADIUS' )
+@@ -1468,11 +1603,47 @@
+             call rargs( acs, a1, nacs, rgrad, rum, dum )
+     	endif
+ 
++c+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++c     Determine the algorithn for populating the output grid
++c     Adaptive = .true.  ==> Populates only the nearest output grid points.
++c              = .false. ==> Populates all output grid points in the box.
++c     Default value of adaptive is .false. (original algorithm).
++c
++c
++c       function indexa( a, ith, jth, n, p )
++        if(diag_ljm)then
++           print *,'POPULATE before indexa:  acs=',acs
++           print *,'POPULATE before indexa: nacs=',nacs
++        endif
++        a1 = indexa( acs, 1, nacs, 6, 'POPULA' ) 
++        print *,'POPULA after indexa: a1=',a1
++        call flush(6)
++        if( a1 .gt. 0 ) then
++           call attarg( acs, a1, nacs, 1, aa1, n )
++           print *,'POPULA: pointer to begin attribute  aa1=',aa1
++           print *,'POPULA: length of parameter           n=',n
++           call flush(6)
++           
++           if( same( acs, aa1, 6, 'ADAPTIVE', 1 )) then
++              adaptive = .true.
++           else
++              adaptive = .false.
++           end if
++        else
++              adaptive = .false.
++              print *,'***** POPULATE MUST BE SPECIFIED *****'
++              print *,'** EITHER ORIGINAL or ADAPTIVE **'
++c              call panic( '*********' )
++              print *,'inidat-POPULATE: default adaptive=',adaptive
++        end if
++        call flush(6)
++
+ c***************************************************************
+ c     Determine the type of box dimensions to use
+ c        iradfun = 1 (Cartesian - Use fixed XYZ radii)
+ c        iradfun = 2 (Spherical - Use range-dependent RAE radii)
+-c        iradfun = 3 [Hybrid    - Use AMAX1(XYZ,RAE) radii]
++c        iradfun = 3 (OutIndex  - Use fixed XYZ index radii]
++c        iradfun = 4 [Hybrid    - Use AMAX1(XYZ,RAE) radii]
+ c
+         call flush(6)
+ 
+@@ -1498,7 +1669,7 @@
+             call flush(6)
+ 
+ c     Set the value of iradfun according to which weighting function
+-c     (parameter = CARTESIAN, SPHERICAL, or HYBRID) was
++c     (parameter = CARTESIAN, SPHERICAL, HYBRID, or OUTINDEX) was
+ c     selected.  The logical function (foflib.F:same) does a comparison
+ c     between the parameter following the BOX DIM attribute and the 
+ c     character string in single quotes.
+@@ -1511,6 +1682,8 @@
+                iradfun = 2
+             elseif( same( acs, aa1, 6, 'HYBRID', 1 )) then
+                iradfun = 3
++            elseif( same( acs, aa1, 6, 'OUTINDEX', 1 )) then
++               iradfun = 4
+             endif
+          else
+             print *,'***** BOX DIMENSIONS MUST BE SPECIFIED *****'
+@@ -1911,13 +2084,13 @@
+ c
+         len_string = GETLEN(acs)
+         na = len_string
+-c-------if(diag_ljm)then
++        if(diag_ljm)then
+            print *,'qreo1-fields has been called from qreo1-inidat'
+            print *,'Fields    acs len_string=',len_string
+            print *,'FIELDS:(c1,nacs)->(a1,a2)=',a1,a2
+            print *,'FIELDS:   acs=',acs(1:len_string)
+            print *,'FIELDS: First call to attarg'
+-c-------endif
++        endif
+ 
+         call insl( '**fields**  ', 10 )
+         flee = .false.
+@@ -1993,8 +2166,10 @@
+ c
+         call attarg( acs, f1, ae, 1, aa, na )
+         ff = nflds+1
++c-------print *,'qreo1-fields: nflds,ff=',nflds,ff
+         if(ff.gt.mxfld)then
+-           print *,'Fields routine in qreo1.F (ff .gt. mxfld)'
++           print *,'Fields routine in qreo1.F (ff .gt. mxfld)',ff,mxfld
++           print *,'****YOU ARE ASKING FOR TOO MANY FIELDS****'
+            call flush
+            STOP
+         endif
+@@ -2045,10 +2220,13 @@
+ c
+ c     End of checking for field types 3-7, 10, and 1.
+ c    
+-            do j=1,nflds
+-               jj=2*j-1
+-               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
+-            enddo
++c     (LJM 06/15/09 diagnostic prints)
++            if(diag_ljm)then
++               do j=1,nflds
++                  jj=2*j-1
++                  print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
++               enddo
++            endif
+             call mnesrc( fldmne, nflds, acs, aa, 2, ith,
+      +           f1,nch,flee,NO)
+             if( ith .gt. 0) then
+@@ -2139,6 +2317,7 @@
+         nx = incb( noutf, 1 )
+ c
+ c   put away the name of the output field
++c-------print *,'qreo1-fields: Put away, nx,ab,nb=',nx,ab,nb
+         call attarg( acs, f1, ae, 2, ab, nb )
+         call bfill( mnames, mnptr(nx), 8 )
+         if( nb .gt. 0 ) then
+@@ -2156,8 +2335,8 @@
+         mm=8*(noutf-1)+1
+         if(noutf.eq.1)then
+            print *,' '
++           print *,'Fields routine in qreo1.F:'
+            print *,'List source and output field numbers and names'
+-           print *,'Fields routine in qreo1.F:'
+         endif
+         print *,'Fields routine in qreo1.F: nflds,noutf,ff=',
+      +       nflds,noutf,ff,fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
+@@ -2341,7 +2520,7 @@
+             nn=2*(ith-1)+1
+             mm=8*(nx-1)+1
+             print *,'Fields routine in qreo1.F:',
+-     +           ' Creating MINBIGR fld nx=',nx,noutf,
++     +           ' Creating MINBIGR    fld nx=',nx,noutf,
+      +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
+ c
+ c
+@@ -2366,7 +2545,7 @@
+             nn=2*(ith-1)+1
+             mm=8*(nx-1)+1
+             print *,'Fields routine in qreo1.F:',
+-     +           ' Creating MAXbigr fld nx=',nx,noutf,
++     +           ' Creating MAXbigr    fld nx=',nx,noutf,
+      +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
+ c
+ c
+@@ -2480,7 +2659,7 @@
+             nn=2*(ith-1)+1
+             mm=8*(nx-1)+1
+             print *,'Fields routine in qreo1.F:',
+-     +           ' Creating RADIUS fld nx=',nx,noutf,
++     +           ' Creating RADIUS     fld nx=',nx,noutf,
+      +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
+ c
+ c
+@@ -3265,6 +3444,8 @@
+ 	elev_limit = -0.00001
+         alt = alt_
+         bmwidth = bmwidth_
++
++c     Get altitude_agl from ASIB: qdap:real function ugealt() --> cugealt(x)
+ c
+ 	if(namefx('GEO_ALT', i) .ne. 0) then
+ 	    alt = ugealt(kbuf)
+Index: Libraries/qreo/qreo2.F
+===================================================================
+--- Libraries/qreo/qreo2.F	(revision 63)
++++ Libraries/qreo/qreo2.F	(working copy)
+@@ -12,7 +12,8 @@
+ c  this file contains the following routines
+ c     inireo-----Sets up internal values for all user-specified parameters
+ c                and sets default values for any not specified by the user.
+-c     genhed-----Builds the Cedric (mudras) 510 16-bit volume header
++c     genhed-----Builds the CEDRIC (MUDRAS) 510 16-bit volume header
++c                See Appendix D of the CEDRIC documentation
+ c     transc-----Calls reciprocal routines toeart and tosurf for conversions
+ c                back and forth between surface and earth-centered locations.
+ c     toeart-----Converts a surface cartesian coordinate vector to an 
+@@ -69,7 +70,7 @@
+         common  / datset /      slong,          slati,          salti
+      +,         dlong,          dlati,          dalti,          dbase
+      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
+-     +,         deltai(3),      numval(3),      spacng(3)
++     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+      +,         tref,           values(maxval,3)
+ c 
+ 	real zvx(maxval),   zvy(maxval),  zht(maxval)
+@@ -93,7 +94,34 @@
+         if( axmin(1) .lt. -32000. ) axmin(1) = -50.
+         if( axmax(1) .lt. -32000. ) axmax(1) = 50.
+         if( spacng(1) .le. 0 ) spacng(1) = 1.0
+-        if( radius(1) .le. 0 ) radius(1) = 1.0
++
++c     Fixed setting default radius(1&2) - LJM 01/30/2010
++c     Both radius(1) and radius(2) cannot be 0.  If they
++c     are, set both to default value of 1.
++c
++        print *,'qreo2-inireo: input radius(1) --> xrad',radius(1)
++        print *,'qreo2-inireo: input radius(2) --> yrad',radius(2)
++        print *,'qreo2-inireo: input radius(3) --> zrad',radius(3)
++
++        if( radius(1) .le. 0 .and. radius(2) .gt. 0 ) then
++           radius(1) = radius(2)
++        elseif( radius(2) .le. 0 .and. radius(1) .gt. 0 ) then
++           radius(2) = radius(1)
++        elseif( radius(1) .le. 0 .and. radius(2) .le. 0 ) then
++           radius(1) = 1.0
++           radius(2) = 1.0
++        endif
++
++c     Added dimensioned variable ijk_radii(3) for storing
++c     the radii in index space when ADAPTIVE option is
++c     included.  Will interpret CARTESIAN radii as indices.
++c     LJM 02/13/2012
++
++        do ijk = 1,3
++           ijk_radii(ijk) = nint (radius(ijk))
++           if (ijk_radii(ijk) .le. 0)ijk_radii(ijk)=1
++        end do
++
+         n = ( axmax(1)-axmin(1))/spacng(1) + 1.000001
+         if( n .gt. maxval ) n = maxval
+         numval(1) = n
+@@ -113,7 +141,7 @@
+         if( axmin(2) .lt. -32000. ) axmin(2) = -50.
+         if( axmax(2) .lt. -32000. ) axmax(2) = 50.
+         if( spacng(2) .le. 0 ) spacng(2) = 1.0
+-        if( radius(2) .le. 0 ) radius(2) = 1.0
++c-------if( radius(2) .le. 0 ) radius(2) = 1.0
+         n = ( axmax(2)-axmin(2))/spacng(2) + 1.000001
+         if( n .gt. maxval ) n = maxval
+         numval(2) = n
+@@ -134,6 +162,11 @@
+         if( axmax(3) .lt. -32000. ) axmax(3) = 15.5
+         if( spacng(3) .le. 0 ) spacng(3) = 1.0
+         if( radius(3) .le. 0 ) radius(3) = 1.0
++
++        print *,'qreo2-inireo: will use radius(1) --> xrad',radius(1)
++        print *,'qreo2-inireo: will use radius(2) --> yrad',radius(2)
++        print *,'qreo2-inireo: will use radius(3) --> zrad',radius(3)
++
+         n = ( axmax(3)-axmin(3))/spacng(3) + 1.000001
+         if( n .gt. maxval ) n = maxval
+         numval(3) = n
+@@ -271,7 +304,9 @@
+ c----------------------------------------------------------------------
+       subroutine genhed( kbuf, hed, fldnam, gnyqv, grc, acs, nacs
+      +       , sprint_xlt, iadjust_z, diag_ljm )
+-c  this routine builds the mudras file header record
++
++c  This routine builds the CEDRIC (mudras) 510 16-bit volume header
++c  See Appendix D of the CEDRIC documentation
+ c
+ c  access string
+         character   acs*(*)
+@@ -440,7 +475,7 @@
+         common  / datset /      slong,          slati,          salti
+      +,         dlong,          dlati,          dalti,          dbase
+      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
+-     +,         deltai(3),      numval(3),      spacng(3)
++     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+      +,         tref,           values(maxval,3)
+ c 
+       integer tref
+@@ -729,12 +764,20 @@
+       call put16(hed,303,1)
+       call put16(hed,304,nint(gnyqv*sf))
+       call put16(hed,305,nint(grc*sf))
+-c 
++
++c     CEDRIC volume header - Landmark #1
++c     Name - Words 306-308 always 'ORIGIN', 6 char, 2/word
++c     Landmark #1 - XYZ = km, km, m (MSL) Words 309-311 (Always 0,0,0)
++c
+       call putasc(hed,306,'ORIGIN',6)
+       call put16(hed,309,0)
+       call put16(hed,310,0)
+       call put16(hed,311,0)
+-c 
++
++c     CEDRIC volume header - Landmark #2
++c     Words 312-314 always 'AIRBRN' if airborne radar
++c     otherwise 6 character radar name, e.g. SPOL or CHIL or KGLD
++c
+       if( namefx( 'AIRCRAFT', i ) .ne. 0 ) then
+       	call putasc(hed,312,'AIRBRN',6)
+       else
+@@ -765,21 +808,21 @@
+          endif
+          call ll2xydrv( slati, -slong, x, y, dlati, -dlong, dbase )
+          z = salti - dalti
+-         if(diag_ljm)then
++c         if(diag_ljm)then
+             print *,'After call ll2xydrv: slat-lon-alt=',
+      +           slati,-slong,salti
+             print *,'After call ll2xydrv: dlat-lon-alt=',
+      +           dlati,-dlong,dalti
+             print *,'After call ll2xydrv: xyz=',x,y,z
+-         endif
++c         endif
+       else
+-         if(diag_ljm)then
++c        if(diag_ljm)then
+             print *,'Before call transc: slat-lon-alt=',
+      +           slati,slong,salti
+             print *,'Before call transc: dlat-lon-alt=',
+      +           dlati,dlong,dalti
+             print *,'Before call transc: xyz=',x,y,z
+-         endif
++c        endif
+          call transc(dbase, 0.0, 0.0, 0.0,
+      1        salti,
+      1        slati,
+@@ -788,15 +831,26 @@
+      1        dlati,
+      1        dlong,
+      1        x,y,z)
++
++c     If ADJUST_Z is included, then iadjust_z = .true.
++c
++c     salti - altitude of the radar
++c     dalti - altitude of the origin 
++
+          if( iadjust_z ) then
+             z = salti - dalti
+          endif
+-         if(diag_ljm)then
++c         if(diag_ljm)then
+             print *,'After call transc: slat-lon-alt=',slati,slong,salti
+             print *,'After call transc: dlat-lon-alt=',dlati,dlong,dalti
+             print *,'After call transc: xyz=',x,y,z
+-         endif
++c         endif
+       endif
++
++c     CEDRIC volume header - Landmark #2
++c     Landmark #2 - XYZ = km, km, m (MSL) Words 315-317
++c
++c
+       if(diag_ljm)print *,'Genhed #5 sprint_xlt=',sprint_xlt      
+       call put16(hed,315,nint(x*sf))
+       call put16(hed,316,nint(y*sf))
+@@ -1460,7 +1514,7 @@
+       blat   = latb
+       blon   = lonb
+ c 
+- 123    format( ' ', 10e12.4 )
++ 123    format( 'qreo2.F-transc:', 10e12.4 )
+       call toeart(alat, alon, earthr+aalt, surfxa, surfya,
+      + surfza, earx, eary, earz)
+ 
+@@ -1688,12 +1742,28 @@
+ c         z(i) = salti + r(i)*sinel + cfac*slantr*slantr
+ c  Note:  If r(i) is distance to a range gate (slant range), 
+ c         then the variable slantr = horizontal (not slant) range.
++c
++c  Modification by LJM - 11/1/2011:  Added salti (Heigh of radar MSL)
++c     to z(i) so that heights of range gates are now km MSL.
++c     The output xyz grid is implicitly (ENU-ECEF) km E, km N, km MSL.
++c
++c     Flat earth (local tangent plane):
++c        Above radar:  z(i) = r(i)*sinel
++c        Above ground: z(i) = salti + r(i)*sinel
++c
++c     Curved earth correction (uses 4/3 earth radius): 
++c        zcor = cfac*slantr*slantr
+ c----------------------------------------------------------------------
+ 
++C-----Continue testing the computation of z(i) (LJM 11/2/2011)
++C
+       cfac = 0.375/earthr
+       do 13 i = 1, n
+         slantr = r(i)*cosel
+-        z(i) = r(i)*sinel + cfac*slantr*slantr
++        zcor = cfac*slantr*slantr
++c        z(i) = r(i)*sinel
++c        z(i) = r(i)*sinel + salti
++        z(i) = r(i)*sinel + zcor
+  13   continue
+ 
+       return
+@@ -1723,7 +1793,7 @@
+ c
+ c     (LJM 5/26/09) - diagnostic print
+ c
+-      print *,'sprint_xyz has been called'
++c-----print *,'sprint_xyz has been called'
+ 
+       ii = loop_xy2ll_v4( plat, plon, palt, x, y, z
+      +     , slat, slon, salt, R_earth, n )
+@@ -1897,7 +1967,7 @@
+       subroutine esurf( n, x, y, z, r, cosrlo, s1, s2, sinrlo,
+      a  s3, s4, cosrla, sinrla, ex, ey, ez )
+ c----------------------------------------------------------------------
+-c  convert xyz values to earth surface coordinates.
++c  convert input xyz values to earth surface coordinates (ex,ey,ez).
+ c  ie. km. relative to 0 deg. lat., km. relative to 0 deg. lon., and
+ c  km. relative to earth center
+ 
+@@ -2190,7 +2260,8 @@
+         end
+ c----------------------------------------------------------------------
+       subroutine filter( x, y, z, flds, ngts, zok, az, el, itm
+-     +  , newvol, igskip, azrad, elrad, rgrad, iradfun, diag_ljm )
++     +  , newvol, igskip, azrad, elrad, rgrad, iradfun, airpln
++     +  , adaptive, diag_ljm )
+ c===========================================================================
+ c___qcommon.for
+ c
+@@ -2214,6 +2285,7 @@
+         real    thrval, zlard, atten
+         real    xmin, ymin, zmin
+         logical dupfld, unfflg
++        logical airpln
+         logical diag_ljm
+ c
+         real space
+@@ -2351,6 +2423,7 @@
+      +,         equal,          eof, 	    	newvol
+      +,         endofd,         first,          ok,             pow
+      +,         nonzro,         bok,            copln,          itrap
++     +,         flat,           adaptive
+ 
+ 
+         integer
+@@ -2373,7 +2446,7 @@
+         common  / datset /      slong,          slati,          salti
+      +,         dlong,          dlati,          dalti,          dbase
+      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
+-     +,         deltai(3),      numval(3),      spacng(3)
++     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+      +,         tref,           values(maxval,3)
+ c 
+       integer tref
+@@ -2389,12 +2462,12 @@
+ c
+         common  / scr /         ok(maxgt)
+ c
+-    	save ikount, first, tcount
++    	save ikount, first, tcount, flat
+      +, copln, nxval, nyval, nzval, rcpdx, rcpdy, rcpdz
+      +, xrad, yrad, zrad, xval, yval, zval, dx, dy, dz
+      +, xmin, ymin, zmin
+ c
+-      data first / .true. / 
++      data first,flat / .true., .false. / 
+ code
+ c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ c 
+@@ -2405,6 +2478,7 @@
+         if( first ) then
+             first = .false.
+             tcount =  namefx( 'TCOUNT', ikount )
++            print *,'qreo2.F-filter: flat=',flat
+ c   try to cut down on subscript calculations
+ c   a lot of this stuff used to be in equivalence statements
+             copln = namefx( 'COPLANE', i ) .ne. 0
+@@ -2596,9 +2670,10 @@
+ 
+ c     (LJM 6/15/09)
+ c        Replacement for box dimension calculations with a variant
+-c        that includes CARTESIAN, SPHERICAL, or HYBRID dimensions.
++c        that includes CARTESIAN, INDEX, SPHERICAL, or HYBRID
++c        dimensions.
+ c     
+-c     Calculate box dimensions from xyz radii
++c     CARTESIAN - Calculate box dimensions from xyz radii
+ c
+                if( xrad .gt. 0 ) then
+                   dx_xyz = xrad
+@@ -2608,7 +2683,7 @@
+                dy_xyz = yrad
+                dz_xyz = zrad
+                
+-c     Calculate box dimensions from rae radii
++c     SPHERICAL - Calculate box dimensions from rae radii
+ c     
+                if( rgrad .gt. 0 ) then
+                   dx_rae= rgrad
+@@ -2618,22 +2693,52 @@
+                dy_rae = rg(i)*azrad*torad
+                dz_rae = rg(i)*elrad*torad
+ 
+-c     Select box dimensions from xyz or rae radii or hybrid
++c     Select box dimensions from xyz (CARTESIAN) or rae radii (SPHERICAL)
++c     or HYBRID (CARTESIAN until SPHERICAL > CARTESIAN, then SPHERICAL)
++c
++c     (LJM 11/8/2011) - Fix for airborne (airpln = .true.)
++c     Always use CARTESIAN box dimensions in horizontal planes (XY) 
++c     since the linear spacing between beams (AFT and FOR) is roughly
++c     constant along the aircraft track, at least for straight-line
++c     flights.
++c        dx - radius of box in the x-direction
++c        dy - radius of box in the y-direction
++c        dz - radius of box in the z-direction
+ c     
+                if( iradfun .eq. 1) then
++c     CARTESIAN
+                   dx(i) = dx_xyz
+                   dy(i) = dy_xyz
+                   dz(i) = dz_xyz
+                else if (iradfun .eq. 2) then
+-                  dx(i) = dx_rae
+-                  dy(i) = dy_rae
+-                  dz(i) = dz_rae
++c     SPHERICAL
++                  if(airpln)then
++                     dx(i) = dx_xyz
++                     dy(i) = dy_xyz
++                     dz(i) = dz_rae
++                  else
++                     dx(i) = dx_rae
++                     dy(i) = dy_rae
++                     dz(i) = dz_rae
++                  end if
+                else if (iradfun .eq. 3) then
+-                  dx(i) = amax1(dx_xyz,dx_rae)
+-                  dy(i) = amax1(dy_xyz,dy_rae)
+-                  dz(i) = amax1(dz_xyz,dz_rae)
++c     HYBRID
++                  if(airpln)then
++                     dx(i) = dx_xyz
++                     dy(i) = dy_xyz
++                     dz(i) = amax1(dz_xyz,dz_rae)
++                  else
++                     dx(i) = amax1(dx_xyz,dx_rae)
++                     dy(i) = amax1(dy_xyz,dy_rae)
++                     dz(i) = amax1(dz_xyz,dz_rae)
++                  end if
+                end if
+-
++c               if(mod(i,10) .eq. 0)then
++                  if(rg(i).gt.0.0 .and. rg(i) .le. 60.0)then
++                     print *,'qreo2-filter: i,rg,dx,dy,dz=',
++     +                    i,rg(i),dx(i),dy(i),dz(i)
++                  endif
++c               endif
+   16        continue
+ c
+         endif
+@@ -2663,90 +2768,183 @@
+ c   end of initialization
+ c
+ c
+-
+ c
+ c   begin processing the current beam!
+ c
+ c
+-c   LJM (04/29/09/ - commented out this "call radinf" that was
+-c      recalculating deltas if using angular radius of influence.
+-c      It was producing an odd "clover-leaf looking" pattern in 
+-c      the CNT field.  This pattern is a consequence of radinf 
+-c      creating a box with dimensions of (dx,dy,dz) that is azimuth
+-c      angle dependent, with minima at 0, 90, 180, 270, and 360 deg.
++c     LJM (04/29/2009 - commented out this "call radinf" that was
++c     recalculating deltas if using angular radius of influence.
++c     It was producing an odd "clover-leaf looking" pattern in 
++c     the CNT field.  This pattern is a consequence of radinf 
++c     creating a box with dimensions of (dx,dy,dz) that is azimuth
++c     angle dependent, with minima at 0, 90, 180, 270, and 360 deg.
+ c------------------------------------------------------------------
+ c        if( azrad .gt. 0 .and..not. copln ) then
+ c            call radinf( ngts, az*torad, el*torad, rg, 
+ c     +          azrad*torad, elrad*torad, rgrad, dx, dy, dz )
+ c        endif
+ c------------------------------------------------------------------
++c     (LJM - 11/16/2011)
++c     When (adaptive = .true.) this new scheme populates only the NEAREST
++c     output grid points rather than all output grid points within the
++c     user-specified dimensions of the box.  BOX DIMENSIONS are still used
++c     when determining the weighting function (Cressman, Exponential, etc.)
+ c
++c     Adaptive = .true.  ==> Populates only the nearest output grid points.
++c              = .false. ==> Populates all output grid points in the box.
++c------------------------------------------------------------------
++
++c      adaptive = .false.
++
++      if(.not.adaptive)then
++c     
++c     The original algorithm - populate all grid points within the box
++
+ c  determine the range of the x indices
+-      do 303 i = 1, ngts
+-        ixlo(i) = ( x(i)-dx(i)-xmin )*rcpdx +1.
+- 303  continue
++       do 303 i = 1, ngts
++         ixlo(i) = ( x(i)-dx(i)-xmin )*rcpdx +1.
++  303  continue
+ c
+ c
+-      do 305 i = 1, ngts
+-        ixhi(i) = ( x(i)+dx(i)-xmin )*rcpdx +1.5
+- 305  continue
++       do 305 i = 1, ngts
++         ixhi(i) = ( x(i)+dx(i)-xmin )*rcpdx +1.5
++  305  continue
+ c
+ c
+-      do 304 igt = 1, ngts
+-        if( ixlo(igt) .lt. 1 ) ixlo(igt) = 1
+- 304  continue
++       do 304 igt = 1, ngts
++         if( ixlo(igt) .lt. 1 ) ixlo(igt) = 1
++  304  continue
+ c
+-      do 306 igt = 1, ngts
+-        if( ixhi(igt) .gt. nxval ) then
+-            ixhi(igt) = nxval
+-        endif
+- 306  continue
++       do 306 igt = 1, ngts
++         if( ixhi(igt) .gt. nxval ) then
++             ixhi(igt) = nxval
++         endif
++  306  continue
+ c
+ c
+ c  determine the range of the y indices
+-      do 313 i = 1, ngts
+-        iylo(i) = ( y(i)-dy(i)-ymin )*rcpdy +1.
+- 313  continue
++       do 313 i = 1, ngts
++         iylo(i) = ( y(i)-dy(i)-ymin )*rcpdy +1.
++  313  continue
+ c
+-      do 315 i = 1, ngts
+-        iyhi(i) = ( y(i)+dy(i)-ymin )*rcpdy +1.5
+- 315  continue
++       do 315 i = 1, ngts
++         iyhi(i) = ( y(i)+dy(i)-ymin )*rcpdy +1.5
++  315  continue
+ c
+ c
+-      do 314 igt = 1, ngts
+-        if( iylo(igt) .lt. 1 ) iylo(igt) = 1
+- 314  continue
++       do 314 igt = 1, ngts
++         if( iylo(igt) .lt. 1 ) iylo(igt) = 1
++  314  continue
+ c
+-      do 316 igt = 1, ngts
+-        if( iyhi(igt) .gt. nyval ) iyhi(igt) = nyval
+- 316  continue
++       do 316 igt = 1, ngts
++         if( iyhi(igt) .gt. nyval ) iyhi(igt) = nyval
++  316  continue
+ c
+ c
+ c  determine the range of the z indices
+-      do 323 i = 1, ngts
+-         izlo(i) = ( z(i)-dz(i)-zmin )*rcpdz +1.
+-            izrg = nint(( z(i)-zmin )*rcpdz+1.)
+-c         izlo(i) = izrg-2
+- 323  continue
++       do 323 i = 1, ngts
++          izlo(i) = ( z(i)-dz(i)-zmin )*rcpdz +1.
++             izrg = nint(( z(i)-zmin )*rcpdz+1.)
++c          izlo(i) = izrg-2
++  323  continue
+ c
+-      do 325 i = 1, ngts
+-         izhi(i) = ( z(i)+dz(i)-zmin )*rcpdz +1.5
+-            izrg = nint(( z(i)-zmin )*rcpdz+1.)
+-c         izhi(i) = izrg+2
+- 325  continue
++       do 325 i = 1, ngts
++          izhi(i) = ( z(i)+dz(i)-zmin )*rcpdz +1.5
++             izrg = nint(( z(i)-zmin )*rcpdz+1.)
++           izhi(i) = izrg+2
++  325  continue
+ c
+ c
+-      do 324 igt = 1, ngts
+-        if( izlo(igt) .lt. 1 ) izlo(igt) = 1
+- 324  continue
++       do 324 igt = 1, ngts
++         if( izlo(igt) .lt. 1 ) izlo(igt) = 1
++  324  continue
+ c
+-      do 326 igt = 1, ngts
+-        if( izhi(igt) .gt. nzval ) izhi(igt) = nzval
+- 326  continue
++       do 326 igt = 1, ngts
++         if( izhi(igt) .gt. nzval ) izhi(igt) = nzval
++  326  continue
+ 
++      else
++c     
++c     Adaptive algorithm - populate only nearest grid points
++c     within the box.
++c
++c     Determine the range of output grid (x) xyz indices
++c     nearest the input range gate (+) sample locations.
++c
++c                               / N
++c                              +  |
++c                W-- x--------/---x --E
++c                    |       +    |
++c                    |      /     |
++c                    |     +      |
++c                    |    /       |
++c                    |   +        |
++c                    x--/---------x
++c                      +          |
++c                     /           S
++c                  Radar
++c
++c
++c     xmin = axmin(1) - minimum value of x output grid
++c     ymin = axmin(2) - minimum value of y output grid
++c     zmin = axmin(3) - minimum value of z output grid
++c     xmax = axmax(1) - maximum value of x output grid
++c     ymax = axmax(2) - maximum value of y output grid
++c     zmax = axmax(3) - maximum value of z output grid
++c     delx = spacng(1) - spacing of the x output grid
++c     dely = spacng(2) - spacing of the y output grid
++c     delz = spacng(3) - spacing of the z output grid
++c     rcpdx = 1.0/spacng(1) - reciprocal of x spacing
++c     rcpdy = 1.0/spacng(2) - reciprocal of y spacing
++c     rcpdz = 1.0/spacng(3) - reciprocal of z spacing
++c
++        iradius = 1
++        jradius = 1
++        kradius = 2
++
++        do 330 i = 1,ngts
++
++c     Determine nearest output grid point relative
++c     to the current range gate at xyz(i).
++c
++           iclst = nint(1.0 + (x(i)-xmin)*rcpdx)
++           jclst = nint(1.0 + (y(i)-ymin)*rcpdy)
++           kclst = nint(1.0 + (z(i)-zmin)*rcpdz)
++
++c     Set the ijk increments +/- nearest output grid point
++c
++c
++           iwest = iclst - iradius
++           ieast = iclst + iradius
++           jsouth = jclst - jradius
++           jnorth = jclst + jradius
++           kbelow = kclst - kradius
++           kabove = kclst + kradius
++ 
++c     Set the output grid indices that are to be 
++c     populated from the current range gate values.
++c
++           ixlo(i) = iwest
++           ixhi(i) = ieast
++           iylo(i) = jsouth
++           iyhi(i) = jnorth
++           izlo(i) = kbelow
++           izhi(i) = kabove
++           if( ixlo(i) .lt. 1 ) ixlo(i) = 1
++           if( iylo(i) .lt. 1 ) iylo(i) = 1
++           if( izlo(i) .lt. 1 ) izlo(i) = 1
++           if( ixhi(i) .gt. nxval ) ixhi(i) = nxval
++           if( iyhi(i) .gt. nyval ) ixhi(i) = nyval
++           if( izhi(i) .gt. nzval ) ixhi(i) = nzval
++ 330    continue
++
++      end if
++
++
++
++
+ c     LJM (04/29/09) - diagnostic calculations and print
+ c
+-      if(diag_ljm)then
+          earthr=6366.8056
+          cfac=0.375/earthr
+  
+@@ -2754,9 +2952,10 @@
+          y_rad=y(1)
+          z_rad=z(1)
+ 
+-         print *,'Earth radius,cfac=',earthr,cfac
+-         print *,'RadCoord: r,x,y,z=',rg(1),x_rad,y_rad,z_rad
+-
++c--------print *,'qreo2.F-filter: Earth radius, RadCoord x,y,z=',
++c----+        earthr,x_rad,y_rad,z_rad
++ 
++      if(diag_ljm)then        
+          do jj=10,300,10
+             sinaz=sin(az*torad)
+             cosaz=cos(az*torad)
+@@ -2766,8 +2965,8 @@
+             ygate=y_rad+rg(jj)*cosaz*cosel
+             hgate=rg(jj)*cosel
+             zcor=cfac*hgate*hgate
+-c           print *,'hgate,zcor=',hgate,zcor
+-c           print *,'rg(jj)*sinel=',rg(jj)*sinel
++            print *,'qreo2.F-filter: hgate,zcor=',hgate,zcor
++            print *,'qreo2.F-filter: rg(jj)*sinel=',rg(jj)*sinel
+             zgate=z_rad+rg(jj)*sinel+hgate*hgate*cfac
+             xdiff=xgate-x(jj)
+             ydiff=ygate-y(jj)
+@@ -2776,8 +2975,8 @@
+             zrg = ( z(jj)-zmin )*rcpdz+1.
+             zhi = ( z(jj)+dz(jj)-zmin )*rcpdz+1.5
+             write(6,991)az,el,jj,rg(jj),
+-c     +     x(jj),y(jj),z(jj),
+-c     +     xgate,ygate,zgate,
++     +           x(jj),y(jj),z(jj),
++     +           xgate,ygate,zgate,
+      +           xdiff,ydiff,zdiff,
+      +           dx(jj),dy(jj),dz(jj),
+      +           ixlo(jj),ixhi(jj),
+@@ -2785,7 +2984,7 @@
+      +           izlo(jj),izhi(jj),
+      +           zlo,zrg,zhi
+  991        format('AzEl=',2f6.2,' jj=',i3,' rg=',f5.2,
+-c     +     ' xyz=',3f6.2,' xyzgate=',3f6.2,
++     +     ' xyz=',3f6.2,' xyzgate=',3f6.2,
+      +           ' xyzdiff=',3f7.3,
+      +           ' RaeBox=',3f6.2,' ijk=',6i5,
+      +           ' zlo,zrg,zhi=',3f7.3)
+@@ -2805,26 +3004,73 @@
+ c     [zval=wsum/sumw) in routine wrimud and written out in the 
+ c     Cedric file.
+ c
++c-----Looping outermost --> innermost (range gates -> z -> y -> x
++c
++c      do 555 - Main outer loop over range gates in a beam
++c         do 503 - Inner loop over z-levels
++c            do 502 - Inner loop over y-levels
++c               do 501 - Inner loop over x-levels
++c               501 continue
++c            502 continue
++c         503 continue
++c      555  continue
++c
+       do 555 igt = 1, ngts, igskip
+ c
+ c
++c     (LJM 11/30/2011): Series of checks on whether or not the xyz location
++c     is within a box with dimensions (xbox, ybox, zbox).  If outside the box, 
++c     don't use this range gate value.  The (xbox, ybox, zbox) values for
++c        adaptive = .true.  are the input grid spacings [delta(1-3)]
++c                   .false. are the input box dimensions (dx,dy,dz)
++c
++c     Check if xyz-distance abs(xyzgrid-xyzgate) is outside the zbox 
++
+       do 503 l3=izlo(igt),izhi(igt)
+-        if( abs( zval(l3)-z(igt) ).gt. dz(igt) ) then
++         if( adaptive )then
++            zbox = kradius * delta(3)
++         else
++            zbox = dz(igt)
++         end if
++        if( abs( zval(l3)-z(igt) ).gt. zbox ) then
+           go to 503
+         endif
+ c
+-c
++c     Check if y-distance abs(ygrid-ygate) is outside the ybox 
++
+       do 502 l2=iylo(igt),iyhi(igt)
+-        if( abs( yval(l2)-y(igt) ) .gt. dy(igt) ) then
++         if( adaptive )then
++            ybox = jradius * delta(2)
++         else
++            ybox = dy(igt)
++         end if
++        if( abs( yval(l2)-y(igt) ) .gt. ybox ) then
+           go to 502
+         endif
+ c
+-c
++c     Check if x-distance abs(xgrid-xgate) is outside the xbox 
++
+       do 501 l1=ixlo(igt),ixhi(igt)
+-        if( abs( xval(l1)-x(igt) ) .gt. dx(igt) ) then
++         if( adaptive )then
++            xbox = iradius * delta(1)
++         else
++            xbox = dx(igt)
++         end if
++        if( abs( xval(l1)-x(igt) ) .gt. xbox ) then
+            go to 501
+         endif
+ 
++c      print *,'In qreo2-filter: adaptive=',adaptive
++
++        if(diag_ljm .and. igt .eq.101)then
++           write(6,1771)
++     +        l3,l2,l1,zval(l3),yval(l2),xval(l1),
++     +        z(igt),y(igt),x(igt),
++     +        delta(3),delta(2),delta(1)
++ 1771      format(' qreo2.F-filter: l321,zyx grd, zyx rg=, d zyx=',
++     +          3i4,9f8.2)
++        end if
++
+ c     Original formulation of bigrsq and rsq
+ c     Cressman: w = (bigrsq-rsq)/(bigrsq+rsq)
+ c                 = (1-rsq/bigrsq)/1+rsq/bigrsq)
+@@ -2865,10 +3111,15 @@
+ c        w = (bigrsq-rsq)/(bigrsq+rsq)
+         w = (1. - ddsqr)/(1. + ddsqr)
+ 
++        if(w.lt.0.0)then
++           w = 0.0
++
+ c     LJM (04/29/09) - diagnostic print
+ c
+-        if(w.lt.0.0)print *,'Cressman w .lt.0',w
++c----------print *,'Cressman w .lt.0',w
+ 
++        endif
++
+         go to 400
+  362    continue
+ c   exponential weighting
+@@ -2934,15 +3185,15 @@
+             call panic( '** Bad field type **' )
+ c       
+   401       continue
+-c       just use the data point
++c     (fldtyp = 1 or 2) just use the input data point
+             zdata = flds( igt + fldoff(i))
+             go to 417
+   403       continue
+-c       time!                               
++c     (fldtyp = 3) time as a field             
+             zdata = itm
+             go to 417
+   404       continue
+-c       azimuth
++c     (fldtyp = 4) azimuth angle as a field
+             zdata = az
+     	    zref = space(offset+unfptr(i))
+             if( oftyp(i) .eq. 25 ) then
+@@ -2958,10 +3209,9 @@
+ 		    zdata = zdata +360.
+ 		endif
+     	    endif
+-c-----------if(igt.eq.250)print *,'igt,az=',igt,az
+             go to 417
+   405       continue
+-c       elevation   
++c     (fldtyp = 5) elevation angle as a field   
+             zdata = el
+     	    zref = space(offset+unfptr(i))
+             if( oftyp(i) .eq. 25 ) then
+@@ -2977,19 +3227,25 @@
+ 		    zdata = zdata +360.
+ 		endif
+     	    endif
+-c-----------if(igt.eq.250)print *,'igt,el=',igt,el
+             go to 417
+   406       continue
+-c       range
++c     (fldtyp = 6) slant range as a field
+             zdata = rg(igt)
+-c-----------if(igt.eq.250)print *,'igt,rg=',igt,rg(igt)
+             go to 417
+   407       continue
++c     (fldtyp = 7) zmsl as a field
++c     ZMSL field (#7) --> zgate --> zdata (LJM 11/1/2011)
+ c       height above curved Earth (km MSL)
+ c------------------------------------------------------
++c  To convert to height MSL, change z(i) calculation to 
++c         z(i) = salti + r(i)*sinel + cfac*slantr*slantr
++c  Note:  If r(i) is distance to a range gate (slant range), 
++c         then the variable slantr = horizontal (not slant) range.
++c------------------------------------------------------
+ c     Temporarily replaced elevation angle with the
+ c     height of the data point, either with or 
+ c     without a 4/3 earth correction. (LJM 11/1/2010) 
++c------------------------------------------------------
+ c
+ c-----------if(igt.eq.250)print *,'igt,rg,az,el=',igt,rg(igt),az,el
+             earthr=6366.8056
+@@ -3003,20 +3259,30 @@
+             hgate=rg(igt)*cosel
+             zcor=cfac*hgate*hgate
+ 
+-c     Flat earth do not include zcor; otherwise
+-c     correct for a 4/3 earth radius.
++c     Generation of the ZMSL field (#7) --> zgate --> zdata (LJM 11/1/2011)
++c     Flat earth do not include zcor; otherwise do include zcor..
++c     Note: z_rad - height of the radar (km MSL)
++c           zflat - range gate height above flat earth (km MSL)
++c           zcor  - height correction for a 4/3 earth radius
++c           zcrvd - range gate height above flat earth (km MSL)
+ c
+-            zgate=z_rad+rg(igt)*sinel
++            zflat = z_rad + rg(igt)*sinel
++            zcrvd = zflat + zcor
+ 
+-c     Confirmation printout (LJM 11/11/2010)
+-c            if(igt.eq.250)then
+-c               write(6,1771)igt,rg(igt),hgate,az,el,
+-c     +              xgate,ydate,zgate,zcor
+-c 1771          format(' igt,srng,hrng,az,el,xyz,zcor=',i3,8f10.3)
+-c            endif
++c     Confirmation printout (LJM 10/26/2011) for zmsl field
++            if(mod(igt,3000) .eq. 0 .and. abs(el) .le. 0.5)then
++               write(6,1772)igt,x_rad,y_rad,z_rad,az,el,
++     +              rg(igt),hgate,xgate,ygate,zcor,zflat,zcrvd
++ 1772          format(
++     +              ' igt,xyz_rad,az,el,srng,hrng,xy_gate=',i3,9f10.3,
++     +              ' zcor,zflat,zcrvd=',3f10.3)
++            end if
+ 
+-            zgate=zgate+zcor
+-            zdata = zgate
++            if (flat)then
++               zdata = zflat
++            else
++               zdata = zcrvd
++            end if
+ c------------------------------------------------------
+             go to 417
+ c       
+Index: Libraries/qreo/qreo3.F
+===================================================================
+--- Libraries/qreo/qreo3.F	(revision 62)
++++ Libraries/qreo/qreo3.F	(working copy)
+@@ -599,7 +599,7 @@
+         common  / datset /      slong,          slati,          salti
+      +,         dlong,          dlati,          dalti,          dbase
+      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
+-     +,         deltai(3),      numval(3),      spacng(3)
++     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+      +,         tref,           values(maxval,3)
+ c 
+       integer tref
+@@ -632,9 +632,20 @@
+ c
+ c       LJM - debug print
+ c
+-        print *,'WRIMUD: maxcart, sizcart, maxspc=',
+-     +       maxcart, sizcart, maxspc
++        print *,'qreo3:wrimud: maxcart, sizcart, maxspc, noutf=',
++     +       maxcart, sizcart, maxspc, noutf
+ 
++c     LJM - debug print of information for each (ofn) of noutf
++c           fields. See do 530 ofn = 1, noutf loop below.  That
++c           loop is over all levels, but print here only once 
++        do ofn = 1, noutf
++           icase = oftyp(ofn)-20
++           mm = mnptr(ofn)
++           print *,'qreo3:wrimud: ofn,oftyp,name=',
++     +          ofn,oftyp(ofn),mnames(mm:mm+7)
++        enddo
++
++
+         call dmplin( 'c...mark   ', 8 )
+ c        call dmplin( '**wrimud**', 10 )
+         copln = namefx( 'COPLANE', i ) .ne. 0
+@@ -713,7 +724,6 @@
+ c  assemble the data for each output field
+ c
+       do 530 ofn = 1, noutf
+-c         print *,'WRIMUD: noutf, ofn=',noutf,ofn
+ c
+ c     get the scale for each field
+          i16w = 176 + (ofn -1) * 5

@@ -1,0 +1,12 @@
+[?1034hscons: Reading SConscript files ...
+scons: done reading SConscript files.
+scons: Building targets ...
+gfortran -o Applications/qreod/qreod -m32 Applications/qreod/qreoroot.o -Llib -lqreo -ldap -ls2 -lm
+gcc -o Applications/qreou/fofclibPlus.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN -Iinclude Applications/qreou/fofclibPlus.c
+gfortran -o Applications/qreou/qreoroot.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Applications/qreou/qreoroot.F
+gfortran -o Applications/qreou/qufap.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Applications/qreou/qufap.F
+gfortran -o Applications/qreou/unixqufap.o -c -m32 -O0 -g -DUNIX -DLITTLENDIAN Applications/qreou/unixqufap.F
+gfortran -o Applications/qreou/qreou -m32 Applications/qreou/qreoroot.o Applications/qreou/fofclibPlus.o Applications/qreou/qufap.o Applications/qreou/unixqufap.o -Llib -lqreo -ldap -ls2 -lm
+Install file: "Applications/qreod/qreod" as "bin/qreod"
+Install file: "Applications/qreou/qreou" as "bin/qreou"
+scons: done building targets.

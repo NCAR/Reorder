@@ -5,6 +5,8 @@ c----------------------------------------------------------------------
         program root
     	parameter( lenbuf=17000 )
     	integer tbuf( lenbuf )
+        data tbuf /lenbuf*0/
+
     	write(*,*) ' '
     	write(*,*)
      +' qreod - REORDER executable for reading Dorade sweep files'

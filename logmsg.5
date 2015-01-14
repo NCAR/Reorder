@@ -1,0 +1,74 @@
+REORDER VERSION 3.00 November 2011 (LJM)
+
+--------------------------------------------------------------------------
+Significant changes were made to how Reorder populates the output XYZ grid 
+and to what is included in the calculation of heights (MSL).
+--------------------------------------------------------------------------
+
+1. Libraries/qreo/qreo1.F
+      routine reo prints 'qreo1.F--LINUX VERSION 3.00 November 2011'
+
+2. Libraries/dap/qdap.F
+      routine accver prints 'qdap.F--LINUX VERSION 3.00 November 2011'
+
+3. For now bounds checking (env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
+   remains ON in SConstruct.  This line could be commented out (#) to prevent
+   the program from dying, but this could lead to unpredictable results in some
+   instances.  There are likely some lingering problems where the program can
+   go beyond the bounds of dimensioned variables.  Unfortunately, these tend to
+   be unique to a particular set of user-specied variables and parameters when
+   applied to their dataset.
+
+4. Airborne Doppler;
+   a. Added some more detailed print statements for a thorough re-examination of
+      some parts of the code, especially as it applies to gridding an airborne
+      dataset. A current issue is whether or not refraction and Earth's curvature
+      are included compared to height calculations above a local tangent plane
+      (flat Earth with no correction for refraction).
+
+      The issue in #4a above haa come up during gridding of a synthetic dataset
+      based on a Beltrami flow model (sequence of counter-rotating vortices that 
+      satisfy mass-continuity).  Specific changes and/or fixes relevant to these
+      tests follow.
+
+   b. Changed how the region of XYZ output grid points [size of boxes surrounding
+      the input range gate (RAE) sample locations] get defined.  The antenna
+      spins around the centerline of the fuselage as the aircraft moves forward,
+      thus making a series of surveillance-like scans spaced a few hundred meters
+      apart along the flight track.  Therefore, it is more appropriate to keep
+      the horizontal box dimensions fixed (CARTESIAN) and to let the vertical 
+      dimension increase with range (SPHERICAL and/or HYBRID) from the radar.
+
+   c. qreo1.F (call filter) and qreo2.F (subroutine filter): added logical
+      variable airpln to parameter list.  The user specifies the BOX 
+      DIMENSIONS variable, with parameter of CARTESIAN, SPHERICAL, or HYBRID,
+      along with the desired XYZ and RAE radii, and Reorder makes the choice
+      of XY and Z (or E) box dimensions to be used.  See comments inside
+      qreo2.F, subroutine filter.
+
+   d. qreo1.F (call inidat) and qreo1.F (subroutine inidat): added logical
+      variable adaptive to parameter list.  This new logical variable is
+      used to determine the algorithm for populating the output grid points
+      surrounding an input range gate location.  The intent is to let the
+      program adapt its box size (linear dimensions) to a local RAE sampling
+      resolution (spherical dimensions).  
+
+      If the adaptive scheme is desired, the user must specify a new variable
+      and its parameter (POPULATE: ADAPTIVE;) in their script; otherwise, this
+      variable is not included and the program uses the original (default) 
+      scheme.
+
+      Adaptive = .false. ==> Populates all output grid points (the historic
+                             or original algorithm)  
+               = .true.  ==> Populates only the nearest output grid points
+
+      This adaptive scheme uncouples spatial filtering (distance-weighted
+      averages (Cressman, Exponential, and Uniform) from which output
+      grid points get populated.  The original approach used the same
+      XYZ-radii and/or RAE-radii for both the output grid region to be
+      populated and how the filtering is to be done.
+
+5. Some fixes were made to how Reorder parses the user-specified variables
+   and parameters (the input script).  These fixes included initializing
+   some variables and/or resetting their values back to an initial value
+      
