@@ -3,7 +3,7 @@ Import('env')
 sources = Glob('*.c')
 
 env.AppendUnique(CPPDEFINES = ['UNIX','LITTLENDIAN'])
-env.AppendUnique(LIBS       = ['m','ncurses'])
+env.AppendUnique(LIBS       = ['m'])
 env.AppendUnique(CPPPATH    = [env.installLocalInc])
 
 libNode = env.Library('s2',source = sources)
