@@ -158,7 +158,6 @@ c
         character s*(*)
 c
         itype = 0
-        print *,'In routine foflib-anumbr'
         call attarg( s, ith, jth, iarg, ia, na )
         if( na .gt. 0 ) then
             call dcode( s, ia, na, itype, kintx, zrealx )
@@ -191,24 +190,11 @@ c
 c
 c
       len_string=GETLEN(ibuf)
-<<<<<<< .mine
-c     (LJM 6/15/09 - diagnostic prints)
-c-----print *,
-c    +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
-c    +     len_string,ith,jth,nth,c1,nchar
-      if(ith.eq.0 .and. jth.eq.1)then
-c         print *,'foflib-attarg: reset ith=1'
-         ith = 1
-      endif
-=======
 c-----print *,
 c     +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
 c     +     len_string,ith,jth,nth,c1,nchar
       if(ith.eq.0 .and. jth.eq.1)ith=1
->>>>>>> .r71
       
-<<<<<<< .mine
-=======
 c      if(ith.ne.0 .and. jth.ne.0)then
 c         print *,'foflib-attarg: ibuf=',ibuf(ith:jth)
 c      elseif(jth.ne.0)then
@@ -216,7 +202,6 @@ c         print *,'foflib-attarg: ibuf=',ibuf(1:jth)
 c      end if
 c      call flush(6)
 
->>>>>>> .r71
       c1 = 0
       nchar = 0
       isemi = index( ibuf(ith:jth), ';' )
@@ -278,15 +263,6 @@ c   remove leading and trailing blanks
   38    continue
 c
    90 continue
-
-c     (LJM 6/15/09 - diagnostic prints)
-c
-c      if(nchar .ne.0)then
-c         print *,'foflib-attarg: ith,nchar,ibuf=',
-c     +        ith,nchar,ibuf(ith:nchar+ith-1)
-c      end if
-c      call flush(6)
-
       return
       end
 c----------------------------------------------------------------------
@@ -339,7 +315,6 @@ c
  5      continue
 c
       i = index( ccs(1:ncs), ';START' )
-c-----print *,'In routine foflib-cdatmz-1: i+1=',i+1
       call attarg( ccs, i+1, ncs, 1, a, n )
       if( i .le. 0 .or. n .lt. 1 ) then
 c  bad start date
@@ -353,7 +328,6 @@ c  bad start date
         call idateo( ccs, a, n, ccstm1, 1 )
       endif
 c
-c-----print *,'In routine foflib-cdatmz-2: i+1=',i+1
       call attarg( ccs, i+1, ncs, 2, a, n )
 c
       if( n .gt. 0 ) then
@@ -361,7 +335,6 @@ c
       endif
 c
       i = index( ccs(1:ncs), ';STOP' )
-c-----print *,'In routine foflib-cdatmz-3: i+1=',i+1
       if( i .gt. 0 ) then
         call attarg( ccs, i+1, ncs, 1, a, n )
         if( n .gt. 0 ) then
@@ -489,27 +462,14 @@ c   this routine copies and converts character data to noncharacter data
 c
         character chs*(*)
         integer kbuf(*)
-
-c     Why is this routine being called? (LJM 9/26/2011)
-c     Seems like it and call put8 are needed only "ifdef titan"
 c
-<<<<<<< .mine
-c        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
-c        print *,'foflib-copycn:  chs(1:120)=',chs(1:120)
-=======
 c        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
 c        print *,'foflib-copycn:  chs(1:78)=',chs(1:78)
->>>>>>> .r71
         j = jth
         do 11 i = ith, ith+n-1
             call put8( kbuf, j, ichar( chs(i:i)))
-<<<<<<< .mine
-c            print *,'foflib-copycn: i,j,chs(i:i),kbuf(j)=',
-c     +           i,j,chs(i:i),kbuf(j)
-=======
 c-----------print *,'foflib-copycn: i,j,chs(i:i),kbuf(j)=',
 c     +           i,j,chs(i:i),kbuf(j)
->>>>>>> .r71
             j = j+1
   11    continue
 c
@@ -2458,13 +2418,8 @@ c
         character       ab*(*)
 c
 c     diagnostic print (LJM 01/10/2011)
-<<<<<<< .mine
-c-----print *,'nxtatt routine in foflib.F: ith,jth=',
-c     +       ith,jth
-=======
 c-------print *,'nxtatt routine in foflib.F: ith,jth=',
 c     +       ith,jth
->>>>>>> .r71
         c1 = ith
         a1 = 0
         nch = 0
@@ -2586,7 +2541,6 @@ c
         endif
     	i = ith
     	arg = 1
-        print *,'In routine foflib-prtargs'
     	call attarg( is, ith, jth, arg, a, n )
     	if( a .le. 0 ) then
             write( lunitp, 988 ) is(ith:nd)
@@ -3377,15 +3331,9 @@ c
         n = nchr
 c
         if( n .lt. 1 ) then
-<<<<<<< .mine
-            searchend = min(i + 255, len( is ))
-c  search (up to) the next 256 characters for a "^"
-            h = index( is(i:searchend), '^' )
-=======
 c  search (up to) the next 256 characters for a "^"
             searchend = min(i + 255, len( is ))
             h = index( is(i:searchend), '^' )
->>>>>>> .r71
             if( h .gt. 0 ) then
                 n = h -1
             else

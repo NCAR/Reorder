@@ -14,13 +14,8 @@ if env['useNetcdf']:
     env.Tool('netcdf')
     env.AppendUnique(CPPDEFINES = ['NETCDF'])
 
-<<<<<<< .mine
-#env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
-
-=======
 #env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
     
->>>>>>> .r71
 if env['use_m32']:
     if (env['CC'] == 'gcc'):
         # Put '-m32' onto compilation and linking, since we need to explicitly 

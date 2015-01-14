@@ -16,7 +16,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+     +,         deltai(3),      numval(3),      spacng(3)
      +,         tref,           values(maxval,3)
 c
         integer wtfun, wtfptr, unfptr
@@ -48,7 +48,7 @@ c
      +,     comptr( mxcomp, mxtot )
 c
 c
-c   data - initialize first 22 elements of datset common block to znull
+c   data
 c
 c   	/ datset /
         data                    slong,          slati,          salti
@@ -83,19 +83,10 @@ c   count of output fields
 c
     	end
 c-------------------------------------------------------------------------
-c..file:qreo1.F
+c..file:qreo1.for                                
 c  contains routines
-c
 c     reo--------Overall driver that calls several other routines to obtain
-c                user-specified parameters needed within the program.  This
-c                subroutine is also the main driver to loop of input beams
-c                within a volume specified by START amd STOP times specified
-c                by the user.
-c
-c                This subroutine is called from qreoroot.F in either
-c                ./Applications/qreod (Dorade) or ./Applications/qreou
-c                (Universal) format.
-c
+c                user-specified parameters needed within the program. 
 c     inidat-----Reads user-specified input line-by-line, accumulating
 c                these results into a compressed character stream (acs)
 c                for later parsing.
@@ -313,7 +304,6 @@ c
      +,         specl
      +,		eovset,         present,        firstf,	    	fixflt
      +,		changed,    	grnd_out,       iadjust_z,      sprint_xlt
-     +,         adaptive
 c
 c
         integer                 error
@@ -332,7 +322,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+     +,         deltai(3),      numval(3),      spacng(3)
      +,         tref,           values(maxval,3)
 c 
       integer tref
@@ -372,19 +362,7 @@ c
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-<<<<<<< .mine
-      call dmplin( 'qreo1.F--LINUX VERSION 3.00 December 2011', 0 )
-
-c     Initialize acs character string to blank (' ').  acs will 
-c     hold user-specified input stream of commands and attributes.
-c     (LJM 9/26/2011)
-=======
       call dmplin( 'qreo1.F--LINUX VERSION 2.43 January 2012', 0 )
->>>>>>> .r71
-c
-      do i=1,2222
-         acs(i:i)=' '
-      enddo
 c
     	write(*,*) ' '
     	write(*,*)
@@ -403,7 +381,7 @@ c  get the input control string
      a, exct1, exct2, nxcl, multiv, prf1, prf2, fixflt, igskip
      a, flee, azrad, elrad, rgrad, earthr, gnyqv, grc, gbmwid
      a, grnd_out, range1, range2, swpskp, bmskp, iadjust_z
-     a, sprint_xlt, twiddle, iradfun, adaptive, diag_ljm)
+     a, sprint_xlt, twiddle, iradfun, diag_ljm)
       print *,' qreo1 - after call initdat: iradfun=',iradfun
       call flush(6)
 c
@@ -522,16 +500,9 @@ c
 c 
 c   are all the input fields there?
       flee = .false.
-
 c   set diagnostic print out
-c
       call setdpr( .true. )
-      print *,"qreo1.F-reo: Diagnostic prints - call dmplnb"
-      print *,"   Baseline angle (dbas) and Earth radius (earthr)"
-      print *,"   Height of radar (srad) relative to Earth center"
-      print *,"   Height of grid origin (drad) relative to Earth center"
       call dmplnb
-      print *,"qreo1.F-reo: Diagnostic prints - finished"
       firstf = .true.
 c
       do 22 i=1,nflds
@@ -645,8 +616,7 @@ c   set the end of volume flag
       	kray = 1
     	numvol = numvol+1
     	oldfix = -1.1e11
-c   set up the current output volume name (setced no longer called?)
-c     and initialize the beam counter (numbm)
+c   set up the current output volume name
 c    	call setced( numvol, acs, nacs )
   	numbm = 1
       	numpnt=0
@@ -659,7 +629,7 @@ c
         call dmplin( 'c...top of loop through input data', 34 )
         call flush(6)
 
-c  top of loop thru the input data (beam-by-beam this volume) 
+c  loop thru the input data 
 c
   44  continue
 
@@ -784,25 +754,18 @@ c   to x being east and y north.
 c     (LJM 5/27/09) - diagnostic print
 c
         if(diag_ljm)then
-           print *,'qreo1.F-call xyz: (salti-radar, dalti-origin)=',
-     +          salti,dalti
-c           print *,'qreo1.F-call xyz: numgt,gatesp,r,az,el,earthr=',
-c     +          numgt,gatesp,rg(numgt),azz,ell,earthr
+           print *,'qreo1.F-call xyz, salti,dalti=',salti,dalti
+           print *,'numgt,gatesp,az,el,earthr=',
+     +          numgt,gatesp,azz,ell,earthr
+           print *,'el, cosel,sin(el)=',el,cosel,sin(el)
         endif
 
-c-----------------------------------------------------------------
-c     Parameter list for qreo2.F:subroutine xyz
-c     subroutine xyz( n, r, x, y, z, c1, c2, sinel, cosel, earthr, 
-c    +     salti)
-c-----------------------------------------------------------------
       call xyz( numgt, rg, fat(l4), fat(l5), fat(l6),
      a  cosel*cos( az ), -cosel*sin( az ), sin( el ),
      a  cosel, earthr, salti)
-
 c-----print *,'Returned from qreo1.F-call xyz'
 
-c     subroutine xyz has returned XYZ values [fat(l4-16) for each 
-c     range gate RAE
+c     interesting values now in 14, 15, 16
 
       if( .false. .and. zok ) then
 c      if( zok ) then
@@ -819,27 +782,12 @@ c      if( zok ) then
       endif
 
       if( airpln ) then
-c
-c     Corrections for airborne Doppler
-c     (LJM) not sure why call insoff is needed,
-c           maybe corrections for INS drift.
-c     Default values (xoff,yoff,zoff)=(0,0,0)
-c
+c  corrections for airborn doppler
 c--------print *,'qreo1.F-call insoff: numgt,xyz-off:',
 c----+        numgt,xoff,yoff,zoff,fat(14),fat(15),fat(16)
-
          call insoff( xoff, yoff, zoff,
      +        numgt, fat(l4), fat(l5), fat(l6))
-
 c--------print *,'Returned qreo1.F-call insoff'
-c
-c     Rest of this is needed since the aircraft lat/lon 
-c     (and maybe altitude) change from one rotation to the next.
-c     (LJM) - Strictly lat/lon/alt change beam-to-beam within
-c     the rotation, but this code does not account for this.
-c     It approximates the antenna rotation as a cone rather
-c     than a helix.
-c
          slong = ulongt( butter )
          slati = ulatit( butter )
          salti = uhight( butter )
@@ -848,10 +796,6 @@ c
          sinrlo = sin( slong*torad )
          cosrlo = cos( slong*torad )
          srad = earthr+salti
-         if(diag_ljm)then
-            print *,'qreo1.F-reo: airborne current beam lat,lon,alt=',
-     +           slati,slong,salti
-         endif
          s1 = sinrla*cosrlo
          s2 = cosrla*cosrlo
          s3 = sinrla*sinrlo
@@ -861,8 +805,7 @@ c      call f9( 'slon', 4, slong )
 c      call f9( 'salt', 4, salti )
       endif
 c
-c  advection - (LJM) moves the xyz values associated
-c              with each input range gate
+c  advection
         if( advect .eq. 1 ) then
 c  single vector (advx, advy are single-valued in advxyz)
           call advxyz( numgt, fat(l4), fat(l5), advx(1), advy(1),
@@ -873,9 +816,9 @@ c  as a function of height (advx, advy are multi-valued in adhxyz)
      +          advx, advy, advz, itm, zmin, rcpdz, maxval )
         endif
 c
-c  Convert xyz values relative to the radar to earth surface coordinates.
-c  ie. XY km. relative to (lat,lon)=(0,0) deg and Z km relative to earth
-c  center.
+c  convert xyz values to earth surface coordinates.
+c  ie. km. relative to 0 deg. lat., km. relative to 0 deg. lon., and
+c  km. relative to earth center
 c
 
 c     (LJM 5/26/09) - diagnostic print
@@ -885,20 +828,11 @@ c
      +          .not.(sprint_xlt)
         endif
 
+c     The default value of sprint_xlt is .false. so that routines
+c     esurf and dxyz are called when SPRINT_XYZ is not included
+c     in the user-specified input.
 c
-c     If SPRINT_XYZ is not included, sprint_xlt is .false., then
-c     esurf and dxyz are called.  This is the default path.
-c        esurf -- converts range gate (x,y,) to earth surface (ex,ey,ez)
-c                 which are (km east of 0 long, km norht of 0 lat, and
-c                 (km relative to earth center).
-c        dxyz  -- converts (ex,ey,ez) to (x,y,z) relative to output
-c                 grid origin (lat, lon, height).  Normally, height
-c                 should be km MSL and will be if grid origin height
-c                 (dalti) is 0 km.  
-c                 
-c
-c     If SPRINT_XYZ is included, sprint_xlt is .true. and xyswap_ljm
-c     and sprint_xyz are called.
+c     If this diag_ljm is included there is no error
 c
         if( .not. sprint_xlt ) then
            if(diag_ljm)then
@@ -907,55 +841,35 @@ c
               print *,' '
               print *,'Before esurf: s1,s2,s3,s4=',s1,s2,s3,s4
            endif
-c
-c     Transform xyz-gates [fat(l4-6)] to Earth surface xyz [fat (l1-l3)]
-c
-c-----------------------------------------------------------------
-c     Parameter list for qreo21.F:subroutine esurf
-c      subroutine esurf( n, x, y, z, r, cosrlo, s1, s2, sinrlo,
-c     a  s3, s4, cosrla, sinrla, ex, ey, ez )
-c-----------------------------------------------------------------
            call esurf( numgt, fat(l4), fat(l5), fat(l6), srad,
      a          cosrlo, s1, s2, sinrlo, s3, s4, cosrla, sinrla,
      a          fat( l1 ), fat( l2 ), fat( l3 ))
+c     values now in l1, l2, l3
 c
-c     Earth surface xyz are now in fat (l1-l3)
 c     
-c-----------------------------------------------------------------
-c     Parameter list for qreo2.F:subroutine dxyz
-c      subroutine dxyz( n, ex, ey, ez, r, d1, d2, sindla, cosdla,
-c     a  sindlo, d3, d4, cosdla, x, y, z, iadjust_z, salti, dalti,
-c     a  diag_ljm )
-c-----------------------------------------------------------------
-c
 c     translate to the destination landmark and convert back to xyz
-c
            call dxyz( numgt, fat(l1), fat(l2), fat(l3), drad,
      a          d1, d2, sindla, cosdlo, sindlo, d3, d4, cosdla,
      a          fat(l4), fat(l5), fat(l6), iadjust_z, salti, dalti,
      a          diag_ljm )
+           if(diag_ljm)then
+              print *,'  After dxyz: d1,d2,d3,d4=',d1,d2,d3,d4
+           endif
 c
-c     Range gate xyz values now in l4, l5, l6 again
+c     values now in l4, l5, l6 again
 c     
 c     
 c     rotate to the baseline
 c     
            if( copln ) then
-c
-c  convert destination xyz to destination coplane coordinates
-c
               call dcopl( numgt, fat(l1), fat(l2), fat(l3), dbaser,
      a             fat(l4), fat(l5), fat(l6), zok )
            else
-c
-c  swap x and y axes
-c
               call xyswap( numgt, fat(l1), fat(l2), fat(l3),
      a             fat(l4), fat(l5), fat(l6), dbaser, zok )
            endif
-c
-c     Range gate xyz values back to l1, l2, l3
-c
+c     values back to l1, l2, l3
+
         else
            if(diag_ljm)then
               print *,' '
@@ -980,8 +894,7 @@ c
 
         endif
 c
-C     Temporarily make the fat(l1) printout (call typefe values 101-115.
-       if( .false. .and. zok ) then
+      if( .false. .and. zok ) then
 c      if( zok ) then
          call inslc( 'after xlt' )
          call dmplnb
@@ -991,7 +904,7 @@ c         call typefe( fat(l6), 101, 115 )
          call typefe( fat(l1), 101, 115 )
          call typefe( fat(l2), 101, 115 )
          call typefe( fat(l3), 101, 115 )
-       endif
+      endif
 c     
 c   make sure this beam has gates inside the grid
 c   x-axis
@@ -1029,7 +942,6 @@ c z-axis
     	    goto 77
     	endif
 c
-c     loop over fields this beam
 c
       do 66 i=1,nflds
         mne(1:2) = fldmne(i*2-1:)
@@ -1042,23 +954,6 @@ c
         if( fldoff(i) .eq. inull .or. dupfld(i)) then
             go to 53
         endif
-c   Branch according to type of field
-c   fldtyp  =   type of field   
-c   51              1 = normal data (no conversion before interpolate)
-c   51              2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
-c
-c     These fields come from beam header information
-c
-c   53              3 = time
-c   53              4 = azimuth
-c   53              5 = elevation
-c   53              6 = range
-c   51              7 = height above curved Earth (km MSL)
-c   51              8 = 
-c   51              9 = k or the weighted number of folds
-c   52             10 = field created by function FSPECL 
         go to( 51, 51, 53, 53, 53, 53, 51, 51, 51, 52 ), fldtyp(i)
 c
   51    continue
@@ -1095,12 +990,6 @@ c   convert the dbz field to z
 c
 c
   52    continue
-
-c-----------------------------------------------------------------
-c     Parameter list for qreo1.F:subroutine fspecl
-c        subroutine fspecl( n, az, el, r, rlat, rlon, ralt, 
-c     +      x, y, z, glat, glon, galt, vnyq, itm, field )
-c-----------------------------------------------------------------
 c   create a special field
         spot = 1 + fldoff(i)
         call fspecl( numgt, azz, ell, rg, slati, slong, salti,
@@ -1115,7 +1004,6 @@ c   or a repeat source field
         go to 66
 c
   66  continue
-c     End loop over fields this beam
 c
          numpnt = numpnt+numgt
 c
@@ -1131,22 +1019,11 @@ c   update tape ending time and volume ending time in the header
 c
     	fcount = fcount+1
 c
-c   now filter it to the grid by calling filter
+c   now filter it to the grid
 c
-c-----------------------------------------------------------------
-c     Parameter list for qreo2.F:subroutine filter
-c     subroutine filter( x, y, z, flds, ngts, zok, az, el, itm
-c    +  , newvol, igskip, azrad, elrad, rgrad, iradfun, 
-c    +  , airpln, diag_ljm )
-c-----------------------------------------------------------------
-c
-c-----print *,'qreo1-F-reo: Before call filter, airpln,i,fldtyp(i)=',
-c----+       airpln,i,fldtyp(i)        
-c-----print *,'qreo1.F-prefilter: numgt,gatesp,az,el,itm=',
-c----+       numgt,gatesp,azz,ell,itm
-        call filter( fat(l1), fat(l2), fat(l3), fat, numgt,
+      call filter( fat(l1), fat(l2), fat(l3), fat, numgt,
      a  zok, azz, ell, itm, newvol, igskip, azrad, elrad, rgrad,
-     a  iradfun, airpln, adaptive, diag_ljm )
+     a  iradfun, diag_ljm )
 c
 c 
   77  continue
@@ -1178,9 +1055,6 @@ c    	 write(*,*) 'final:', error, numbm
     	 write(*,*) 'endit ', volnum, kvoln(butter)
          goto 900
       else
-c     
-c     bottom of loop thru the input data (beam-by-beam this volume)
-c
          numbm=numbm+1
          knterr=0
          goto 44
@@ -1225,11 +1099,6 @@ c
     	call clsscr()
         call dmplin( 'stop', 4 )
 c        call histit
-c
-c     End of subroutine reo.  An
-c     input volume has been gridded
-c
-        call flush(6)
         return
         end
 c
@@ -1240,12 +1109,12 @@ c-----------------------------------------------------------------------
      a	    , igskip, flee, azrad, elrad, rgrad, earthr
      a	    , gnyqv, grc, gbmwid, grnd_out, range1, range2
      a      , swpskp, bmskp, iadjust_z, sprint_xlt, twiddle
-     a      , iradfun, adaptive, diag_ljm)
+     a      , iradfun, diag_ljm)
 c  obtain reo specifiec parameters from input file
 c
         character acs*(*), syms*(*)
         dimension aaz(*), advec(*), advhgt(*)
-        logical iadjust_z, sprint_xlt, adaptive
+        logical iadjust_z, sprint_xlt
         logical same
         logical diag_ljm
 c
@@ -1259,7 +1128,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+     +,         deltai(3),      numval(3),      spacng(3)
      +,         tref,           values(maxval,3)
 c 
 	integer swpskp, bmskp
@@ -1305,7 +1174,6 @@ c
         twiddle = 3
         c1 = c
 
-        print *,'qreo1-inidat: c1=',c1
         call fields( acs, c1, nacs, flee, diag_ljm )
 c
 c     subroutine fields( acs, a1, a2, flee, diag_ljm )
@@ -1453,12 +1321,8 @@ c
     	    	call putfp(i, gtweak)
     	    endif
     	endif
-
-c     USE_GEOMETRIC_ALT ==> Get altitude_agl from ASIB via
-c     alt = ugealt(kbuf) -> qdap:real function ugealt() -> cugealt(x)
-c     
-c
-c    	a1 = indexa( acs, 1, nacs, 5, 'USE_GEOMETRIC_ALT' )
+c       
+    	a1 = indexa( acs, 1, nacs, 5, 'USE_GEOMETRIC_ALT' )
     	if( a1 .gt. 0 ) then
             grnd_out = .true.
 	    j = namefx('GEO_ALT', i)
@@ -1547,7 +1411,6 @@ c
     	a1 = indexa( acs, 1, nacs, 4, 'XRADIUS' )
     	if( a1 .gt. 0 ) then
             call rargs( acs, a1, nacs, radius(1), rum, dum )
-            print *,'qreo1-inidat: radius(1)=',radius(1)
     	endif
 c       
     	a1 = indexa( acs, 1, nacs, 4, 'YMIN' )
@@ -1568,7 +1431,6 @@ c
     	a1 = indexa( acs, 1, nacs, 4, 'YRADIUS' )
     	if( a1 .gt. 0 ) then
             call rargs( acs, a1, nacs, radius(2), rum, dum )
-            print *,'qreo1-inidat: radius(1)=',radius(2)
     	endif
 c       
     	a1 = indexa( acs, 1, nacs, 4, 'ZMIN' )
@@ -1589,7 +1451,6 @@ c
     	a1 = indexa( acs, 1, nacs, 4, 'ZRADIUS' )
     	if( a1 .gt. 0 ) then
             call rargs( acs, a1, nacs, radius(3), rum, dum )
-            print *,'qreo1-inidat: radius(3)=',radius(3)
     	endif
 c       
     	a1 = indexa( acs, 1, nacs, 4, 'AZRADIUS' )
@@ -1607,47 +1468,11 @@ c
             call rargs( acs, a1, nacs, rgrad, rum, dum )
     	endif
 
-c+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-c     Determine the algorithn for populating the output grid
-c     Adaptive = .true.  ==> Populates only the nearest output grid points.
-c              = .false. ==> Populates all output grid points in the box.
-c     Default value of adaptive is .false. (original algorithm).
-c
-c
-c       function indexa( a, ith, jth, n, p )
-        if(diag_ljm)then
-           print *,'POPULATE before indexa:  acs=',acs
-           print *,'POPULATE before indexa: nacs=',nacs
-        endif
-        a1 = indexa( acs, 1, nacs, 6, 'POPULA' ) 
-        print *,'POPULA after indexa: a1=',a1
-        call flush(6)
-        if( a1 .gt. 0 ) then
-           call attarg( acs, a1, nacs, 1, aa1, n )
-           print *,'POPULA: pointer to begin attribute  aa1=',aa1
-           print *,'POPULA: length of parameter           n=',n
-           call flush(6)
-           
-           if( same( acs, aa1, 6, 'ADAPTIVE', 1 )) then
-              adaptive = .true.
-           else
-              adaptive = .false.
-           end if
-        else
-              adaptive = .false.
-              print *,'***** POPULATE MUST BE SPECIFIED *****'
-              print *,'** EITHER ORIGINAL or ADAPTIVE **'
-c              call panic( '*********' )
-              print *,'inidat-POPULATE: default adaptive=',adaptive
-        end if
-        call flush(6)
-
 c***************************************************************
 c     Determine the type of box dimensions to use
 c        iradfun = 1 (Cartesian - Use fixed XYZ radii)
 c        iradfun = 2 (Spherical - Use range-dependent RAE radii)
-c        iradfun = 3 (OutIndex  - Use fixed XYZ index radii]
-c        iradfun = 4 [Hybrid    - Use AMAX1(XYZ,RAE) radii]
+c        iradfun = 3 [Hybrid    - Use AMAX1(XYZ,RAE) radii]
 c
         call flush(6)
 
@@ -1673,7 +1498,7 @@ c       function indexa( a, ith, jth, n, p )
             call flush(6)
 
 c     Set the value of iradfun according to which weighting function
-c     (parameter = CARTESIAN, SPHERICAL, HYBRID, or OUTINDEX) was
+c     (parameter = CARTESIAN, SPHERICAL, or HYBRID) was
 c     selected.  The logical function (foflib.F:same) does a comparison
 c     between the parameter following the BOX DIM attribute and the 
 c     character string in single quotes.
@@ -1686,8 +1511,6 @@ c
                iradfun = 2
             elseif( same( acs, aa1, 6, 'HYBRID', 1 )) then
                iradfun = 3
-            elseif( same( acs, aa1, 6, 'OUTINDEX', 1 )) then
-               iradfun = 4
             endif
          else
             print *,'***** BOX DIMENSIONS MUST BE SPECIFIED *****'
@@ -2088,13 +1911,13 @@ c     (LJM 6/15/09 - diagnostic prints)
 c
         len_string = GETLEN(acs)
         na = len_string
-        if(diag_ljm)then
+c-------if(diag_ljm)then
            print *,'qreo1-fields has been called from qreo1-inidat'
            print *,'Fields    acs len_string=',len_string
            print *,'FIELDS:(c1,nacs)->(a1,a2)=',a1,a2
            print *,'FIELDS:   acs=',acs(1:len_string)
            print *,'FIELDS: First call to attarg'
-        endif
+c-------endif
 
         call insl( '**fields**  ', 10 )
         flee = .false.
@@ -2170,10 +1993,8 @@ c   the number of the field that has been requested.
 c
         call attarg( acs, f1, ae, 1, aa, na )
         ff = nflds+1
-c-------print *,'qreo1-fields: nflds,ff=',nflds,ff
         if(ff.gt.mxfld)then
-           print *,'Fields routine in qreo1.F (ff .gt. mxfld)',ff,mxfld
-           print *,'****YOU ARE ASKING FOR TOO MANY FIELDS****'
+           print *,'Fields routine in qreo1.F (ff .gt. mxfld)'
            call flush
            STOP
         endif
@@ -2224,20 +2045,10 @@ c     before interpolation!
 c
 c     End of checking for field types 3-7, 10, and 1.
 c    
-<<<<<<< .mine
-c     (LJM 06/15/09 diagnostic prints)
-            if(diag_ljm)then
-               do j=1,nflds
-                  jj=2*j-1
-                  print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
-               enddo
-            endif
-=======
 c-----------do j=1,nflds
 c               jj=2*j-1
 c               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
 c-----------enddo
->>>>>>> .r71
             call mnesrc( fldmne, nflds, acs, aa, 2, ith,
      +           f1,nch,flee,NO)
             if( ith .gt. 0) then
@@ -2328,7 +2139,6 @@ c   bump output field count
         nx = incb( noutf, 1 )
 c
 c   put away the name of the output field
-c-------print *,'qreo1-fields: Put away, nx,ab,nb=',nx,ab,nb
         call attarg( acs, f1, ae, 2, ab, nb )
         call bfill( mnames, mnptr(nx), 8 )
         if( nb .gt. 0 ) then
@@ -2346,8 +2156,8 @@ c
         mm=8*(noutf-1)+1
         if(noutf.eq.1)then
            print *,' '
-           print *,'Fields routine in qreo1.F:'
            print *,'List source and output field numbers and names'
+           print *,'Fields routine in qreo1.F:'
         endif
         print *,'Fields routine in qreo1.F: nflds,noutf,ff=',
      +       nflds,noutf,ff,fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
@@ -2531,7 +2341,7 @@ c   output field type
             nn=2*(ith-1)+1
             mm=8*(nx-1)+1
             print *,'Fields routine in qreo1.F:',
-     +           ' Creating MINBIGR    fld nx=',nx,noutf,
+     +           ' Creating MINBIGR fld nx=',nx,noutf,
      +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
@@ -2556,7 +2366,7 @@ c   output field type
             nn=2*(ith-1)+1
             mm=8*(nx-1)+1
             print *,'Fields routine in qreo1.F:',
-     +           ' Creating MAXbigr    fld nx=',nx,noutf,
+     +           ' Creating MAXbigr fld nx=',nx,noutf,
      +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
@@ -2670,7 +2480,7 @@ c   output field type
             nn=2*(ith-1)+1
             mm=8*(nx-1)+1
             print *,'Fields routine in qreo1.F:',
-     +           ' Creating RADIUS     fld nx=',nx,noutf,
+     +           ' Creating RADIUS fld nx=',nx,noutf,
      +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
@@ -3455,8 +3265,6 @@ c	call e12('alt', 3, alt)
 	elev_limit = -0.00001
         alt = alt_
         bmwidth = bmwidth_
-
-c     Get altitude_agl from ASIB: qdap:real function ugealt() --> cugealt(x)
 c
 	if(namefx('GEO_ALT', i) .ne. 0) then
 	    alt = ugealt(kbuf)
