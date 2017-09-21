@@ -1,4 +1,19 @@
 README for REORDER VERSION 1.38-3.10 (LJM Jan 14, 2015)
+=======================================================
+
+INSTALLING 32-bit packages
+==========================
+
+Reorder is built as a 32-bit application, i.e. using the -m32 compile flag.
+
+So you will need to install the 32-bit version of the supporting libraries.
+
+For example on RedHat-based systems (including Centos, Scientific Linux)
+run the following:
+
+  sudo yum install -y gcc gcc-c++ gcc-gfortran \
+  libgfortran.i686 glibc-devel.i686 libX11-devel.i686 libXext-devel.i686 \
+  libstdc++-devel.i686
 
 BUILDING
 ========
