@@ -1,6 +1,6 @@
 Import('env')
 
-sources = ['qreoroot.F']
+sources = ['qreoroot_dorade.F']
 
 
 env.AppendUnique(CPPDEFINES = ['UNIX','LITTLENDIAN'])

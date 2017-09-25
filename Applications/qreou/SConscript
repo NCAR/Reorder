@@ -1,6 +1,6 @@
 Import('env')
 
-sources = ['qreoroot.F','fofclibPlus.c','qufap.F','unixqufap.F']
+sources = ['qreoroot_uf.F','fofclibPlus.c','qufap.F','unixqufap.F']
 
 env.AppendUnique(CPPDEFINES = ['UNIX','LITTLENDIAN'])
 env.AppendUnique(LIBPATH    = [env.installLocalLib])
